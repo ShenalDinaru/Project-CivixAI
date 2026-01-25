@@ -6,3 +6,4 @@ Deferent branches for each bot
 Branch for document scanner
 yaazhan Test
 duvindu test
+tharuka test
