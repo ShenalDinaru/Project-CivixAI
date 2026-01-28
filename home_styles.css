@@ -1,0 +1,308 @@
+/* Core Layout & Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+@font-face {
+    font-family: "Plus Jakarta Sans";
+    src: url("Resources/fonts/PlusJakartaSans-VariableFont_wght.woff2") format("woff2");
+    font-weight: 400 800;
+    font-style: normal;
+    font-display: swap;
+}
+
+body {
+    background-color: #06040d;
+    color: #ffffff;
+    min-height: 100vh;
+    padding: 24px 40px 40px;
+    font-family: "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.container {
+    max-width: 960px;
+    margin: 32px auto 40px;
+}
+
+/* Nav & Logo */
+.top-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 35px;
+}
+
+.profile-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 0% 0%, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02));
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.profile-circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.brand-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.nav-logo-xl {
+    height: 36px;
+    width: auto;
+}
+
+.view-label {
+    font-size: 14px;
+    opacity: 0.7;
+}
+
+.notif-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: radial-gradient(circle at 0% 0%, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.notif-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 18px rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Neon Notification Bar */
+.neon-outline-container {
+    position: relative;
+    border-radius: 24px;
+    margin-bottom: 30px;
+}
+
+@property --neon-angle {
+    syntax: '<angle>';
+    inherits: false;
+    initial-value: 0deg;
+}
+
+.neon-outline-container::before {
+    content: "";
+    position: absolute;
+    inset: -2px; /* extend slightly outside so outline sits just outside */
+    border-radius: inherit;
+    padding: 2px; /* Outline thickness */
+    background: conic-gradient(from var(--neon-angle), #FF0000, #D4FF00, #66FF00, #FF0000);
+    animation: neonSpin 4s linear infinite;
+    /* Mask so only the outline shows, center stays transparent */
+    -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+}
+
+@keyframes neonSpin {
+    to { --neon-angle: 360deg; }
+}
+
+.gazette-box {
+    position: relative;
+    background: rgba(218, 218, 218, 0.25); /* Interior glass layer - DADADA @ 25% */
+    border-radius: 22px;
+    overflow: hidden;
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.slider-container {
+    width: 100%;
+    overflow: hidden;
+    cursor: grab;
+}
+.slider-track { display: flex; transition: transform 0.8s ease-in-out; }
+.slide { min-width: 100%; padding: 15px 20px; }
+.slide-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.slide-main {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.text-box h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.text-box p {
+    font-size: 13px;
+    opacity: 0.82;
+}
+
+.slide-next-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.slide-next-btn img {
+    width: 14px;
+    height: 14px;
+}
+
+.slide-next-btn:hover {
+    transform: translateX(1px);
+    border-color: rgba(255, 255, 255, 0.7);
+    box-shadow: 0 0 14px rgba(0, 0, 0, 0.75);
+}
+
+.slider-container.is-dragging {
+    cursor: grabbing;
+}
+
+/* Glass Cards & Hovering */
+.glass-card {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 24px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.75);
+    transition: all 0.35s ease-out;
+}
+
+.glass-card:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-6px) scale(1.01);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.9);
+}
+
+/* Dashboard Grid */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 15px;
+    margin-bottom: 35px;
+}
+
+.main-feature {
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 260px;
+}
+
+.orange-glow { border: 1.5px solid #FF3B00; }
+
+.side-column { display: flex; flex-direction: column; gap: 15px; }
+.utility-card {
+    height: 132.5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+/* UI Elements */
+.card-top {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.card-top h2 {
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.icon-circle-bg {
+    background: rgba(255, 255, 255, 0.08);
+    padding: 12px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-svg {
+    width: 22px;
+    height: 22px;
+}
+
+.btn-ask {
+    /* Figma gradient: BB0E0E → FF4E02, biased more to red */
+    background: linear-gradient(120deg, #BB0E0E 10%, #BB0E0E 55%, #FF4E02 100%);
+    border: none;
+    color: white;
+    padding: 14px;
+    border-radius: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btn-ask:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 35px rgba(255, 81, 0, 0.65);
+}
+
+.history-section {
+    margin-top: 30px;
+}
+
+.history-section h4 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.history-item { display: flex; align-items: center; gap: 15px; padding: 15px; margin-top: 15px; }
+.history-text p { font-weight: 500; }
+.history-text small { opacity: 0.6; }
+
+.arrow-icon {
+    margin-left: auto;
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 18px 16px 24px;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: 1.1fr 0.9fr;
+    }
+}
