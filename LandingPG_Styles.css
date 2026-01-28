@@ -1,0 +1,130 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+body {
+  background-color: #000;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.video-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: fadeInBackground 1.5s ease-in;
+}
+
+.video-wrapper video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  min-width: 100%;
+  min-height: 100%;
+  transform: translate(-50%, -50%);
+  object-fit: cover;
+  z-index: 1;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 2;
+}
+
+
+.ui-card {
+  position: relative;
+  z-index: 3;
+  width: 90%;
+  max-width: 380px;
+  min-height: 550px;
+  padding: 2.5rem 1.8rem;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  
+  opacity: 0;
+  transform: translateY(40px);
+  animation: cardRise 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: 0.2s;
+}
+
+
+.brand-container, .bot-icon, .auth-buttons, .chat-box {
+  opacity: 0;
+  transform: translateY(15px);
+  animation: elementFadeUp 0.8s ease-out forwards;
+}
+
+.brand-container { animation-delay: 0.6s; }
+.bot-icon        { animation-delay: 0.8s; }
+.auth-buttons    { animation-delay: 1.0s; }
+.chat-box        { animation-delay: 1.2s; }
+
+
+@keyframes fadeInBackground {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes cardRise {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes elementFadeUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
+.btn {
+  border: none;
+  border-radius: 28px;
+  padding: 0.75rem 1.8rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.2s ease;
+  will-change: transform;
+}
+
+.primary {
+  background: #ffffff;
+  color: #ff3b00;
+}
+
+.chat-box {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  padding: 1.2rem;
+}
+
+.chat-btn {
+  width: 100%;
+  background: linear-gradient(90deg, #e63500, #ff5100);
+  color: #ffffff;
+}
+
+.brand-img { max-width: 180px; height: auto; }
+.bot-icon img { width: 110px; margin: 0 auto; display: block; }
+.auth-buttons { display: flex; justify-content: center; gap: 1rem; margin: 1.5rem 0; }
+.chat-header { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; margin-bottom: 1rem; opacity: 0.7; }
+
+@media (max-width: 480px) {
+  .ui-card { max-width: 95%; }
+  .auth-buttons { flex-direction: column; }
+}
