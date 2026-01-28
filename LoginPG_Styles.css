@@ -1,0 +1,74 @@
+/* Layout & Smooth Entrance */
+.ui-card {
+    justify-content: center;
+    gap: 1.5rem;
+    animation: cardRise 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Adjusted Smaller Back Button */
+.back-nav {
+    position: absolute;
+    top: 20px;   /* Slightly tighter to the corner */
+    left: 20px;
+    cursor: pointer;
+    z-index: 10;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    opacity: 0.8;
+}
+
+.back-icon { 
+    width: 28px;  /* Reduced size for a subtle look */
+    height: 28px; 
+}
+
+.back-nav:hover { 
+    transform: scale(1.1); 
+    opacity: 1;
+}
+
+/* Logo Alignment */
+.login-logo { margin-bottom: 0.5rem; }
+.login-logo .brand-img { max-width: 190px; }
+
+/* Form Elements */
+.auth-form { display: flex; flex-direction: column; gap: 15px; width: 100%; }
+
+.password-container { position: relative; display: flex; align-items: center; }
+
+.toggle-password {
+    position: absolute;
+    right: 20px;
+    width: 20px;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.3s;
+}
+.toggle-password:hover { opacity: 1; }
+
+.input-group-wrapper input {
+    width: 100%;
+    padding: 1.1rem 1.5rem;
+    border-radius: 50px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08); 
+    color: white;
+    outline: none;
+    font-size: 0.95rem;
+}
+
+.form-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+    padding: 0 10px;
+}
+
+.forgot-link {
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+.forgot-link:hover { color: #ff5100; text-decoration: underline; }
+
+.reg-link { color: #ff5100; cursor: pointer; font-weight: 600; }
