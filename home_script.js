@@ -149,7 +149,7 @@ function renderChatHistoryFromStorage() {
         const iconWrap = document.createElement('div');
         iconWrap.className = 'icon-circle-bg';
         const iconImg = document.createElement('img');
-        iconImg.src = 'Resources/chat_doc.svg';
+        iconImg.src = 'Resources/Icons/File Scanner Icon.svg';
         iconImg.alt = 'Chat';
         iconWrap.appendChild(iconImg);
 
@@ -180,7 +180,7 @@ function renderChatHistoryFromStorage() {
         const iconWrap = document.createElement('div');
         iconWrap.className = 'icon-circle-bg';
         const iconImg = document.createElement('img');
-        iconImg.src = 'Resources/chat_doc.svg';
+        iconImg.src = 'Resources/Icons/File Scanner Icon.svg';
         iconImg.alt = 'Chat';
         iconWrap.appendChild(iconImg);
 
@@ -197,9 +197,9 @@ function renderChatHistoryFromStorage() {
         textWrap.appendChild(date);
 
         const arrow = document.createElement('img');
-        arrow.src = 'Resources/arrow_up_right.svg';
+        arrow.src = 'Resources/Icons/Next Icon.svg';
         arrow.alt = 'Open';
-        arrow.className = 'arrow-icon';
+        arrow.className = 'arrow-icon history-open-icon';
 
         card.appendChild(iconWrap);
         card.appendChild(textWrap);
