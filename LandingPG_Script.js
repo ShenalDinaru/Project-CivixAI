@@ -27,5 +27,5 @@ askNowBtn.addEventListener('mouseleave', () => {
 
 
 loginBtn.onclick = () => window.location.href = 'LoginPG.html';      //NAVIGATION REDIRECTS-S //
-signupBtn.onclick = () => window.location.href = 'signup.html';
+signupBtn.onclick = () => window.location.href = 'SignupPG.html';
 askNowBtn.onclick = () => window.location.href = 'chat.html';
