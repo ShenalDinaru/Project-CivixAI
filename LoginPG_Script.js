@@ -25,7 +25,7 @@ askNowBtn.addEventListener('mouseleave', () => {
 
 // NAVIGATION REDIRECTS
 backBtn.onclick = () => {
-    window.location.href = 'Landingpage.html';
+    window.location.href = 'LandingPG.html';
 };
 
 registerLink.onclick = () => {
