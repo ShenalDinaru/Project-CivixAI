@@ -29,7 +29,7 @@ backBtn.onclick = () => {
 };
 
 registerLink.onclick = () => {
-    window.location.href = 'signup.html';
+    window.location.href = 'SignupPG.html';
 };
 
 loginForm.onsubmit = (e) => {
