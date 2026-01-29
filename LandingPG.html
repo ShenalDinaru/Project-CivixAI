@@ -1,0 +1,46 @@
+<!-- Landing page -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CivixAI | Home</title>
+
+    <link rel="stylesheet" href="landingpg_styles.css" />
+</head>
+<body>
+
+    <div class="video-wrapper">
+        <video autoplay muted loop playsinline poster="Resources/sigiriya.jpg">
+            <source src="Resources/Background/SL Edited.mp4" type="video/mp4" />
+        </video>
+
+        <div class="overlay"></div>
+
+        <div class="ui-card" id="mainCard">
+            <div class="brand-container">
+                <img src="Resources/Background/welcome1.png" alt="CivixAI Logo" class="brand-img">
+            </div>
+
+            <div class="bot-icon">
+                <img src="Resources/Animations/Login Gif Edited3.mov" alt="CivixAI Assistant">
+            </div>
+
+            <div class="auth-buttons">
+                <button class="btn primary" id="loginBtn">Login</button>
+                <button class="btn primary" id="signupBtn">Sign Up</button>
+            </div>
+
+            <div class="chat-box">
+                <div class="chat-header">
+                    Start Conversation
+                </div>
+                <button class="btn chat-btn" id="askNowBtn">Ask now</button>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="landingpg_script.js"></script>
+</body>
+</html>
