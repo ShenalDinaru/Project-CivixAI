@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>CivixAI | Verify Email</title>
+    <link rel="stylesheet" href="LandingPG_Styles.css" />
+    <link rel="stylesheet" href="LoginPG_Styles.css" />
+</head>
+<body>
+
+    <div class="video-wrapper">
+        <video autoplay muted loop playsinline poster="Resources/Background/sigiriya.jpg">
+            <source src="Resources/Background/SL Edited.mp4" type="video/mp4" />
+        </video>
+
+        <div class="overlay"></div>
+
+        <div class="ui-card" id="verifyCard">
+            <div class="back-nav" id="backBtn">
+                <img src="Resources/Icons/Back Button Icon.svg" alt="Back" class="back-icon">
+            </div>
+
+            <div class="brand-container login-logo">
+                <img src="Resources/Background/welcome1.png" alt="CivixAI Logo" class="brand-img">
+            </div>
+
+            <h2 class="form-title">Enter the 4-digit code sent to your email</h2>
+
+            <div class="auth-subtitle">
+                <p>We sent the code to <span id="displayEmail">user@example.com</span></p>
+                <p>Not your email? <span class="reg-link" id="changeEmail">Change it here</span></p>
+            </div>
+
+            <form id="verifyForm" class="auth-form">
+                <div class="otp-container">
+                    <input type="text" maxlength="1" class="otp-input" pattern="\d*" inputmode="numeric">
+                    <input type="text" maxlength="1" class="otp-input" pattern="\d*" inputmode="numeric">
+                    <input type="text" maxlength="1" class="otp-input" pattern="\d*" inputmode="numeric">
+                    <input type="text" maxlength="1" class="otp-input" pattern="\d*" inputmode="numeric">
+                </div>
+
+                <div class="resend-timer">
+                    Resend the code in <span id="timer">00:59</span>
+                </div>
+
+                <button type="submit" class="btn chat-btn" id="verifyBtn">NEXT ></button>
+            </form>
+        </div>
+    </div>
+
+    <script src="VerifyPG_Script.js"></script>
+</body>
+</html>

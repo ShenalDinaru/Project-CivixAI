@@ -195,3 +195,60 @@
         max-width: 160px;
     }
 }
+
+
+/* Verify Page CSS */
+
+
+.auth-subtitle {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 1.5rem;
+    line-height: 1.4;
+}
+
+.otp-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 1rem 0;
+}
+
+.otp-input {
+    width: 70px;
+    height: 75px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    color: white;
+    font-size: 1.8rem;
+    text-align: center;
+    font-weight: bold;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.otp-input:focus {
+    border-color: #ff5100;
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 15px rgba(255, 81, 0, 0.3);
+}
+
+.resend-timer {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin: 10px 0 20px 0;
+}
+
+/* Ensure title doesn't wrap awkwardly */
+.form-title {
+    max-width: 90%;
+    line-height: 1.2;
+}
+
+@media (max-width: 400px) {
+    .otp-input {
+        width: 60px;
+        height: 65px;
+    }
+}
