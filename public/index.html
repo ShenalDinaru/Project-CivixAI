@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CivixAI - Personal AI Tax Assistant</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="40" height="40" rx="8" fill="#4F46E5"/>
+                    <path d="M20 10L28 16V24L20 30L12 24V16L20 10Z" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+                    <path d="M20 18V22M18 20H22" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <h1>CivixAI</h1>
+            </div>
+            <p class="subtitle">Personal AI Tax Assistant</p>
+        </header>
+
+        <div class="chat-container" id="chatContainer">
+            <div class="welcome-message">
+                <div class="welcome-icon">💼</div>
+                <h2>Welcome to CivixAI!</h2>
+                <p>I'm your personal AI tax assistant. I can help you with:</p>
+                <ul>
+                    <li>Tax deductions and credits</li>
+                    <li>Filing requirements and deadlines</li>
+                    <li>Tax planning strategies</li>
+                    <li>Understanding tax forms and documents</li>
+                </ul>
+                <p class="disclaimer">⚠️ I provide helpful information, but I'm not a substitute for a licensed tax professional.</p>
+            </div>
+        </div>
+
+        <div class="input-container">
+            <div class="input-wrapper">
+                <textarea 
+                    id="messageInput" 
+                    placeholder="Ask me anything about taxes..."
+                    rows="1"
+                ></textarea>
+                <button id="sendButton" class="send-button">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 8L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+            <p class="input-hint">Press Enter to send, Shift+Enter for new line</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
