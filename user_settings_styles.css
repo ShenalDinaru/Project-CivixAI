@@ -78,8 +78,8 @@
   }
   
   .back-btn img {
-    width: 14px;
-    height: 26px;
+    width: 10px;
+    height: 20px;
     display: block;
     object-fit: contain;
     filter: brightness(0) invert(1);
