@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document Scanner</title>
+  <link rel="stylesheet" href="scanner_and_upload_styles.css">
+</head>
+<body>
+  <div class="scanner">
+    <!-- Logo Watermark -->
+    <img class="logo" src="Resources/CivixAi Logo/CivixAI Logo (Dark Mode) - No BG (Home).png" alt="CivixAI">
+    
+    
+    <!-- Top Navigation Icons -->
+    <button class="nav-btn nav-left" id="backBtn">
+      <img src="Resources/Icons/Back Icon.svg" alt="Back">
+    </button>
+    <button class="nav-btn nav-right" id="menuBtn">
+      <img src="Resources/Icons/3 Dots Icon.svg" alt="Options">
+    </button>
+
+    <!-- Options Menu -->
+    <div class="options-menu" id="optionsMenu">
+      <div class="menu-item">
+        <div class="menu-title">File Organization & Management</div>
+        <div class="menu-desc">Rename, move folder, or delete pages.</div>
+      </div>
+      <div class="menu-item">
+        <div class="menu-title">Editing & Enhancement</div>
+        <div class="menu-desc">Rotate, crop, filters, or retake.</div>
+      </div>
+      <div class="menu-item">
+        <div class="menu-title">Export & Sharing Options</div>
+        <div class="menu-desc">Save as PDF, email, or share.</div>
+      </div>
+      <div class="menu-item">
+        <div class="menu-title">Add Additional Pages</div>
+        <div class="menu-desc">Append pages to existing scan.</div>
+      </div>
+    </div>
+    
+    <!-- Camera Frame -->
+    <div class="camera-frame">
+      <video id="camera" autoplay playsinline></video>
+      <!-- Scanner Overlay -->
+      <div class="scan-overlay">
+        <div class="scan-corner top-left"></div>
+        <div class="scan-corner top-right"></div>
+        <div class="scan-corner bottom-left"></div>
+        <div class="scan-corner bottom-right"></div>
+        <div class="scan-line"></div>
+      </div>
+    </div>
+    
+    <!-- Capture Button (overlapping the bottom bar) -->
+    <button class="capture-button" id="captureBtn">
+      <div class="capture-button-inner">
+        <div class="capture-button-center"></div>
+      </div>
+    </button>
+    
+    <!-- Bottom Icon Bar -->
+    <div class="bottom-bar">
+      <img class="icon" src="Resources/Icons/Paper Clip Icon.svg" alt="Attach" id="attachBtn">
+      <div class="spacer"></div>
+      <img class="icon" src="Resources/Icons/Image Icon.svg" alt="Gallery" id="galleryBtn">
+    </div>
+  </div>
+  
+  <script src="scanner_and_upload_script.js"></script>
+</body>
+</html>
