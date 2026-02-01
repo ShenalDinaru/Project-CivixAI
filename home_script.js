@@ -172,7 +172,7 @@ function renderChatHistoryFromStorage() {
     const iconWrap = document.createElement('div');
     iconWrap.className = 'icon-circle-bg';
     const iconImg = document.createElement('img');
-    iconImg.src = 'Resources/Icons/File Scanner Icon.svg';
+    iconImg.src = 'Resources/Icons/Chat Icon.svg';
     iconImg.alt = 'Chat';
     iconWrap.appendChild(iconImg);
 
@@ -204,7 +204,7 @@ function renderChatHistoryFromStorage() {
     const iconWrap = document.createElement('div');
     iconWrap.className = 'icon-circle-bg';
     const iconImg = document.createElement('img');
-    iconImg.src = 'Resources/Icons/File Scanner Icon.svg';
+    iconImg.src = 'Resources/Icons/Chat Icon.svg';
     iconImg.alt = 'Chat';
     iconWrap.appendChild(iconImg);
 
