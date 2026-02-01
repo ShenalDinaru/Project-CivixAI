@@ -17,7 +17,7 @@ export const retrieveRelevantChunks = async (query, topK = 5) => {
 
     // Step 2: Search vector store for similar chunks
     console.log('Searching for relevant tax knowledge...');
-    const relevantChunks = await vectorStore.search(queryEmbedding, topK, 0.7);
+    const relevantChunks = await vectorStore.search(queryEmbedding, topK, 0.25);
 
     return relevantChunks;
   } catch (error) {

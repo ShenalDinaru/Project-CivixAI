@@ -83,21 +83,52 @@ class VectorStore {
       return [];
     }
 
+    console.log(`Searching ${this.chunks.length} chunks with minScore ${minScore}`);
+    console.log(`Query embedding length: ${queryEmbedding.length}`);
+    console.log(`Sample chunk embedding length: ${this.chunks[0].embedding?.length || 'N/A'}`);
+
     // Calculate similarity for each chunk
     const results = this.chunks.map(chunk => ({
       ...chunk,
       score: this.cosineSimilarity(queryEmbedding, chunk.embedding)
     }));
 
+    console.log(`Sample scores from first 5 chunks: ${results.slice(0, 5).map(r => r.score.toFixed(3)).join(', ')}`);
+
     // Sort by similarity (highest first) and filter by minimum score
+    // When scores are close (within 0.05), prioritize latest year
     const topResults = results
       .filter(r => r.score >= minScore)
-      .sort((a, b) => b.score - a.score)
+      .sort((a, b) => {
+        const scoreDiff = b.score - a.score;
+        
+        // If scores are similar (within 5%), prefer latest year
+        if (Math.abs(scoreDiff) < 0.05) {
+          const yearA = this.extractYear(a.year);
+          const yearB = this.extractYear(b.year);
+          
+          if (yearA && yearB) {
+            return yearB - yearA; // Latest year first
+          }
+        }
+        
+        return scoreDiff; // Otherwise sort by score
+      })
       .slice(0, topK);
 
     console.log(`Found ${topResults.length} relevant chunks (scores: ${topResults.map(r => r.score.toFixed(3)).join(', ')})`);
 
     return topResults;
+  }
+
+  /**
+   * Extract year from various year formats (e.g., "2024", "2024/25", "2024-25")
+   */
+  extractYear(yearString) {
+    if (!yearString) return null;
+    
+    const match = String(yearString).match(/(\d{4})/);
+    return match ? parseInt(match[1]) : null;
   }
 
   /**

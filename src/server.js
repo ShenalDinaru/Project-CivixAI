@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import chatRoutes from './routes/chatRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { initializeRAG } from './services/ragService.js';
 
 dotenv.config();
 
@@ -28,6 +29,14 @@ app.use('/api/chat', chatRoutes);
 // Error handling middleware
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+// Initialize RAG system and start server
+async function startServer() {
+  console.log('Initializing RAG system...');
+  await initializeRAG();
+  
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+}
+
+startServer();
