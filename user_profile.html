@@ -1,68 +1,92 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>User Profile</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="user_profile_styles.css" />
 </head>
 <body>
   <header class="topbar">
-    <button class="icon-btn back" aria-label="Go back">←</button>
-    <button class="icon-btn logout" id="logoutBtn">Logout <span class="badge">★</span></button>
+    <button type="button" class="icon-btn back" id="backBtn" aria-label="Go back">←</button>
+    <button type="button" class="icon-btn logout" id="logoutBtn">
+      <span class="logout-icon" aria-hidden="true">★</span>
+      Logout
+    </button>
   </header>
 
   <main class="page">
     <section class="profile">
       <div class="profile-left">
-        <div class="avatar" aria-hidden="true">
-          <svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="80" cy="80" r="74" fill="#EADCF8" stroke="#FF6A1A" stroke-width="6" />
-            <circle cx="80" cy="58" r="24" fill="#F7E9FF" stroke="#FF6A1A" stroke-width="4" />
-            <path d="M36 120c8-20 36-26 44-26s36 6 44 26" stroke="#FF6A1A" stroke-width="6" stroke-linecap="round"/>
-          </svg>
+        <div class="avatar-wrap">
+          <div class="avatar" aria-hidden="true">
+            <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <circle cx="60" cy="60" r="56" fill="#EADCF8" stroke="#FF6A1A" stroke-width="3" />
+              <circle cx="60" cy="44" r="14" stroke="#FF6A1A" stroke-width="2.5" fill="none" />
+              <path d="M32 92c6-16 22-22 28-22s22 6 28 22" stroke="#FF6A1A" stroke-width="2.5" stroke-linecap="round" fill="none" />
+            </svg>
+          </div>
         </div>
-        <h1 class="name">User</h1>
+        <h1 class="user-name" id="userDisplayName">User</h1>
       </div>
 
       <div class="profile-right">
-        <div class="card">
-          <h2 class="card-title">User Details</h2>
-          <dl class="details">
-            <div class="detail-row"><dt>Full Name</dt><dd>Peter Davidson</dd></div>
-            <div class="detail-row"><dt>Email Address</dt><dd>pd@gmail.com</dd></div>
-            <div class="detail-row"><dt>Mobile Number</dt><dd>+94 712 313141</dd></div>
-          </dl>
-
-          <div class="card-actions">
-            <button class="btn settings" id="settingsBtn">
-              <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 15.5A3.5 3.5 0 1112 8.5a3.5 3.5 0 010 7z" stroke="#1A1A1A" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82L4.31 5.7A2 2 0 017.14 2.87l.06.06c.49.49 1.18.66 1.82.33h.01A1.65 1.65 0 0010.5 3H13a1.65 1.65 0 001.51 1c.64.33 1.33.16 1.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06c-.33.49-.16 1.18.33 1.82.36.36.86.55 1.36.55H21a2 2 0 010 4h-.09c-.5 0-1 .19-1.36.55-.49.64-.66 1.33-.33 1.82z" stroke="#1A1A1A" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              <span>User Settings</span>
-            </button>
+      <div class="details-section">
+        <h2 class="details-heading">User Details</h2>
+        <dl class="details">
+          <div class="detail-row">
+            <dt>Full Name</dt>
+            <dd id="detailFullName">—</dd>
           </div>
-        </div>
+          <div class="detail-row">
+            <dt>Email Address</dt>
+            <dd id="detailEmail">—</dd>
+          </div>
+          <div class="detail-row">
+            <dt>Mobile Number</dt>
+            <dd id="detailMobile">—</dd>
+          </div>
+        </dl>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn-settings" id="settingsBtn">
+          <svg class="btn-settings-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82L4.31 5.7A2 2 0 0 1 7.14 2.87l.06.06c.49.49 1.18.66 1.82.33h.01A1.65 1.65 0 0 0 10.5 3H13a1.65 1.65 0 0 0 1.51 1c.64.33 1.33.16 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06c-.33.49-.16 1.18.33 1.82.36.36.86.55 1.36.55H21a2 2 0 0 1 0 4h-.09c-.5 0-1 .19-1.36.55-.49.64-.66 1.33-.33 1.82z" />
+          </svg>
+          <span>User Settings</span>
+        </button>
+      </div>
       </div>
     </section>
   </main>
 
-  <!-- Modal for settings -->
-  <div id="modal" class="modal" aria-hidden="true">
-    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div id="modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-backdrop" id="modalBackdrop"></div>
+    <div class="modal-content">
       <h3 id="modalTitle">Edit Profile</h3>
       <form id="editForm" class="form">
-        <label>Full name<input name="name" type="text" value="Peter Davidson"></label>
-        <label>Email address<input name="email" type="email" value="pd@gmail.com"></label>
-        <label>Mobile number<input name="phone" type="tel" value="+94 712 313141"></label>
+        <label>
+          Full name
+          <input name="name" type="text" id="editName" placeholder="Full name" required />
+        </label>
+        <label>
+          Email address
+          <input name="email" type="email" id="editEmail" placeholder="Email" required />
+        </label>
+        <label>
+          Mobile number
+          <input name="phone" type="tel" id="editPhone" placeholder="+94 ..." />
+        </label>
         <div class="modal-actions">
-          <button type="submit" class="btn primary">Save</button>
-          <button type="button" class="btn" id="cancelBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+          <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
         </div>
       </form>
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <script src="user_profile_script.js"></script>
 </body>
 </html>
