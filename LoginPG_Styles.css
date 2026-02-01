@@ -195,3 +195,31 @@
         max-width: 160px;
     }
 }
+
+
+/* Password setup page */
+
+/* --- Password Page Extensions --- */
+.password-container { width: 100%; position: relative; }
+.password-container .toggle-password {
+    position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
+    width: 22px; cursor: pointer; opacity: 0.5; transition: 0.3s;
+}
+
+.strength-meter-wrapper {
+    width: 100%; height: 4px; background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px; margin: -5px 0 10px 0; overflow: hidden;
+}
+.strength-bar {
+    height: 100%; width: 0%; transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    background: linear-gradient(90deg, #ff5100, #ff3b00);
+}
+
+.pass-req-box {
+    background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 18px; padding: 1rem; text-align: left; margin-bottom: 10px;
+}
+.pass-req-box p { font-size: 0.8rem; color: rgba(255,255,255,0.6); margin-bottom: 5px; }
+.pass-req-box ul { list-style: none; padding: 0; }
+.pass-req-box li { font-size: 0.8rem; color: rgba(255,255,255,0.35); transition: 0.3s; }
+.pass-req-box li.valid { color: #ff5100; font-weight: 600; }
