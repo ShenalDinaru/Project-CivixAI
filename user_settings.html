@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Settings - Dashboard</title>
+  <link rel="stylesheet" href="user_settings_styles.css">
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-left">
+        <button class="back-btn" type="button" aria-label="Back">
+          <img src="Resources/Icons/Back Icon.svg" alt="Back">
+        </button>
+      </div>
+      <div class="nav-right">
+        <button class="nav-btn">
+          <img src="Resources/Icons/notification.svg" alt="Notifications" onerror="this.innerHTML='🔔'">
+        </button>
+        <div class="user-avatar">PD</div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="content-wrapper">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-section">
+          <h3 class="sidebar-title">Account</h3>
+          <ul class="sidebar-menu">
+            <li class="menu-item active" data-tab="profile">
+              <img src="Resources/Icons/user.svg" alt="Profile" onerror="this.style.display='none'">
+              <span>Profile Settings</span>
+            </li>
+            <li class="menu-item" data-tab="security">
+              <img src="Resources/Icons/security.svg" alt="Security" onerror="this.style.display='none'">
+              <span>Security</span>
+            </li>
+            <li class="menu-item" data-tab="notifications">
+              <img src="Resources/Icons/notification.svg" alt="Notifications" onerror="this.style.display='none'">
+              <span>Notifications</span>
+            </li>
+          </ul>
+        </div>
+        <div class="sidebar-section">
+          <h3 class="sidebar-title">Preferences</h3>
+          <ul class="sidebar-menu">
+            <li class="menu-item" data-tab="appearance">
+              <img src="Resources/Icons/theme.svg" alt="Appearance" onerror="this.style.display='none'">
+              <span>Appearance</span>
+            </li>
+            <li class="menu-item" data-tab="language">
+              <img src="Resources/Icons/language.svg" alt="Language" onerror="this.style.display='none'">
+              <span>Language</span>
+            </li>
+          </ul>
+        </div>
+      </aside>
+
+      <!-- Main Settings Panel -->
+      <main class="settings-panel">
+        <div class="panel-header">
+          <h1 class="panel-title">User Settings</h1>
+          <p class="panel-subtitle">Manage your account information and preferences</p>
+        </div>
+
+        <!-- Profile Tab Content -->
+        <div id="profile" class="tab-content active">
+          <!-- User Profile Section -->
+          <div class="settings-card">
+            <h2 class="card-title">Personal Information</h2>
+            
+            <div class="form-group">
+              <label for="fullName">Full Name</label>
+              <div class="input-wrapper">
+                <input type="text" id="fullName" value="Peter Davidson" readonly>
+                <button class="edit-btn" onclick="toggleEdit('fullName')" aria-label="Edit full name">
+                  <img src="Resources/Icons/edit.svg" alt="Edit" onerror="this.innerHTML='✏️'">
+                </button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <div class="input-wrapper">
+                <input type="email" id="email" value="pd@gmail.com" readonly>
+                <button class="edit-btn" onclick="toggleEdit('email')" aria-label="Edit email">
+                  <img src="Resources/Icons/edit.svg" alt="Edit" onerror="this.innerHTML='✏️'">
+                </button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="mobile">Mobile Number</label>
+              <div class="input-wrapper">
+                <input type="tel" id="mobile" value="+941212313141" readonly>
+                <button class="edit-btn" onclick="toggleEdit('mobile')" aria-label="Edit mobile">
+                  <img src="Resources/Icons/edit.svg" alt="Edit" onerror="this.innerHTML='✏️'">
+                </button>
+              </div>
+            </div>
+
+            <button class="save-btn" onclick="saveChanges()">
+              Save Changes
+            </button>
+          </div>
+
+          <!-- Account Actions Section -->
+          <div class="settings-card">
+            <h2 class="card-title">Account Actions</h2>
+            
+            <div class="action-item">
+              <div class="action-info">
+                <h3 class="action-title">Delete Chat History</h3>
+                <p class="action-description">Remove all your chat conversations permanently</p>
+              </div>
+              <button class="action-btn secondary" onclick="deleteChatHistory()">
+                Delete History
+              </button>
+            </div>
+
+            <div class="action-item">
+              <div class="action-info">
+                <h3 class="action-title">Reset Password</h3>
+                <p class="action-description">Send a password reset link to your email</p>
+              </div>
+              <button class="action-btn secondary" onclick="resetPassword()">
+                Reset Password
+              </button>
+            </div>
+
+            <div class="action-item danger-zone">
+              <div class="action-info">
+                <h3 class="action-title">Delete Account</h3>
+                <p class="action-description">Permanently delete your account and all data</p>
+              </div>
+              <button class="action-btn danger" onclick="deleteAccount()">
+                Delete Account
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Security Tab Content -->
+        <div id="security" class="tab-content">
+          <div class="settings-card">
+            <h2 class="card-title">Security Overview</h2>
+            <div class="security-status secure">
+              <div class="status-icon">🛡️</div>
+              <div class="status-text">
+                <h3>Your account is secure</h3>
+                <p>No alerts for potential risks at this time.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <h2 class="card-title">Sign-in & Recovery</h2>
+            <div class="form-group">
+              <label>Update Password</label>
+              <div class="input-wrapper">
+                <input type="password" placeholder="Current Password">
+              </div>
+              <div class="input-wrapper" style="margin-top: 10px;">
+                <input type="password" placeholder="New Password">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Recovery Email</label>
+              <div class="input-wrapper">
+                <input type="email" value="pd@gmail.com" readonly>
+                <button class="edit-btn"><img src="Resources/Icons/edit.svg" alt="Edit" onerror="this.innerHTML='✏️'"></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <h2 class="card-title">Two-Step Verification</h2>
+            <div class="action-item">
+              <div class="action-info">
+                <h3 class="action-title">2FA / MFA</h3>
+                <p class="action-description">Protect your account with an extra layer of security.</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox">
+                <span class="slider round"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <h2 class="card-title">Connected Devices</h2>
+            <div class="device-item">
+              <div class="device-icon">💻</div>
+              <div class="device-info">
+                <h4>Windows PC - Chrome</h4>
+                <p>Colombo, Sri Lanka • Active now</p>
+              </div>
+              <button class="action-btn secondary small">Sign out</button>
+            </div>
+            <div class="device-item">
+              <div class="device-icon">📱</div>
+              <div class="device-info">
+                <h4>iPhone 13 - Safari</h4>
+                <p>Kandy, Sri Lanka • 2 hours ago</p>
+              </div>
+              <button class="action-btn secondary small">Sign out</button>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <h2 class="card-title">Recent Security Activity</h2>
+            <ul class="activity-log">
+              <li>
+                <span class="activity-time">Today, 10:23 AM</span>
+                <span class="activity-desc">Successful sign-in from Windows PC</span>
+              </li>
+              <li>
+                <span class="activity-time">Yesterday, 4:15 PM</span>
+                <span class="activity-desc">Password changed successfully</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Notifications Tab Content -->
+        <div id="notifications" class="tab-content">
+          <div class="settings-card">
+            <h2 class="card-title">Notification Preferences</h2>
+            
+            <div class="action-item">
+              <div class="action-info">
+                <h3 class="action-title">Toggle Alerts</h3>
+                <p class="action-description">Turn all push notifications or email alerts on/off.</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" checked>
+                <span class="slider round"></span>
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label>Notification Types</label>
+              <div class="checkbox-group">
+                <label class="checkbox-container">Security Alerts
+                  <input type="checkbox" checked>
+                  <span class="checkmark"></span>
+                </label>
+                <label class="checkbox-container">Promotional Emails
+                  <input type="checkbox">
+                  <span class="checkmark"></span>
+                </label>
+                <label class="checkbox-container">New Messages
+                  <input type="checkbox" checked>
+                  <span class="checkmark"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Frequency Settings</label>
+              <div class="input-wrapper">
+                <select class="styled-select">
+                  <option>Immediately</option>
+                  <option>Daily Digest</option>
+                  <option>Weekly Summary</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Channel Preferences</label>
+              <div class="checkbox-group">
+                <label class="checkbox-container">Email
+                  <input type="checkbox" checked>
+                  <span class="checkmark"></span>
+                </label>
+                <label class="checkbox-container">Push Notifications
+                  <input type="checkbox" checked>
+                  <span class="checkmark"></span>
+                </label>
+                <label class="checkbox-container">SMS
+                  <input type="checkbox">
+                  <span class="checkmark"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="action-item">
+              <div class="action-info">
+                <h3 class="action-title">Browser Settings</h3>
+                <p class="action-description">Manage notification permissions for this browser.</p>
+              </div>
+              <button class="action-btn secondary">Manage</button>
+            </div>
+
+            <div class="form-group">
+              <label>Time Management (Do Not Disturb)</label>
+              <div class="input-wrapper">
+                <input type="time" value="22:00">
+                <span style="margin: 0 10px;">to</span>
+                <input type="time" value="07:00">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Appearance Tab Content -->
+        <div id="appearance" class="tab-content">
+          <div class="settings-card">
+            <h2 class="card-title">Appearance</h2>
+            <div class="placeholder-content">
+              <div class="icon-large">🎨</div>
+              <h3>Dark Mode Active</h3>
+              <p>We are working on the white mode version. It will be available in a future update.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Language Tab Content -->
+        <div id="language" class="tab-content">
+          <div class="settings-card">
+            <h2 class="card-title">Language</h2>
+            <p class="panel-subtitle" style="margin-bottom: 20px;">We are working on adding multi-language options.</p>
+            
+            <div class="form-group">
+              <label>Select Language</label>
+              <div class="input-wrapper">
+                <select id="languageSelect" class="styled-select">
+                  <option value="en">English</option>
+                  <option value="si">Sinhala (Coming Soon)</option>
+                  <option value="ta">Tamil (Coming Soon)</option>
+                </select>
+              </div>
+            </div>
+            
+            <div id="langPopup" class="popup-message" style="display: none;">
+              Cannot select Sinhala and Tamil. We are working on it and coming soon!
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="user_settings_script.js"></script>
+</body>
+</html>
