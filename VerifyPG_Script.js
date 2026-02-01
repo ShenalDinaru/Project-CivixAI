@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             setTimeout(() => {
                 // Redirect to successful registration or dashboard
-                window.location.href = 'WelcomePG.html'; 
+                window.location.href = 'PasswordPG.html'; 
             }, 1500);
         } else {
             alert("Please enter the full 4-digit code.");
