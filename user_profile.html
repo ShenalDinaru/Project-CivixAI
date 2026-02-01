@@ -1,90 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>User Profile</title>
-  <link rel="stylesheet" href="user_profile_styles.css" />
+  <link rel="stylesheet" href="user_profile_styles.css">
 </head>
 <body>
-  <header class="topbar">
-    <button type="button" class="icon-btn back" id="backBtn" aria-label="Go back">←</button>
-    <button type="button" class="icon-btn logout" id="logoutBtn">
-      <span class="logout-icon" aria-hidden="true">★</span>
-      Logout
-    </button>
-  </header>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <button class="back-btn" type="button">
+        <img src="Resources/Icons/Back Icon.svg" alt="Back">
+      </button>
+      <button class="logout-btn" type="button">
+        <img src="Resources/Icons/Exit Icon.svg" alt="Logout">
+        <span>Logout</span>
+      </button>
+    </header>
 
-  <main class="page">
-    <section class="profile">
-      <div class="profile-left">
-        <div class="avatar-wrap">
-          <div class="avatar" aria-hidden="true">
-            <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <circle cx="60" cy="60" r="56" fill="#EADCF8" stroke="#FF6A1A" stroke-width="3" />
-              <circle cx="60" cy="44" r="14" stroke="#FF6A1A" stroke-width="2.5" fill="none" />
-              <path d="M32 92c6-16 22-22 28-22s22 6 28 22" stroke="#FF6A1A" stroke-width="2.5" stroke-linecap="round" fill="none" />
-            </svg>
-          </div>
+    <!-- Main content: profile + details side by side (landscape) -->
+    <main class="main-content">
+      <!-- Profile Section -->
+      <section class="profile-section">
+        <div class="avatar">
+          <span class="avatar-initial">P</span>
         </div>
-        <h1 class="user-name" id="userDisplayName">User</h1>
-      </div>
+        <h1 class="profile-title">User</h1>
+      </section>
 
-      <div class="profile-right">
-      <div class="details-section">
-        <h2 class="details-heading">User Details</h2>
-        <dl class="details">
-          <div class="detail-row">
-            <dt>Full Name</dt>
-            <dd id="detailFullName">—</dd>
-          </div>
-          <div class="detail-row">
-            <dt>Email Address</dt>
-            <dd id="detailEmail">—</dd>
-          </div>
-          <div class="detail-row">
-            <dt>Mobile Number</dt>
-            <dd id="detailMobile">—</dd>
-          </div>
-        </dl>
-      </div>
+      <!-- User Details -->
+      <section class="details-section">
+        <h2 class="section-title">User Details</h2>
+        
+        <div class="detail-item">
+          <label class="detail-label">Full Name</label>
+          <p class="detail-value">Peter Davidson</p>
+        </div>
 
-      <div class="actions">
-        <button type="button" class="btn-settings" id="settingsBtn">
-          <svg class="btn-settings-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="3" />
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82L4.31 5.7A2 2 0 0 1 7.14 2.87l.06.06c.49.49 1.18.66 1.82.33h.01A1.65 1.65 0 0 0 10.5 3H13a1.65 1.65 0 0 0 1.51 1c.64.33 1.33.16 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06c-.33.49-.16 1.18.33 1.82.36.36.86.55 1.36.55H21a2 2 0 0 1 0 4h-.09c-.5 0-1 .19-1.36.55-.49.64-.66 1.33-.33 1.82z" />
-          </svg>
+        <div class="detail-item">
+          <label class="detail-label">Email Address</label>
+          <p class="detail-value">pd@gmail.com</p>
+        </div>
+
+        <div class="detail-item">
+          <label class="detail-label">Mobile Number</label>
+          <p class="detail-value">+941212313141</p>
+        </div>
+
+        <button class="settings-btn" type="button">
+          <img src="Resources/Icons/Settings Icon.svg" alt="Settings">
           <span>User Settings</span>
         </button>
-      </div>
-      </div>
-    </section>
-  </main>
-
-  <div id="modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <div class="modal-backdrop" id="modalBackdrop"></div>
-    <div class="modal-content">
-      <h3 id="modalTitle">Edit Profile</h3>
-      <form id="editForm" class="form">
-        <label>
-          Full name
-          <input name="name" type="text" id="editName" placeholder="Full name" required />
-        </label>
-        <label>
-          Email address
-          <input name="email" type="email" id="editEmail" placeholder="Email" required />
-        </label>
-        <label>
-          Mobile number
-          <input name="phone" type="tel" id="editPhone" placeholder="+94 ..." />
-        </label>
-        <div class="modal-actions">
-          <button type="submit" class="btn btn-primary">Save</button>
-          <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
-        </div>
-      </form>
-    </div>
+      </section>
+    </main>
   </div>
 
   <script src="user_profile_script.js"></script>
