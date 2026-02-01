@@ -2,7 +2,16 @@ import axios from 'axios';
 
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
-export const generateResponse = async (userMessage, conversationHistory = []) => {
+/**
+ * Generate response from OpenRouter API
+ * Can be used with or without RAG context
+ * 
+ * @param {string} userMessage - User's message
+ * @param {Array} conversationHistory - Previous messages
+ * @param {string} customSystemPrompt - Custom system prompt (for RAG)
+ * @returns {Promise<Object>} Response from AI
+ */
+export const generateResponse = async (userMessage, conversationHistory = [], customSystemPrompt = null) => {
   const apiKey = process.env.OPENROUTER_API_KEY;
   const model = process.env.OPENROUTER_MODEL || 'openai/gpt-3.5-turbo';
 
@@ -10,10 +19,8 @@ export const generateResponse = async (userMessage, conversationHistory = []) =>
     throw new Error('OPENROUTER_API_KEY is not configured');
   }
 
-  // System instruction for tax assistant
-  const systemMessage = {
-    role: 'system',
-    content: `You are CivixAI, a helpful and knowledgeable personal tax assistant catering to Sri Lankan citizens. Your role is to:
+  // Use custom system prompt (for RAG) or default
+  const systemContent = customSystemPrompt || `You are CivixAI, a helpful and knowledgeable personal tax assistant catering to Sri Lankan citizens. Your role is to:
 
 - Provide clear, accurate information about tax laws, deductions, and credits
 - Help users understand their tax obligations and opportunities
@@ -30,7 +37,11 @@ IMPORTANT GUIDELINES:
 - Never guarantee specific outcomes or make promises about tax results
 - Respect user privacy and handle financial information with care
 
-Be friendly, professional, and supportive in all interactions.`
+Be friendly, professional, and supportive in all interactions.`;
+
+  const systemMessage = {
+    role: 'system',
+    content: systemContent
   };
 
   // Build messages array with system instruction
@@ -41,11 +52,16 @@ Be friendly, professional, and supportive in all interactions.`
   ];
 
   try {
+    // Use lower temperature for RAG (more factual)
+    // Higher temperature for general chat (more creative)
+    const temperature = customSystemPrompt ? 0.1 : 0.7;
+
     const response = await axios.post(
       OPENROUTER_API_URL,
       {
         model: model,
-        messages: messages
+        messages: messages,
+        temperature: temperature
       },
       {
         headers: {

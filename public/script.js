@@ -118,13 +118,44 @@ function addMessage(text, sender) {
 
     const content = document.createElement('div');
     content.className = 'message-content';
-    content.textContent = text;
+    
+    // Format assistant messages with markdown-like styling
+    if (sender === 'assistant') {
+        content.innerHTML = formatMessage(text);
+    } else {
+        content.textContent = text;
+    }
 
     messageDiv.appendChild(avatar);
     messageDiv.appendChild(content);
 
     chatContainer.appendChild(messageDiv);
     scrollToBottom();
+}
+
+function formatMessage(text) {
+    // Convert markdown-style formatting to HTML
+    let formatted = text
+        // Bold text (**text** or __text__)
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/__(.+?)__/g, '<strong>$1</strong>')
+        // Italic text (*text* or _text_)
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+        .replace(/_(.+?)_/g, '<em>$1</em>')
+        // Line breaks
+        .replace(/\n\n/g, '</p><p>')
+        .replace(/\n/g, '<br>');
+    
+    // Wrap in paragraph tags
+    formatted = '<p>' + formatted + '</p>';
+    
+    // Handle numbered lists (1. 2. 3. etc.)
+    formatted = formatted.replace(/<p>(\d+\.\s)/g, '<p class="numbered-item">$1');
+    
+    // Handle bullet points (- or *)
+    formatted = formatted.replace(/<p>([-*]\s)/g, '<p class="bullet-item">$1');
+    
+    return formatted;
 }
 
 function showTypingIndicator() {
