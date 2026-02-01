@@ -14,7 +14,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-// Routes
+// routes
 app.get('/', (req, res) => {
   res.json({ 
     message: 'CivixAI - Personal AI Tax Assistant API',
