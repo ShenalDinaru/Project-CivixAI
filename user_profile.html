@@ -3,57 +3,95 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>User Profile</title>
+  <title>User Profile - Dashboard</title>
   <link rel="stylesheet" href="user_profile_styles.css">
 </head>
 <body>
-  <div class="container">
-    <!-- Header -->
-    <header class="header">
-      <button class="back-btn" type="button">
-        <img src="Resources/Icons/Back Icon.svg" alt="Back">
-      </button>
-      <button class="logout-btn" type="button">
-        <img src="Resources/Icons/Exit Icon.svg" alt="Logout">
-        <span>Logout</span>
-      </button>
-    </header>
-
-    <!-- Main content: profile + details side by side (landscape) -->
-    <main class="main-content">
-      <!-- Profile Section -->
-      <section class="profile-section">
-        <div class="avatar">
-          <span class="avatar-initial">P</span>
-        </div>
-        <h1 class="profile-title">User</h1>
-      </section>
-
-      <!-- User Details -->
-      <section class="details-section">
-        <h2 class="section-title">User Details</h2>
-        
-        <div class="detail-item">
-          <label class="detail-label">Full Name</label>
-          <p class="detail-value">Peter Davidson</p>
-        </div>
-
-        <div class="detail-item">
-          <label class="detail-label">Email Address</label>
-          <p class="detail-value">pd@gmail.com</p>
-        </div>
-
-        <div class="detail-item">
-          <label class="detail-label">Mobile Number</label>
-          <p class="detail-value">+941212313141</p>
-        </div>
-
-        <button class="settings-btn" type="button">
-          <img src="Resources/Icons/Settings Icon.svg" alt="Settings">
-          <span>User Settings</span>
+  <!-- Navigation Bar (same template as User Settings) -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-left">
+        <button class="back-btn" type="button" aria-label="Back">
+          <img src="Resources/Icons/Back Icon.svg" alt="Back">
         </button>
-      </section>
-    </main>
+      </div>
+      <div class="nav-right">
+        <button class="logout-btn" type="button">
+          <img src="Resources/Icons/Exit Icon.svg" alt="Logout">
+          <span>Logout</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content (same layout as User Settings) -->
+  <div class="main-content">
+    <div class="content-wrapper">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-section">
+          <h3 class="sidebar-title">Account</h3>
+          <ul class="sidebar-menu">
+            <li class="menu-item active">
+              <img src="Resources/Icons/User Profile Icon.svg" alt="Profile" class="menu-icon">
+              <span>Profile</span>
+            </li>
+            <li class="menu-item">
+              <span class="menu-link">
+                <img src="Resources/Icons/Settings Icon.svg" alt="Settings" class="menu-icon icon-white">
+                <span>User Settings</span>
+              </span>
+            </li>
+          </ul>
+        </div>
+      </aside>
+
+      <!-- Main Panel -->
+      <main class="settings-panel">
+        <div class="panel-header">
+          <h1 class="panel-title">User Profile</h1>
+          <p class="panel-subtitle">View your account information</p>
+        </div>
+
+        <div class="settings-card profile-card">
+          <!-- Profile picture with User Profile Icon -->
+          <div class="profile-avatar-wrap">
+            <div class="profile-avatar">
+              <img src="Resources/Icons/User Profile Icon.svg" alt="Profile" class="profile-pic-icon">
+            </div>
+            <h2 class="profile-name">Peter Davidson</h2>
+          </div>
+
+          <h3 class="card-title">Personal Information</h3>
+
+          <div class="form-group">
+            <label for="fullName">Full Name</label>
+            <div class="input-wrapper">
+              <input type="text" id="fullName" value="Peter Davidson" readonly>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <div class="input-wrapper">
+              <input type="email" id="email" value="pd@gmail.com" readonly>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="mobile">Mobile Number</label>
+            <div class="input-wrapper">
+              <input type="tel" id="mobile" value="+941212313141" readonly>
+            </div>
+          </div>
+
+          <button type="button" class="btn-primary settings-cta">
+            <img src="Resources/Icons/Settings Icon.svg" alt="" class="icon-white">
+            <span>User Settings</span>
+          </button>
+        </div>
+      </main>
+    </div>
   </div>
 
   <script src="user_profile_script.js"></script>

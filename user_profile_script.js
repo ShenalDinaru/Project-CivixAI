@@ -1,50 +1,40 @@
-// Back button functionality
+// Back button: navigate to previous page or home
 const backBtn = document.querySelector('.back-btn');
 if (backBtn) {
   backBtn.addEventListener('click', () => {
-    console.log('Back button clicked');
-    // Add navigation logic here
-    // window.history.back();
-  });
-}
-
-// Logout button functionality
-const logoutBtn = document.querySelector('.logout-btn');
-if (logoutBtn) {
-  logoutBtn.addEventListener('click', () => {
-    console.log('Logout button clicked');
-    if (confirm('Are you sure you want to logout?')) {
-      // Perform logout
-      alert('Logging out...');
-      // window.location.href = '/login';
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      window.location.href = 'home.html';
     }
   });
 }
 
-// Settings button functionality
-const settingsBtn = document.querySelector('.settings-btn');
-if (settingsBtn) {
-  settingsBtn.addEventListener('click', () => {
-    console.log('Settings button clicked');
-    // Add navigation to settings page
-    // window.location.href = '/settings';
+// Logout button
+const logoutBtn = document.querySelector('.logout-btn');
+if (logoutBtn) {
+  logoutBtn.addEventListener('click', () => {
+    if (confirm('Are you sure you want to logout?')) {
+      // Perform logout – replace with your auth logic
+      // window.location.href = '/login';
+      alert('Logging out...');
+    }
   });
 }
 
-// Smooth scroll behavior
+// Smooth scroll
 document.documentElement.style.scrollBehavior = 'smooth';
 
-// Optional: loading animation for avatar
-const avatar = document.querySelector('.avatar');
-if (avatar) {
-  avatar.style.opacity = '0';
-  avatar.style.transform = 'scale(0.8)';
-
+// Optional: subtle load animation for profile avatar
+const profileAvatar = document.querySelector('.profile-avatar');
+if (profileAvatar) {
+  profileAvatar.style.opacity = '0';
+  profileAvatar.style.transform = 'scale(0.9)';
   window.addEventListener('load', () => {
     setTimeout(() => {
-      avatar.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-      avatar.style.opacity = '1';
-      avatar.style.transform = 'scale(1)';
+      profileAvatar.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+      profileAvatar.style.opacity = '1';
+      profileAvatar.style.transform = 'scale(1)';
     }, 100);
   });
 }
