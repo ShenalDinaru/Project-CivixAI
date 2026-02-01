@@ -335,3 +335,35 @@ body {
         padding: 16px;
     }
 }
+
+/* Message formatting styles */
+.message-content p {
+    margin: 0 0 12px 0;
+}
+
+.message-content p:last-child {
+    margin-bottom: 0;
+}
+
+.message-content strong {
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.message-content em {
+    font-style: italic;
+}
+
+.message-content .numbered-item,
+.message-content .bullet-item {
+    margin: 8px 0;
+    padding-left: 4px;
+}
+
+.message-content .numbered-item {
+    font-weight: 500;
+}
+
+.message.assistant .message-content {
+    line-height: 1.7;
+}
