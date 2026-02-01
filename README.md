@@ -4,3 +4,4 @@ Branches for FE;
 1.Front_End-_Dev-base - LandingPG
 2.FE_LoginPG_dev - loginPG
 3.FE_HomePG_dev - HomePG
+FE_HomePG_dev - HomePG - Updated
