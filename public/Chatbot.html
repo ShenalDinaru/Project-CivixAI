@@ -7,48 +7,56 @@
     <link rel="stylesheet" href="Chatbot_styles.css">
 </head>
 <body>
-    <div class="container">
-        <header class="header">
-            <div class="logo">
-                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect width="40" height="40" rx="8" fill="#4F46E5"/>
-                    <path d="M20 10L28 16V24L20 30L12 24V16L20 10Z" stroke="white" stroke-width="2" stroke-linejoin="round"/>
-                    <path d="M20 18V22M18 20H22" stroke="white" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                <h1>CivixAI</h1>
-            </div>
-            <p class="subtitle">Personal AI Tax Assistant</p>
-        </header>
+    <div class="video-wrapper">
+        <video autoplay muted loop playsinline poster="Resources/Background/sigiriya.jpg">
+            <source src="Resources/Background/SL Edited.mp4" type="video/mp4" />
+        </video>
+        <div class="overlay"></div>
 
-        <div class="chat-container" id="chatContainer">
-            <div class="welcome-message">
-                <div class="welcome-icon">💼</div>
-                <h2>Welcome to CivixAI!</h2>
-                <p>I'm your personal AI tax assistant. I can help you with:</p>
-                <ul>
-                    <li>Tax deductions and credits</li>
-                    <li>Filing requirements and deadlines</li>
-                    <li>Tax planning strategies</li>
-                    <li>Understanding tax forms and documents</li>
-                </ul>
-                <p class="disclaimer">⚠️ I provide helpful information, but I'm not a substitute for a licensed tax professional.</p>
-            </div>
-        </div>
+        <div class="container ui-card">
+            <header class="chat-header">
+                <div class="header-top">
+                    <button class="icon-btn" id="backBtn">
+                        <img src="Resources/Icons/Back Button Icon.svg" alt="Back" width="24">
+                    </button>
+                    <div class="logo-title">
+                        <h1>CivixAI<span class="tower-icon">🗼</span></h1>
+                    </div>
+                    <button class="icon-btn">
+                        <div class="three-dots">•••</div>
+                    </button>
+                </div>
+                <div class="version-tag">Personal AI Tax Assistant</div>
+            </header>
 
-        <div class="input-container">
-            <div class="input-wrapper">
-                <textarea 
-                    id="messageInput" 
-                    placeholder="Ask me anything about taxes..."
-                    rows="1"
-                ></textarea>
-                <button id="sendButton" class="send-button">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 8L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
+            <div class="chat-container" id="chatContainer">
+                <div class="welcome-message" id="welcomeScreen">
+                    <div class="welcome-icon">💼</div>
+                    <h2>Welcome to CivixAI!</h2>
+                    <p>I'm your personal AI tax assistant. I can help you with:</p>
+                    <ul>
+                        <li>Tax deductions and credits</li>
+                        <li>Filing requirements and deadlines</li>
+                        <li>Tax planning strategies</li>
+                        <li>Understanding tax forms and documents</li>
+                    </ul>
+                    <p class="disclaimer">⚠️ I provide helpful information, but I'm not a substitute for a licensed tax professional.</p>
+                </div>
             </div>
-            <p class="input-hint">Press Enter to send, Shift+Enter for new line</p>
+
+            <div class="input-area">
+                <div class="input-box-wrapper">
+                    <textarea 
+                        id="messageInput" 
+                        placeholder="Ask me anything about taxes..."
+                        rows="1"
+                    ></textarea>
+                    <button id="sendButton" class="robot-send-btn">
+                        <img src="Resources/Chatbot icon - Elephant/elephant.png" alt="Bot" id="chatbotIcon" class="robot-icon-img">
+                    </button>
+                </div>
+                <p class="input-hint">Press Enter to send, Shift+Enter for new line</p>
+            </div>
         </div>
     </div>
 
