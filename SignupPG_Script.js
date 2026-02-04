@@ -1,3 +1,6 @@
+// Configuration
+const API_BASE_URL = 'http://localhost:5000/api';
+
 document.addEventListener('DOMContentLoaded', () => {
     const card = document.getElementById('signupCard');
     const signupForm = document.getElementById('signupForm');
@@ -24,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // 3. VALIDATION & DATA HANDLING
-    signupForm.onsubmit = (e) => {
+    signupForm.onsubmit = async (e) => {
         e.preventDefault();
         
         const firstName = document.getElementById('firstName');
@@ -32,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const username = document.getElementById('username');
         const email = document.getElementById('email');
         const phone = document.getElementById('phone');
+        const nextBtn = document.getElementById('nextBtn');
         let isValid = true;
 
         // Reset Styles
@@ -56,26 +60,75 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (isValid) {
-            // SAVE DATA TEMPORARILY
+            // PREPARE USER DATA
             const userData = {
-                firstName: firstName.value,
-                surname: surname.value,
-                username: username.value,
-                email: email.value,
-                phone: phone.value
+                firstName: firstName.value.trim(),
+                surname: surname.value.trim(),
+                username: username.value.trim(),
+                email: email.value.trim(),
+                phone: phone.value.trim()
             };
+
+            // SAVE DATA TEMPORARILY
             sessionStorage.setItem('pendingRegistration', JSON.stringify(userData));
 
             // VISUAL FEEDBACK
-            const nextBtn = document.getElementById('nextBtn');
             nextBtn.innerHTML = "Saving Details...";
             nextBtn.disabled = true;
             nextBtn.style.opacity = "0.7";
-            
-            // REDIRECT TO PASSWORD SETUP
-            setTimeout(() => {
-                window.location.href = 'password_setup.html'; 
-            }, 1200);
+
+            try {
+                // Send data to backend
+                const response = await fetch(`${API_BASE_URL}/auth/check-username`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username: userData.username })
+                });
+
+                const usernameCheckResult = await response.json();
+
+                if (!usernameCheckResult.available) {
+                    nextBtn.innerHTML = "NEXT >";
+                    nextBtn.disabled = false;
+                    nextBtn.style.opacity = "1";
+                    username.parentElement.classList.add('input-error');
+                    alert('Username already taken. Please choose another.');
+                    return;
+                }
+
+                // Check email availability
+                const emailCheckResponse = await fetch(`${API_BASE_URL}/auth/check-email`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email: userData.email })
+                });
+
+                const emailCheckResult = await emailCheckResponse.json();
+
+                if (!emailCheckResult.available) {
+                    nextBtn.innerHTML = "NEXT >";
+                    nextBtn.disabled = false;
+                    nextBtn.style.opacity = "1";
+                    email.parentElement.classList.add('input-error');
+                    alert('Email already registered. Please use another email or login.');
+                    return;
+                }
+
+                // All checks passed, redirect to password setup
+                setTimeout(() => {
+                    window.location.href = 'password_setup.html'; 
+                }, 800);
+            } catch (error) {
+                console.error('Error:', error);
+                nextBtn.innerHTML = "NEXT >";
+                nextBtn.disabled = false;
+                nextBtn.style.opacity = "1";
+                alert('Error checking availability. Please try again.');
+            }
         }
     };
 });
