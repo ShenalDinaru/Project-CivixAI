@@ -12,17 +12,21 @@ app.use(express.json());
 
 // Initialize Firebase Admin SDK
 const serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS || path.join(__dirname, 'serviceAccountKey.json');
+const databaseURL = process.env.FIREBASE_DATABASE_URL || 'https://civixai-48022-default-rtdb.firebaseio.com';
+
 try {
   const serviceAccount = require(serviceAccountPath);
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: databaseURL
   });
   console.log('Firebase Admin SDK initialized successfully');
+  console.log('Using Realtime Database:', databaseURL);
 } catch (err) {
   console.warn('Firebase Admin initialization failed. Make sure serviceAccountKey.json exists or GOOGLE_APPLICATION_CREDENTIALS is set.', err.message);
 }
 
-const db = admin.firestore();
+const db = admin.database();
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -45,37 +49,44 @@ app.post('/api/signup', async (req, res) => {
   }
 
   try {
-    // Use email as document ID (lowercased for consistency)
-    const docId = String(email).toLowerCase();
-    const userRef = db.collection('users').doc(docId);
-    const snapshot = await userRef.get();
+    const emailLower = String(email).toLowerCase();
+    
+    // Check if email already exists in 'users' node
+    const usersRef = db.ref('users');
+    const usersSnapshot = await usersRef.once('value');
+    const usersData = usersSnapshot.val() || {};
 
-    // Check if user already exists
-    if (snapshot.exists) {
-      return res.status(409).json({ error: 'Email already registered. Please use a different email or login.' });
+    // Check for duplicate email or username
+    for (const key in usersData) {
+      const user = usersData[key];
+      if (user.email === emailLower) {
+        return res.status(409).json({ error: 'Email already registered. Please use a different email or login.' });
+      }
+      if (user.username === username) {
+        return res.status(409).json({ error: 'Username already taken. Please choose a different username.' });
+      }
     }
 
-    // Check if username is already taken
-    const usernameQuery = await db.collection('users').where('username', '==', username).get();
-    if (!usernameQuery.empty) {
-      return res.status(409).json({ error: 'Username already taken. Please choose a different username.' });
-    }
-
-    // Create new user document
-    await userRef.set({
+    // Create new user - use email as key (with special characters replaced)
+    const sanitizedEmail = emailLower.replace(/[.#$[\]]/g, '_');
+    const newUserRef = db.ref(`users/${sanitizedEmail}`);
+    
+    const timestamp = admin.database.ServerValue.TIMESTAMP;
+    
+    await newUserRef.set({
       firstName: firstName || '',
       surname,
       username,
-      email: String(email).toLowerCase(),
+      email: emailLower,
       phone: phone || '',
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      createdAt: timestamp,
+      updatedAt: timestamp
     });
 
     return res.status(201).json({ 
       success: true, 
       message: 'User registered successfully.',
-      userId: docId
+      userId: sanitizedEmail
     });
 
   } catch (err) {
@@ -87,15 +98,18 @@ app.post('/api/signup', async (req, res) => {
 // Get user data endpoint (optional)
 app.get('/api/user/:email', async (req, res) => {
   try {
-    const email = String(req.params.email).toLowerCase();
-    const userRef = db.collection('users').doc(email);
-    const snapshot = await userRef.get();
+    const emailLower = String(req.params.email).toLowerCase();
+    const sanitizedEmail = emailLower.replace(/[.#$[\]]/g, '_');
+    
+    const userRef = db.ref(`users/${sanitizedEmail}`);
+    const snapshot = await userRef.once('value');
+    const userData = snapshot.val();
 
-    if (!snapshot.exists) {
+    if (!userData) {
       return res.status(404).json({ error: 'User not found.' });
     }
 
-    return res.json({ success: true, data: snapshot.data() });
+    return res.json({ success: true, data: userData });
   } catch (err) {
     console.error('Error fetching user:', err);
     return res.status(500).json({ error: 'Server error.' });
