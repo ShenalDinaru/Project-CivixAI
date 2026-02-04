@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (isValid) {
-            // SAVE DATA TEMPORARILY
+            // PREPARE USER DATA
             const userData = {
                 firstName: firstName.value,
                 surname: surname.value,
@@ -64,18 +64,44 @@ document.addEventListener('DOMContentLoaded', () => {
                 email: email.value,
                 phone: phone.value
             };
-            sessionStorage.setItem('pendingRegistration', JSON.stringify(userData));
 
             // VISUAL FEEDBACK
             const nextBtn = document.getElementById('nextBtn');
             nextBtn.innerHTML = "Saving Details...";
             nextBtn.disabled = true;
             nextBtn.style.opacity = "0.7";
-            
-            // REDIRECT TO PASSWORD SETUP
-            setTimeout(() => {
-                window.location.href = 'password_setup.html'; 
-            }, 1200);
+
+            // SEND DATA TO BACKEND
+            fetch('http://localhost:3000/api/signup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(userData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Store user data in sessionStorage for password setup
+                    sessionStorage.setItem('pendingRegistration', JSON.stringify(userData));
+                    // REDIRECT TO PASSWORD SETUP
+                    setTimeout(() => {
+                        window.location.href = 'password_setup.html'; 
+                    }, 1200);
+                } else {
+                    alert('Error: ' + (data.error || 'Failed to save details'));
+                    nextBtn.innerHTML = "Next";
+                    nextBtn.disabled = false;
+                    nextBtn.style.opacity = "1";
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error: Unable to connect to server. Make sure backend is running on port 3000.');
+                nextBtn.innerHTML = "Next";
+                nextBtn.disabled = false;
+                nextBtn.style.opacity = "1";
+            });
         }
     };
 });
