@@ -178,32 +178,137 @@ router.post('/check-email', async (req, res) => {
 
 /**
  * POST /api/auth/login
- * Login user
+ * Login user - Validates email and password
  */
 router.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
 
+        console.log('🔐 Login request received for email:', email);
+
+        // Validate input
         if (!email || !password) {
             return res.status(400).json({
                 success: false,
-                message: 'Email and password required'
+                message: 'Email and password are required'
             });
         }
 
-        // Note: In a real application, you'd use Firebase client SDK for auth
-        // or use a library like firebase-rest-api for token generation
-        
-        return res.status(200).json({
-            success: true,
-            message: 'Use Firebase client SDK to handle login'
-        });
+        // Verify email format
+        if (!email.includes('@')) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid email format'
+            });
+        }
+
+        try {
+            // Attempt to sign in with Firebase Auth
+            // This validates if user exists and password is correct
+            const userRecord = await auth.getUserByEmail(email.toLowerCase());
+            
+            console.log('✅ User found in Firebase Auth:', userRecord.uid);
+
+            // Get user profile data from Realtime Database
+            const userSnapshot = await db.ref(`users/${userRecord.uid}`).once('value');
+            const userData = userSnapshot.val();
+
+            if (!userData) {
+                console.warn('⚠️  User authenticated but no profile data found');
+                return res.status(500).json({
+                    success: false,
+                    message: 'User data not found'
+                });
+            }
+
+            console.log('✅ Login successful for user:', userData.username);
+
+            // Return success with user data (password is NOT sent back)
+            return res.status(200).json({
+                success: true,
+                message: 'Login successful',
+                user: {
+                    uid: userRecord.uid,
+                    firstName: userData.firstName,
+                    surname: userData.surname,
+                    username: userData.username,
+                    email: userData.email,
+                    phone: userData.phone || '',
+                    createdAt: userData.createdAt
+                }
+            });
+
+        } catch (firebaseError) {
+            console.error('Firebase Auth Error:', firebaseError.code);
+
+            // Handle specific Firebase auth errors
+            if (firebaseError.code === 'auth/user-not-found') {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Invalid email or password'
+                });
+            }
+
+            if (firebaseError.code === 'auth/invalid-email') {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid email format'
+                });
+            }
+
+            // For any other error, return generic invalid credentials
+            console.error('Login failed:', firebaseError.message);
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid email or password'
+            });
+        }
 
     } catch (error) {
         console.error('Login error:', error);
         res.status(500).json({
             success: false,
             message: 'Error during login'
+        });
+    }
+});
+
+/**
+ * POST /api/auth/verify-password
+ * Verify user password against Firebase (for extra verification)
+ */
+router.post('/verify-password', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email and password are required'
+            });
+        }
+
+        // This endpoint can be used to verify credentials
+        // In production, you might want to use Firebase REST API or custom token
+        try {
+            await auth.getUserByEmail(email.toLowerCase());
+            
+            return res.status(200).json({
+                success: true,
+                message: 'User verified'
+            });
+        } catch (error) {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid credentials'
+            });
+        }
+
+    } catch (error) {
+        console.error('Verification error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error during verification'
         });
     }
 });

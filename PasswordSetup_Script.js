@@ -1,4 +1,4 @@
-// Configuration
+
 const API_BASE_URL = 'http://localhost:5000/api';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -6,6 +6,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const passwordForm = document.getElementById('passwordForm');
     const backBtn = document.getElementById('backBtn');
     const loginLink = document.getElementById('loginLink');
+    
+
+    const passwordInput = document.getElementById('password');
+    const confirmPasswordInput = document.getElementById('confirmPassword');
+    const toggleButtons = document.querySelectorAll('.toggle-password');
+    
+    toggleButtons.forEach((toggle, index) => {
+        toggle.addEventListener('click', () => {
+            const input = index === 0 ? passwordInput : confirmPasswordInput;
+            const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+            input.setAttribute('type', type);
+            toggle.style.opacity = type === 'text' ? '0.7' : '1';
+        });
+    });
 
     // Check if user data exists in session
     const userData = sessionStorage.getItem('pendingRegistration');
@@ -15,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    // 1. SMOOTH ENTRANCE
+   
     card.style.opacity = '0';
     card.style.transform = 'translateY(25px)';
     
@@ -25,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
         card.style.transform = 'translateY(0)';
     });
 
-    // 2. NAVIGATION
+   
     backBtn.onclick = () => {
         sessionStorage.removeItem('pendingRegistration');
         window.location.href = 'SignupPG.html';
@@ -36,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = 'LoginPG.html';
     };
 
-    // 3. PASSWORD VALIDATION & SUBMISSION
+    //  Pswrd validation
     passwordForm.onsubmit = async (e) => {
         e.preventDefault();
 
@@ -57,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Password must be at least 8 characters with uppercase, lowercase, and a number.');
         }
 
-        // Confirm password match
+        // Confirm password matching
         if (password.value !== confirmPassword.value) {
             confirmPassword.parentElement.classList.add('input-error');
             isValid = false;
@@ -68,16 +82,16 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // VISUAL FEEDBACK
+        // feedback
         signupBtn.innerHTML = "Creating Account...";
         signupBtn.disabled = true;
         signupBtn.style.opacity = "0.7";
 
         try {
-            // Get user data from session
+            // Get user data from the session
             const userDataObj = JSON.parse(userData);
 
-            // Send signup request to backend
+            // Send a signup request to the backend
             const response = await fetch(`${API_BASE_URL}/auth/signup`, {
                 method: 'POST',
                 headers: {
@@ -96,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 signupBtn.disabled = false;
                 signupBtn.style.opacity = "1";
 
-                // Display specific error messages
+                // show the error messages
                 if (result.errors) {
                     Object.keys(result.errors).forEach(field => {
                         const inputElement = document.getElementById(field);
@@ -111,16 +125,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Success!
+            
             console.log('User registered successfully:', result.user);
 
-            // Clear session data
+            // Clear session data after the registration
             sessionStorage.removeItem('pendingRegistration');
 
-            // Show success message
+            // Show positive login message
             alert('Account created successfully! You can now login.');
 
-            // Redirect to login page
+            // Redirecting to the login page.
             setTimeout(() => {
                 window.location.href = 'LoginPG.html';
             }, 1500);

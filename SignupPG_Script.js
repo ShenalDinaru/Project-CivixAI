@@ -1,4 +1,4 @@
-// Configuration
+
 const API_BASE_URL = 'http://localhost:5000/api';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const backBtn = document.getElementById('backBtn');
     const loginLink = document.getElementById('loginLink');
 
-    // 1. SMOOTH ENTRANCE
+    
     card.style.opacity = '0';
     card.style.transform = 'translateY(25px)';
     
@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
         card.style.transform = 'translateY(0)';
     });
 
-    // 2. NAVIGATION
+    
     backBtn.onclick = () => {
         window.location.href = 'LandingPG.html';
     };
@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = 'LoginPG.html';
     };
 
-    // 3. VALIDATION & DATA HANDLING
+    // Validation
     signupForm.onsubmit = async (e) => {
         e.preventDefault();
         
@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const nextBtn = document.getElementById('nextBtn');
         let isValid = true;
 
-        // Reset Styles
+        // Reset errors
         document.querySelectorAll('.input-group-wrapper').forEach(el => el.classList.remove('input-error'));
 
         // Email Validation
@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
             isValid = false;
         }
 
-        // Phone Validation (Optional field)
+        // Phone Validation 
         const phoneValue = phone.value.trim();
         if (phoneValue !== "") {
             const phonePattern = /^(?:\+94|0)?[7][0-9]{8}$/; 
@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (isValid) {
-            // PREPARE USER DATA
+            
             const userData = {
                 firstName: firstName.value.trim(),
                 surname: surname.value.trim(),
@@ -69,10 +69,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 phone: phone.value.trim()
             };
 
-            // SAVE DATA TEMPORARILY
+            // Save data in teperly
             sessionStorage.setItem('pendingRegistration', JSON.stringify(userData));
 
-            // VISUAL FEEDBACK
+            
             nextBtn.innerHTML = "Saving Details...";
             nextBtn.disabled = true;
             nextBtn.style.opacity = "0.7";

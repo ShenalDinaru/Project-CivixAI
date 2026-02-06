@@ -1,14 +1,14 @@
-/* Layout & Smooth Entrance */
+/* Layout */
 .ui-card {
     justify-content: center;
     gap: 1.5rem;
     animation: cardRise 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-/* Adjusted Smaller Back Button */
+/* Adjusted Back Button */
 .back-nav {
     position: absolute;
-    top: 20px;   /* Slightly tighter to the corner */
+    top: 20px;  
     left: 20px;
     cursor: pointer;
     z-index: 10;
@@ -17,7 +17,7 @@
 }
 
 .back-icon { 
-    width: 28px;  /* Reduced size for a subtle look */
+    width: 28px;  
     height: 28px; 
 }
 
