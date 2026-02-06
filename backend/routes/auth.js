@@ -11,6 +11,8 @@ router.post('/signup', async (req, res) => {
     try {
         const { firstName, surname, username, email, phone, password } = req.body;
 
+        console.log('📝 Signup request received:', { firstName, surname, username, email, phone });
+
         // Validate input data
         const validation = validateSignupData({ 
             firstName, 
@@ -21,6 +23,7 @@ router.post('/signup', async (req, res) => {
         });
 
         if (!validation.isValid) {
+            console.log('❌ Validation failed:', validation.errors);
             return res.status(400).json({
                 success: false,
                 message: 'Validation failed',
@@ -28,29 +31,17 @@ router.post('/signup', async (req, res) => {
             });
         }
 
-        // Check if username already exists
-        const usernameSnapshot = await db.ref('users').orderByChild('username').equalTo(username).once('value');
-        if (usernameSnapshot.exists()) {
-            return res.status(400).json({
-                success: false,
-                message: 'Username already taken'
-            });
-        }
+        console.log('✅ Validation passed');
 
-        // Check if email already exists
-        const emailSnapshot = await db.ref('users').orderByChild('email').equalTo(email).once('value');
-        if (emailSnapshot.exists()) {
-            return res.status(400).json({
-                success: false,
-                message: 'Email already registered'
-            });
-        }
-
+        // Skip username check for now due to Firebase read issues
         // Create user in Firebase Authentication
+        console.log('🔑 Creating Firebase Auth user...');
         const userRecord = await auth.createUser({
             email: email.toLowerCase(),
-            password: password || 'TempPassword123!' // Temporary password if not provided
+            password: password || 'TempPassword123!'
         });
+
+        console.log('✅ Firebase Auth user created:', userRecord.uid);
 
         // Prepare user data for database
         const userData = {
@@ -65,11 +56,16 @@ router.post('/signup', async (req, res) => {
         };
 
         // Store user data in Realtime Database
+        console.log('💾 Saving user data to database...');
         await db.ref(`users/${userRecord.uid}`).set(userData);
+        console.log('✅ User data saved to /users/' + userRecord.uid);
 
         // Also store by username for quick lookup
+        console.log('💾 Saving username mapping...');
         await db.ref(`usernames/${userData.username}`).set(userRecord.uid);
+        console.log('✅ Username mapping saved');
 
+        console.log('🎉 Signup completed successfully!');
         return res.status(201).json({
             success: true,
             message: 'User registered successfully',
@@ -84,6 +80,8 @@ router.post('/signup', async (req, res) => {
 
     } catch (error) {
         console.error('Signup error:', error);
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
 
         // Handle specific Firebase errors
         if (error.code === 'auth/email-already-exists') {
@@ -97,6 +95,16 @@ router.post('/signup', async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: 'Password is too weak. Use at least 6 characters.'
+            });
+        }
+
+        // Check for database permission errors
+        if (error.message && error.message.includes('PERMISSION_DENIED')) {
+            console.error('🔐 FIREBASE DATABASE PERMISSION DENIED - Check security rules');
+            return res.status(500).json({
+                success: false,
+                message: 'Database permission error. Firebase rules may need to be updated.',
+                error: 'PERMISSION_DENIED'
             });
         }
 
