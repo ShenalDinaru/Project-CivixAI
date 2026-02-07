@@ -131,13 +131,13 @@ document.addEventListener('DOMContentLoaded', () => {
             // Clear session data after the registration
             sessionStorage.removeItem('pendingRegistration');
 
-            // Show positive login message
-            alert('Account created successfully! You can now login.');
+            // Show email verification message
+            alert('Account created successfully!\n\nA verification link has been sent to your email. Please check your inbox and click the link to verify your email address before logging in.');
 
-            // Redirecting to the login page.
+            // Redirecting to the email verification page or signup page
             setTimeout(() => {
-                window.location.href = 'LoginPG.html';
-            }, 1500);
+                window.location.href = 'SignupPG.html';
+            }, 2000);
 
         } catch (error) {
             console.error('Error:', error);

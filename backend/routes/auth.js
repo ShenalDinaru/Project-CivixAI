@@ -2,10 +2,13 @@ const express = require('express');
 const router = express.Router();
 const { db, auth } = require('../config/firebase');
 const { validateSignupData } = require('../utils/validation');
+const { sendVerificationEmail } = require('../utils/email');
+const { validateEmail, isDisposableEmail } = require('../utils/disposableEmailChecker');
+const { createVerificationToken, verifyToken } = require('../utils/tokenManager');
 
 /**
  * POST /api/auth/signup
- * Register a new user
+ * Register a new user and send verification email
  */
 router.post('/signup', async (req, res) => {
     try {
@@ -33,7 +36,19 @@ router.post('/signup', async (req, res) => {
 
         console.log('✅ Validation passed');
 
-        // Skip username check for now due to Firebase read issues
+        // Check for disposable email
+        const emailValidation = validateEmail(email);
+        if (!emailValidation.isValid) {
+            console.log('❌ Email validation failed:', emailValidation.error);
+            return res.status(400).json({
+                success: false,
+                message: 'Email validation failed',
+                error: emailValidation.error
+            });
+        }
+
+        console.log('✅ Email validation passed (not disposable)');
+
         // Create user in Firebase Authentication
         console.log('🔑 Creating Firebase Auth user...');
         const userRecord = await auth.createUser({
@@ -52,7 +67,9 @@ router.post('/signup', async (req, res) => {
             email: email.toLowerCase(),
             phone: phone ? phone.trim() : '',
             createdAt: new Date().toISOString(),
-            lastUpdated: new Date().toISOString()
+            lastUpdated: new Date().toISOString(),
+            emailVerified: false,
+            emailVerificationSentAt: new Date().toISOString()
         };
 
         // Store user data in Realtime Database
@@ -65,16 +82,31 @@ router.post('/signup', async (req, res) => {
         await db.ref(`usernames/${userData.username}`).set(userRecord.uid);
         console.log('✅ Username mapping saved');
 
+        // Create verification token
+        console.log('🔗 Creating verification token...');
+        const verificationToken = await createVerificationToken(email, firstName);
+        
+        // Build verification link
+        const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email?token=${verificationToken}`;
+        
+        // Send verification email (non-blocking - don't await)
+        console.log('📧 Sending verification email...');
+        sendVerificationEmail(email, verificationLink, firstName).catch(emailError => {
+            console.error('⚠️  Email sending failed but signup succeeded:', emailError.message);
+            // Email failed but user signup is complete - user can request resend later
+        });
+
         console.log('🎉 Signup completed successfully!');
         return res.status(201).json({
             success: true,
-            message: 'User registered successfully',
+            message: 'Registration successful! Please check your email to verify your account.',
             user: {
                 uid: userRecord.uid,
                 firstName: userData.firstName,
                 surname: userData.surname,
                 username: userData.username,
-                email: userData.email
+                email: userData.email,
+                emailVerified: false
             }
         });
 
@@ -177,8 +209,108 @@ router.post('/check-email', async (req, res) => {
 });
 
 /**
+ * GET /api/auth/verify-email-token/:token
+ * Verify email using token
+ */
+router.get('/verify-email-token/:token', async (req, res) => {
+    try {
+        const { token } = req.params;
+
+        if (!token) {
+            return res.status(400).json({
+                success: false,
+                message: 'Verification token is required'
+            });
+        }
+
+        console.log('🔍 Verifying email token...');
+        const result = await verifyToken(token);
+
+        if (!result.success) {
+            console.log('❌ Token verification failed:', result.message);
+            return res.status(400).json({
+                success: false,
+                message: result.message
+            });
+        }
+
+        console.log('✅ Email verification successful!');
+        return res.status(200).json({
+            success: true,
+            message: result.message,
+            email: result.email
+        });
+
+    } catch (error) {
+        console.error('Email verification error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error verifying email'
+        });
+    }
+});
+
+/**
+ * POST /api/auth/resend-verification-email
+ * Resend verification email
+ */
+router.post('/resend-verification-email', async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email is required'
+            });
+        }
+
+        // Find user by email
+        const userSnapshot = await db.ref('users').orderByChild('email').equalTo(email.toLowerCase()).once('value');
+        
+        if (!userSnapshot.exists()) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        const userData = Object.values(userSnapshot.val())[0];
+
+        if (userData.emailVerified) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email is already verified'
+            });
+        }
+
+        // Create new verification token
+        const verificationToken = await createVerificationToken(email, userData.firstName);
+        const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email?token=${verificationToken}`;
+
+        // Send verification email (non-blocking)
+        sendVerificationEmail(email, verificationLink, userData.firstName).catch(error => {
+            console.error('⚠️  Error resending email:', error.message);
+        });
+
+        console.log('✅ Verification email request processed for:', email);
+        return res.status(200).json({
+            success: true,
+            message: 'Verification email sent successfully'
+        });
+
+    } catch (error) {
+        console.error('Resend verification email error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error resending verification email'
+        });
+    }
+});
+
+/**
  * POST /api/auth/login
- * Login user - Validates email and password
+ * Login user - Validates email is verified and password is correct
  */
 router.post('/login', async (req, res) => {
     try {
@@ -203,15 +335,32 @@ router.post('/login', async (req, res) => {
         }
 
         try {
-            // Attempt to sign in with Firebase Auth
-            // This validates if user exists and password is correct
-            const userRecord = await auth.getUserByEmail(email.toLowerCase());
+            // Check if user exists in database and get their data
+            const userSnapshot = await db.ref('users').orderByChild('email').equalTo(email.toLowerCase()).once('value');
             
-            console.log('✅ User found in Firebase Auth:', userRecord.uid);
+            if (!userSnapshot.exists()) {
+                console.warn('⚠️  User not found in database');
+                return res.status(401).json({
+                    success: false,
+                    message: 'Invalid email or password'
+                });
+            }
 
-            // Get user profile data from Realtime Database
-            const userSnapshot = await db.ref(`users/${userRecord.uid}`).once('value');
-            const userData = userSnapshot.val();
+            const userData = Object.values(userSnapshot.val())[0];
+            const userRecord = await auth.getUserByEmail(email.toLowerCase());
+
+            // Check if email is verified
+            if (!userData.emailVerified) {
+                console.log('❌ Email not verified for user:', email);
+                return res.status(403).json({
+                    success: false,
+                    message: 'Email not verified',
+                    emailVerified: false,
+                    error: 'UNVERIFIED_EMAIL'
+                });
+            }
+
+            console.log('✅ User found and email verified:', userRecord.uid);
 
             if (!userData) {
                 console.warn('⚠️  User authenticated but no profile data found');
@@ -234,6 +383,7 @@ router.post('/login', async (req, res) => {
                     username: userData.username,
                     email: userData.email,
                     phone: userData.phone || '',
+                    emailVerified: userData.emailVerified,
                     createdAt: userData.createdAt
                 }
             });

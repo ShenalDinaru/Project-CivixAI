@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Verify Your Email | CivixAI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            padding: 60px 40px;
+            text-align: center;
+            animation: slideIn 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            margin-bottom: 30px;
+        }
+
+        .logo img {
+            max-width: 100px;
+            height: auto;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 40px;
+            line-height: 1.5;
+        }
+
+        .status {
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .status.loading {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .status.success {
+            background-color: #e8f5e9;
+            color: #388e3c;
+        }
+
+        .status.error {
+            background-color: #ffebee;
+            color: #d32f2f;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            margin-bottom: 20px;
+        }
+
+        .spinner-ring {
+            display: inline-block;
+            position: relative;
+            width: 40px;
+            height: 40px;
+        }
+
+        .spinner-ring .spinner-circle {
+            box-sizing: border-box;
+            display: block;
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            margin: 0;
+            border: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spinner 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+            border-color: #667eea transparent transparent transparent;
+        }
+
+        .spinner-ring .spinner-circle:nth-child(1) {
+            animation-delay: -0.45s;
+        }
+
+        .spinner-ring .spinner-circle:nth-child(2) {
+            animation-delay: -0.3s;
+        }
+
+        .spinner-ring .spinner-circle:nth-child(3) {
+            animation-delay: -0.15s;
+        }
+
+        @keyframes spinner {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .icon {
+            font-size: 50px;
+            margin-bottom: 20px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            flex-direction: column;
+        }
+
+        .button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .button-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .button-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .button-secondary {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .button-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .resend-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .resend-text {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .resend-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .resend-link:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+
+        .timer {
+            color: #999;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        .error-icon {
+            font-size: 50px;
+            margin-bottom: 20px;
+        }
+
+        .success-icon {
+            font-size: 50px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <img src="Resources/Background/welcome1.png" alt="CivixAI Logo" />
+        </div>
+
+        <div id="verificationContainer">
+            <!-- Loading State -->
+            <div id="loadingState" style="display: none;">
+                <h1>Verifying Your Email</h1>
+                <p class="subtitle">Please wait while we verify your email address...</p>
+                <div class="status loading">
+                    <div class="spinner">
+                        <div class="spinner-ring">
+                            <div class="spinner-circle"></div>
+                            <div class="spinner-circle"></div>
+                            <div class="spinner-circle"></div>
+                            <div class="spinner-circle"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Success State -->
+            <div id="successState" style="display: none;">
+                <div class="success-icon">✅</div>
+                <h1>Email Verified!</h1>
+                <p class="subtitle">Your email has been successfully verified.</p>
+                <div class="status success">
+                    <p>You can now log in to your CivixAI account.</p>
+                </div>
+                <div class="button-group">
+                    <a href="LoginPG.html" class="button button-primary">Go to Login</a>
+                </div>
+            </div>
+
+            <!-- Error State -->
+            <div id="errorState" style="display: none;">
+                <div class="error-icon">❌</div>
+                <h1>Verification Failed</h1>
+                <p class="subtitle" id="errorMessage">The verification link is invalid or has expired.</p>
+                <div class="status error">
+                    <p id="errorDetails"></p>
+                </div>
+                <div class="button-group">
+                    <a href="SignupPG.html" class="button button-primary">Try Signing Up Again</a>
+                    <a href="LoginPG.html" class="button button-secondary">Back to Login</a>
+                </div>
+
+                <div class="resend-section">
+                    <p class="resend-text">Already have an account?</p>
+                    <a href="LoginPG.html" class="resend-link">Login here</a>
+                </div>
+            </div>
+
+            <!-- Expired State -->
+            <div id="expiredState" style="display: none;">
+                <div class="error-icon">⏱️</div>
+                <h1>Verification Link Expired</h1>
+                <p class="subtitle">Your verification link has expired. Please request a new one.</p>
+                <div class="status error">
+                    <p>Verification links are valid for 24 hours.</p>
+                </div>
+                <div class="button-group">
+                    <button class="button button-primary" onclick="resendVerificationEmail()">Resend Verification Email</button>
+                    <a href="SignupPG.html" class="button button-secondary">Sign Up Again</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:5000/api';
+
+        // Get verification token from URL
+        function getTokenFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('token');
+        }
+
+        // Show specific state
+        function showState(state) {
+            document.getElementById('loadingState').style.display = state === 'loading' ? 'block' : 'none';
+            document.getElementById('successState').style.display = state === 'success' ? 'block' : 'none';
+            document.getElementById('errorState').style.display = state === 'error' ? 'block' : 'none';
+            document.getElementById('expiredState').style.display = state === 'expired' ? 'block' : 'none';
+        }
+
+        // Verify email
+        async function verifyEmail() {
+            const token = getTokenFromURL();
+
+            if (!token) {
+                showState('error');
+                document.getElementById('errorMessage').textContent = 'No verification token found in the URL.';
+                document.getElementById('errorDetails').textContent = 'Invalid verification link.';
+                return;
+            }
+
+            showState('loading');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/verify-email-token/${token}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showState('success');
+                    console.log('✅ Email verified:', data.email);
+                } else {
+                    if (data.message && data.message.includes('expired')) {
+                        showState('expired');
+                    } else {
+                        showState('error');
+                        document.getElementById('errorMessage').textContent = data.message || 'Verification failed';
+                        document.getElementById('errorDetails').textContent = data.message || 'Invalid verification link.';
+                    }
+                }
+            } catch (error) {
+                console.error('Verification error:', error);
+                showState('error');
+                document.getElementById('errorMessage').textContent = 'An error occurred during verification.';
+                document.getElementById('errorDetails').textContent = error.message;
+            }
+        }
+
+        // Resend verification email
+        async function resendVerificationEmail() {
+            const email = prompt('Please enter your email address:');
+            if (!email) return;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/resend-verification-email`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('Verification email sent! Please check your inbox.');
+                    showState('loading');
+                } else {
+                    alert(data.message || 'Failed to resend verification email');
+                }
+            } catch (error) {
+                console.error('Resend error:', error);
+                alert('Error resending verification email');
+            }
+        }
+
+        // Start verification when page loads
+        window.addEventListener('DOMContentLoaded', verifyEmail);
+    </script>
+</body>
+</html>

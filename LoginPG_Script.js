@@ -92,10 +92,42 @@ loginForm.onsubmit = async (e) => {
             askNowBtn.disabled = false;
             askNowBtn.style.opacity = "1";
 
+            // Handle unverified email specially
+            if (result.error === 'UNVERIFIED_EMAIL' || !result.emailVerified) {
+                const resendChoice = confirm(
+                    `Your email has not been verified yet. Please check your email for a verification link.\n\nWould you like us to resend the verification email?`
+                );
+                
+                if (resendChoice) {
+                    // Store email for resend
+                    sessionStorage.setItem('pendingVerificationEmail', email);
+                    try {
+                        const resendResponse = await fetch(`${API_BASE_URL}/auth/resend-verification-email`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ email })
+                        });
+                        
+                        const resendResult = await resendResponse.json();
+                        if (resendResult.success) {
+                            alert('Verification email has been resent. Please check your inbox.');
+                        } else {
+                            alert(resendResult.message || 'Failed to resend verification email');
+                        }
+                    } catch (resendError) {
+                        console.error('Resend error:', resendError);
+                        alert('Error resending verification email');
+                    }
+                }
+                return;
+            }
+
             // Show failed error message
             alert(result.message || 'Login failed. Please check your credentials.');
             
-            
+            // Error styling
             if (!result.success && result.message.includes('email')) {
                 emailInput.parentElement.classList.add('input-error');
             } else {
