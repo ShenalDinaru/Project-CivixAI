@@ -162,13 +162,13 @@
         }
 
         .button-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: #87CEEB;
+            color: #000000;
         }
 
         .button-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 5px 20px rgba(135, 206, 235, 0.4);
         }
 
         .button-secondary {
@@ -345,7 +345,7 @@
                     });
 
                     showState('success');
-                    console.log('✅ Email verified:', email);
+                    console.log(' Email verified:', email);
                 } else {
                     if (data.message && data.message.includes('expired')) {
                         showState('expired');

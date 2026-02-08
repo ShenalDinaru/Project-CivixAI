@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Success
-            console.log('✅ Reset email sent:', email);
+            console.log(' Reset email sent:', email);
             
             successMessage.style.display = 'block';
             forgotPasswordForm.style.display = 'none';

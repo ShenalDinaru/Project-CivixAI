@@ -72,3 +72,26 @@
 .forgot-link:hover { color: #ff5100; text-decoration: underline; }
 
 .reg-link { color: #ff5100; cursor: pointer; font-weight: 600; }
+
+/* Error Messages */
+.error-message {
+    display: none;
+    color: #ff6b6b;
+    font-size: 0.85rem;
+    margin-top: 5px;
+    padding: 0 15px;
+    font-weight: 500;
+}
+
+.input-group-wrapper.input-error .error-message {
+    display: block;
+}
+
+.input-group-wrapper.input-error input {
+    border-color: #ff6b6b !important;
+    background: rgba(255, 107, 107, 0.1) !important;
+}
+
+.input-group-wrapper.input-error input::placeholder {
+    color: rgba(255, 107, 107, 0.6);
+}

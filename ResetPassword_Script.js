@@ -42,15 +42,15 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        console.log('🔍 Frontend: Token from URL:', resetToken.substring(0, 20) + '...');
-        console.log('🔍 Frontend: Token length:', resetToken.length);
+        console.log(' Frontend: Token from URL:', resetToken.substring(0, 20) + '...');
+        console.log(' Frontend: Token length:', resetToken.length);
         
         statusBox.className = 'status-box loading';
         statusText.textContent = 'Verifying reset link...';
 
         try {
             const fullUrl = `${API_BASE_URL}/auth/verify-reset-token/${resetToken}`;
-            console.log('🔍 Frontend: Making request to:', fullUrl.substring(0, 50) + '...');
+            console.log(' Frontend: Making request to:', fullUrl.substring(0, 50) + '...');
             
             const response = await fetch(fullUrl, {
                 method: 'GET',
@@ -59,23 +59,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            console.log('🔍 Frontend: Response status:', response.status);
-            console.log('🔍 Frontend: Response ok:', response.ok);
+            console.log(' Frontend: Response status:', response.status);
+            console.log(' Frontend: Response ok:', response.ok);
             
             // Parse response regardless of status code
             let data;
             try {
                 data = await response.json();
-                console.log('🔍 Frontend: Parsed JSON:', data);
+                console.log(' Frontend: Parsed JSON:', data);
             } catch (parseError) {
-                console.error('❌ Failed to parse response JSON:', parseError);
+                console.error(' Failed to parse response JSON:', parseError);
                 showError('Error parsing server response');
                 return;
             }
             
             // Check if verification was successful (status 200 and success: true)
             if (response.ok && data.success) {
-                console.log('✅ Reset token verified for:', data.email);
+                console.log(' Reset token verified for:', data.email);
                 statusBox.className = 'status-box success';
                 statusText.textContent = `Reset link verified for ${data.email}`;
                 
@@ -85,14 +85,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }, 1500);
             } else {
                 // Token verification failed
-                console.log('❌ Token verification failed:', data.message || 'Unknown error');
-                console.log('❌ Response status:', response.status, 'data.success:', data.success);
+                console.log(' Token verification failed:', data.message || 'Unknown error');
+                console.log(' Response status:', response.status, 'data.success:', data.success);
                 showError(data.message || 'Invalid or expired reset link');
             }
         } catch (error) {
-            console.error('❌ Network/Verification error:', error);
-            console.error('❌ Error message:', error.message);
-            console.error('❌ Error stack:', error.stack);
+            console.error(' Network/Verification error:', error);
+            console.error(' Error message:', error.message);
+            console.error(' Error stack:', error.stack);
             showError('Error verifying reset link: ' + error.message);
         }
     }
@@ -231,9 +231,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Success
-            console.log('✅ Password reset successfully');
+            console.log(' Password reset successfully');
             
-            alert('✅ Password reset successful! You can now login with your new password.');
+            alert(' Password reset successful! You can now login with your new password.');
             
             // Redirect to login
             setTimeout(() => {

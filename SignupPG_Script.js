@@ -41,10 +41,48 @@ document.addEventListener('DOMContentLoaded', () => {
         // Reset errors
         document.querySelectorAll('.input-group-wrapper').forEach(el => el.classList.remove('input-error'));
 
+        // First Name Validation - only letters, no spaces or hyphens
+        if (!firstName.value.trim()) {
+            firstName.parentElement.classList.add('input-error');
+            alert('First name is required');
+            isValid = false;
+        } else if (!/^[a-zA-Z]+$/.test(firstName.value.trim())) {
+            firstName.parentElement.classList.add('input-error');
+            alert('First name can only contain letters (no spaces or hyphens)');
+            isValid = false;
+        }
+
+        // Surname Validation - only letters, no spaces or hyphens
+        if (!surname.value.trim()) {
+            surname.parentElement.classList.add('input-error');
+            alert('Surname is required');
+            isValid = false;
+        } else if (!/^[a-zA-Z]+$/.test(surname.value.trim())) {
+            surname.parentElement.classList.add('input-error');
+            alert('Surname can only contain letters (no spaces or hyphens)');
+            isValid = false;
+        }
+
+        // Username Validation - only letters, no spaces or hyphens
+        if (!username.value.trim()) {
+            username.parentElement.classList.add('input-error');
+            alert('Username is required');
+            isValid = false;
+        } else if (username.value.trim().length < 3 || username.value.trim().length > 20) {
+            username.parentElement.classList.add('input-error');
+            alert('Username must be 3-20 characters');
+            isValid = false;
+        } else if (!/^[a-zA-Z]+$/.test(username.value.trim())) {
+            username.parentElement.classList.add('input-error');
+            alert('Username can only contain letters (no spaces or hyphens)');
+            isValid = false;
+        }
+
         // Email Validation
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailPattern.test(email.value)) {
             email.parentElement.classList.add('input-error');
+            alert('Invalid email format');
             isValid = false;
         }
 

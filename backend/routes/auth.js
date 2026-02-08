@@ -95,7 +95,7 @@ router.post('/signup', async (req, res) => {
         const verificationToken = await createVerificationToken(email, firstName);
         
         // Build verification link
-        const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email?token=${verificationToken}`;
+        const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify_email?token=${verificationToken}`;
         
         // Send verification email (non-blocking - don't await)
         console.log(' Sending verification email...');

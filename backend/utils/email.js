@@ -66,14 +66,14 @@ const sendVerificationEmail = async (email, verificationLink, firstName) => {
                         .verify-button {
                             display: inline-block;
                             padding: 12px 30px;
-                            background-color: #4CAF50;
-                            color: white;
+                            background-color: #87CEEB;
+                            color: #000000;
                             text-decoration: none;
                             border-radius: 5px;
                             font-weight: bold;
                         }
                         .verify-button:hover {
-                            background-color: #45a049;
+                            background-color: #5eb3d6;
                         }
                         .link-text {
                             color: #666;
@@ -157,7 +157,7 @@ const sendPasswordResetEmail = async (email, resetLink, firstName) => {
                         body { font-family: Arial, sans-serif; background-color: #f5f5f5; }
                         .container { max-width: 600px; margin: 0 auto; background-color: white; padding: 40px; border-radius: 10px; }
                         .button-container { text-align: center; margin: 30px 0; }
-                        .reset-button { display: inline-block; padding: 12px 30px; background-color: #2196F3; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; }
+                        .reset-button { display: inline-block; padding: 12px 30px; background-color: #87CEEB; color: #000000; text-decoration: none; border-radius: 5px; font-weight: bold; }
                     </style>
                 </head>
                 <body>

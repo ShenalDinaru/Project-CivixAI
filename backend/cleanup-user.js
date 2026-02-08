@@ -22,7 +22,7 @@ try {
         databaseURL: process.env.FIREBASE_DATABASE_URL
     });
 } catch (error) {
-    console.error('❌ Firebase initialization failed:', error.message);
+    console.error(' Firebase initialization failed:', error.message);
     process.exit(1);
 }
 
@@ -34,19 +34,19 @@ const db = admin.database();
  */
 async function deleteUserCompletely(email) {
     try {
-        console.log(`🔍 Searching for user: ${email}`);
+        console.log(` Searching for user: ${email}`);
         
         // Find user in Firebase Authentication
         const user = await auth.getUserByEmail(email);
-        console.log(`✅ Found in Authentication: ${user.uid}`);
+        console.log(` Found in Authentication: ${user.uid}`);
 
         // Delete from Authentication
         await auth.deleteUser(user.uid);
-        console.log(`✅ Deleted from Authentication`);
+        console.log(` Deleted from Authentication`);
 
         // Delete from Realtime Database
         await db.ref(`users/${user.uid}`).remove();
-        console.log(`✅ Deleted from Realtime Database`);
+        console.log(` Deleted from Realtime Database`);
 
         // Delete username mapping
         const usernameRef = await db.ref('usernames').once('value');
@@ -55,7 +55,7 @@ async function deleteUserCompletely(email) {
             for (const username in usernames) {
                 if (usernames[username] === user.uid) {
                     await db.ref(`usernames/${username}`).remove();
-                    console.log(`✅ Deleted username mapping: ${username}`);
+                    console.log(` Deleted username mapping: ${username}`);
                 }
             }
         }
@@ -67,17 +67,17 @@ async function deleteUserCompletely(email) {
             for (const token in tokens) {
                 if (tokens[token].email === email.toLowerCase()) {
                     await db.ref(`verificationTokens/${token}`).remove();
-                    console.log(`✅ Deleted verification token`);
+                    console.log(` Deleted verification token`);
                 }
             }
         }
 
-        console.log(`\n🎉 User completely deleted from all systems!\n`);
+        console.log(`\n User completely deleted from all systems!\n`);
         return true;
 
     } catch (error) {
         if (error.code === 'auth/user-not-found') {
-            console.log(`⚠️  Email not found in Authentication, but checking Database...`);
+            console.log(`  Email not found in Authentication, but checking Database...`);
             
             // Try to find and delete from Database even if not in Auth
             try {
@@ -86,7 +86,7 @@ async function deleteUserCompletely(email) {
                 if (userSnapshot.exists()) {
                     const userId = Object.keys(userSnapshot.val())[0];
                     await db.ref(`users/${userId}`).remove();
-                    console.log(`✅ Deleted from Realtime Database`);
+                    console.log(` Deleted from Realtime Database`);
                     
                     // Clean up usernames
                     const usernameRef = await db.ref('usernames').once('value');
@@ -99,15 +99,15 @@ async function deleteUserCompletely(email) {
                         }
                     }
                     
-                    console.log(`🎉 User deleted from Database!\n`);
+                    console.log(` User deleted from Database!\n`);
                 } else {
-                    console.log(`❌ Email not found anywhere\n`);
+                    console.log(` Email not found anywhere\n`);
                 }
             } catch (dbError) {
-                console.error(`❌ Database error: ${dbError.message}\n`);
+                console.error(` Database error: ${dbError.message}\n`);
             }
         } else {
-            console.error(`❌ Error: ${error.message}\n`);
+            console.error(` Error: ${error.message}\n`);
         }
         return false;
     }
@@ -118,7 +118,7 @@ async function deleteUserCompletely(email) {
  */
 async function listAllUsers() {
     try {
-        console.log(`\n📋 All Registered Users:\n`);
+        console.log(`\n All Registered Users:\n`);
         const usersRef = await db.ref('users').once('value');
         
         if (!usersRef.exists()) {
@@ -137,7 +137,7 @@ async function listAllUsers() {
         
         console.log(`\nTotal: ${count} users\n`);
     } catch (error) {
-        console.error(`❌ Error listing users: ${error.message}`);
+        console.error(` Error listing users: ${error.message}`);
     }
 }
 
@@ -166,7 +166,7 @@ async function main() {
         process.exit(0);
     }
 
-    console.log('❌ Invalid arguments');
+    console.log(' Invalid arguments');
     process.exit(1);
 }
 

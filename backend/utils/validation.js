@@ -12,9 +12,19 @@ const validatePhone = (phone) => {
     return phonePattern.test(phone);
 };
 
-// Validate username
+// Validate first name - only letters, no spaces or hyphens
+const validateFirstName = (firstName) => {
+    return /^[a-zA-Z]+$/.test(firstName);
+};
+
+// Validate surname - only letters, no spaces or hyphens
+const validateSurname = (surname) => {
+    return /^[a-zA-Z]+$/.test(surname);
+};
+
+// Validate username - only letters, no spaces or hyphens
 const validateUsername = (username) => {
-    return username.length >= 3 && username.length <= 20 && /^[a-zA-Z0-9_-]+$/.test(username);
+    return username.length >= 3 && username.length <= 20 && /^[a-zA-Z]+$/.test(username);
 };
 
 // Validate required fields
@@ -23,16 +33,20 @@ const validateSignupData = (data) => {
 
     if (!data.firstName || !data.firstName.trim()) {
         errors.firstName = 'First name is required';
+    } else if (!validateFirstName(data.firstName.trim())) {
+        errors.firstName = 'First name can only contain letters (no spaces or hyphens)';
     }
 
     if (!data.surname || !data.surname.trim()) {
         errors.surname = 'Surname is required';
+    } else if (!validateSurname(data.surname.trim())) {
+        errors.surname = 'Surname can only contain letters (no spaces or hyphens)';
     }
 
     if (!data.username || !data.username.trim()) {
         errors.username = 'Username is required';
-    } else if (!validateUsername(data.username)) {
-        errors.username = 'Username must be 3-20 characters (alphanumeric, underscore, hyphen)';
+    } else if (!validateUsername(data.username.trim())) {
+        errors.username = 'Username must be 3-20 letters only (no spaces or hyphens)';
     }
 
     if (!data.email || !data.email.trim()) {

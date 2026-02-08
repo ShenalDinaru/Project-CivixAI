@@ -30,22 +30,27 @@
             <form id="signupForm" class="auth-form">
                 <div class="input-group-wrapper">
                     <input type="text" id="firstName" placeholder="Enter your First Name*" required>
+                    <span class="error-message" id="firstNameError"></span>
                 </div>
 
                 <div class="input-group-wrapper">
                     <input type="text" id="surname" placeholder="Enter your Surname*" required>
+                    <span class="error-message" id="surnameError"></span>
                 </div>
 
                 <div class="input-group-wrapper">
                     <input type="text" id="username" placeholder="Set a Username*" required>
+                    <span class="error-message" id="usernameError"></span>
                 </div>
                 
                 <div class="input-group-wrapper">
                     <input type="email" id="email" placeholder="Enter your Email*" required>
+                    <span class="error-message" id="emailError"></span>
                 </div>
 
                 <div class="input-group-wrapper">
                     <input type="tel" id="phone" placeholder="Enter your Phone Number">
+                    <span class="error-message" id="phoneError"></span>
                 </div>
 
                 <button type="submit" class="btn chat-btn" id="nextBtn">NEXT ></button>

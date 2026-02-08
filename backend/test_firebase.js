@@ -2,11 +2,11 @@ const admin = require('firebase-admin');
 const path = require('path');
 require('dotenv').config();
 
-console.log('\n🔍 Firebase Connection Diagnostic Test\n');
+console.log('\n Firebase Connection Diagnostic Test\n');
 console.log('=' .repeat(50));
 
 //  Check if credentials exist
-console.log('\n✓ Test 1: Checking credentials in .env file...');
+console.log('\n Test 1: Checking credentials in .env file...');
 const projectId = process.env.FIREBASE_PROJECT_ID;
 const privateKey = process.env.FIREBASE_PRIVATE_KEY;
 const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
@@ -75,9 +75,9 @@ try {
     console.log('   Error:', error.message);
     
     if (error.message.includes('Invalid service account')) {
-        console.log('\n   💡 Solution: Your credentials are invalid.');
+        console.log('\n    Solution: Your credentials are invalid.');
         console.log('      1. Go to Firebase Console → Your Project');
-        console.log('      2. Settings ⚙️ → Service Accounts');
+        console.log('      2. Settings  → Service Accounts');
         console.log('      3. Generate new private key');
         console.log('      4. Copy the JSON credentials to .env');
     }
@@ -104,7 +104,7 @@ const connectionTest = db.ref('.info/connected').on('value', (snap) => {
                 .then(() => {
                     console.log(' Database read successful!');
                     console.log('\n' + '='.repeat(50));
-                    console.log('🎉 All tests passed! Firebase is working correctly.');
+                    console.log(' All tests passed! Firebase is working correctly.');
                     console.log('=' .repeat(50) + '\n');
                     process.exit(0);
                 })
