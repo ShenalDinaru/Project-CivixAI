@@ -92,8 +92,8 @@ loginForm.onsubmit = async (e) => {
             askNowBtn.disabled = false;
             askNowBtn.style.opacity = "1";
 
-            // Handle unverified email specially
-            if (result.error === 'UNVERIFIED_EMAIL' || !result.emailVerified) {
+            // Handle unverified email specially (only if error is specifically UNVERIFIED_EMAIL)
+            if (result.error === 'UNVERIFIED_EMAIL') {
                 const resendChoice = confirm(
                     `Your email has not been verified yet. Please check your email for a verification link.\n\nWould you like us to resend the verification email?`
                 );

@@ -334,8 +334,18 @@
                 const data = await response.json();
 
                 if (data.success) {
+                    // Mark email as verified in database
+                    const email = data.email;
+                    const updateResponse = await fetch(`${API_BASE_URL}/auth/mark-email-verified`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ email })
+                    });
+
                     showState('success');
-                    console.log('✅ Email verified:', data.email);
+                    console.log('✅ Email verified:', email);
                 } else {
                     if (data.message && data.message.includes('expired')) {
                         showState('expired');

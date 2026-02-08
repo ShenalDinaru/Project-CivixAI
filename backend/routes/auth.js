@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const bcrypt = require('bcryptjs');
 const { db, auth } = require('../config/firebase');
 const { validateSignupData } = require('../utils/validation');
 const { sendVerificationEmail, sendPasswordResetEmail } = require('../utils/email');
@@ -49,6 +50,12 @@ router.post('/signup', async (req, res) => {
 
         console.log(' Email validation passed (not disposable)');
 
+        // Hash the password before storing
+        console.log('🔐 Hashing password...');
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        console.log('✓ Password hashed successfully');
+
         // Create user in Firebase Authentication
         console.log('🔑 Creating Firebase Auth user...');
         const userRecord = await auth.createUser({
@@ -66,6 +73,7 @@ router.post('/signup', async (req, res) => {
             username: username.toLowerCase().trim(),
             email: email.toLowerCase(),
             phone: phone ? phone.trim() : '',
+            passwordHash: hashedPassword,
             createdAt: new Date().toISOString(),
             lastUpdated: new Date().toISOString(),
             emailVerified: false,
@@ -219,18 +227,34 @@ router.get('/verify-email-token/:token', async (req, res) => {
             });
         }
 
-        console.log(' Verifying email token...');
+        console.log('🔍 Verifying email token...');
         const result = await verifyToken(token);
 
         if (!result.success) {
-            console.log(' Token verification failed:', result.message);
+            console.log('❌ Token verification failed:', result.message);
             return res.status(400).json({
                 success: false,
                 message: result.message
             });
         }
 
-        console.log(' Email verification successful!');
+        // Mark email as verified in database
+        console.log('📧 Marking email as verified:', result.email);
+        try {
+            const userSnapshot = await db.ref('users').orderByChild('email').equalTo(result.email.toLowerCase()).once('value');
+            if (userSnapshot.exists()) {
+                const userData = Object.entries(userSnapshot.val())[0];
+                const uid = userData[0];
+                await db.ref(`users/${uid}/emailVerified`).set(true);
+                await db.ref(`users/${uid}/emailVerifiedAt`).set(new Date().toISOString());
+                console.log('✅ Email marked as verified in database');
+            }
+        } catch (dbError) {
+            console.error('Database error updating emailVerified:', dbError);
+            // Continue anyway as token was verified
+        }
+
+        console.log('✅ Email verification successful!');
         return res.status(200).json({
             success: true,
             message: result.message,
@@ -238,7 +262,7 @@ router.get('/verify-email-token/:token', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Email verification error:', error);
+        console.error('❌ Email verification error:', error);
         res.status(500).json({
             success: false,
             message: 'Error verifying email'
@@ -282,7 +306,7 @@ router.post('/resend-verification-email', async (req, res) => {
 
         // Create new verification token
         const verificationToken = await createVerificationToken(email, userData.firstName);
-        const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email?token=${verificationToken}`;
+        const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify_email?token=${verificationToken}`;
 
         // Send verification email 
         sendVerificationEmail(email, verificationLink, userData.firstName).catch(error => {
@@ -344,6 +368,22 @@ router.post('/login', async (req, res) => {
 
             const userData = Object.values(userSnapshot.val())[0];
             const userRecord = await auth.getUserByEmail(email.toLowerCase());
+
+            // Verify password hash
+            console.log('🔑 Verifying password...');
+            const passwordMatch = await bcrypt.compare(password, userData.passwordHash);
+            
+            if (!passwordMatch) {
+                console.warn('  Password mismatch for user:', email);
+                return res.status(401).json({
+                    success: false,
+                    message: 'Invalid email or password',
+                    emailVerified: userData.emailVerified,
+                    error: 'INVALID_PASSWORD'
+                });
+            }
+            
+            console.log('✓ Password verified successfully');
 
             // Check if email is verified
             if (!userData.emailVerified) {
@@ -494,7 +534,7 @@ router.post('/forgot-password', async (req, res) => {
         const resetToken = await createPasswordResetToken(email, userData.firstName);
         
         // Build reset link
-        const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+        const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset_password?token=${resetToken}`;
         
         // Send password reset email
         console.log(' Sending password reset email...');
@@ -602,6 +642,20 @@ router.post('/reset-password', async (req, res) => {
             });
             console.log(' Password updated in Firebase Auth');
 
+            // Hash the new password and update in database
+            console.log(' Hashing new password for database...');
+            const saltRounds = 10;
+            const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+            
+            // Update password hash in database
+            const userSnapshot = await db.ref('users').orderByChild('email').equalTo(tokenResult.email.toLowerCase()).once('value');
+            if (userSnapshot.exists()) {
+                const userData = Object.entries(userSnapshot.val())[0];
+                const uid = userData[0];
+                await db.ref(`users/${uid}/passwordHash`).set(hashedPassword);
+                console.log(' Password hash updated in database');
+            }
+
             // Mark token as used
             await markPasswordResetTokenAsUsed(token);
 
@@ -650,7 +704,7 @@ router.get('/debug/latest-reset-token/:email', async (req, res) => {
         }
 
         const latestToken = tokensForEmail[0];
-        const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${latestToken[0]}`;
+        const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset_password?token=${latestToken[0]}`;
 
         console.log(' DEBUG: Latest reset token for', email);
         res.status(200).json({

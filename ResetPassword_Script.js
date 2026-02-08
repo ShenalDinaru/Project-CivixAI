@@ -142,14 +142,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const passwordInput = document.getElementById('newPassword');
     const confirmPasswordInput = document.getElementById('confirmPassword');
 
-    toggleButtons.forEach((toggle, index) => {
-        toggle.addEventListener('click', () => {
-            const input = index === 0 ? passwordInput : confirmPasswordInput;
-            const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
-            input.setAttribute('type', type);
-            toggle.style.opacity = type === 'text' ? '0.7' : '1';
+    // Set up toggle functionality with proper event listeners
+    if (toggleButtons.length > 0) {
+        toggleButtons.forEach((toggle, index) => {
+            toggle.style.cursor = 'pointer';
+            toggle.addEventListener('click', (e) => {
+                e.preventDefault();
+                const input = index === 0 ? passwordInput : confirmPasswordInput;
+                if (input) {
+                    const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                    input.setAttribute('type', type);
+                    toggle.style.opacity = type === 'text' ? '0.7' : '1';
+                }
+            });
         });
-    });
+    }
 
     // Password strength feedback
     passwordInput.addEventListener('input', () => {
