@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CivixAI | Upload Document</title>
+  <link rel="stylesheet" href="document_uploader_styles.css">
+</head>
+<body>
+  <div class="container">
+    <header class="top-nav">
+      <button class="back-btn" id="backBtn">
+        <img src="Resources/Icons/Back Icon.svg" alt="Back">
+      </button>
+      <div class="brand-center">
+        <img src="Resources/CivixAi Logo/CivixAI Logo (Dark Mode) - No BG (Home).png" alt="CivixAI Logo" class="nav-logo-xl">
+      </div>
+      <button class="notif-btn">
+        <img src="Resources/Icons/Notification Bell Icon.svg" alt="Notifications">
+      </button>
+    </header>
+
+    <main class="main-content">
+      <h1 class="title">Upload Document</h1>
+      
+      <div class="upload-section">
+        <div class="upload-area" id="uploadArea">
+          <div class="icon-circle-bg">
+            <img src="Resources/Icons/Upload Icon.svg" alt="Upload" class="upload-icon">
+          </div>
+          <p class="upload-text">Drag & Drop your document here</p>
+          <p class="upload-subtext">or</p>
+          <button class="browse-btn" id="browseBtn">Browse Files</button>
+          <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif" multiple hidden>
+        </div>
+
+        <div class="uploaded-files" id="uploadedFiles"></div>
+
+        <div class="status-message" id="statusMessage"></div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-add" id="addMoreBtn" disabled>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Add More Documents
+        </button>
+        <div class="action-buttons">
+          <button class="btn btn-done" id="doneBtn" disabled>Done</button>
+          <button class="btn btn-cancel" id="cancelBtn">Cancel</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="document_uploader_script.js"></script>
+</body>
+</html>
