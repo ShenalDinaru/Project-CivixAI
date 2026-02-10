@@ -16,7 +16,8 @@ let state = {
         language: 'eng',
         autoDelete: true,
         notifications: true,
-        apiEndpoint: 'http://localhost:3000/api/scan'
+        // Base API URL (backend root, NOT including /scan)
+        apiEndpoint: 'http://localhost:3000/api'
     },
     statistics: JSON.parse(localStorage.getItem('civixStatistics')) || {
         scannedToday: 0,
@@ -954,7 +955,8 @@ function saveSettings() {
     const language = document.getElementById('ocrLanguage')?.value || 'eng';
     const autoDelete = document.getElementById('autoDelete')?.checked || false;
     const notifications = document.getElementById('enableNotifications')?.checked || true;
-    const apiEndpoint = document.getElementById('apiEndpoint')?.value || 'http://localhost:3000/api/scan';
+    // Expect this to be the BASE API URL, e.g. http://localhost:3000/api
+    const apiEndpoint = document.getElementById('apiEndpoint')?.value || 'http://localhost:3000/api';
     
     state.settings = {
         strictness,
@@ -974,7 +976,8 @@ function resetSettings() {
         language: 'eng',
         autoDelete: true,
         notifications: true,
-        apiEndpoint: 'http://localhost:3000/api/scan'
+        // Reset to default BASE API URL
+        apiEndpoint: 'http://localhost:3000/api'
     };
     
     localStorage.setItem('civixSettings', JSON.stringify(state.settings));
