@@ -93,8 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Optionally redirect back to login after a delay
             setTimeout(() => {
-                // Uncomment to auto-redirect
-                // window.location.href = 'LoginPG.html';
+                
             }, 3000);
 
         } catch (error) {
