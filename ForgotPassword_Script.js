@@ -1,4 +1,5 @@
 const API_BASE_URL = 'http://localhost:5000/api';
+let lastEmailSent = '';
 
 document.addEventListener('DOMContentLoaded', () => {
     const card = document.getElementById('forgotPasswordCard');
@@ -82,9 +83,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Success
             console.log(' Reset email sent:', email);
+            lastEmailSent = email;
             
             successMessage.style.display = 'block';
             forgotPasswordForm.style.display = 'none';
+            document.getElementById('resendSection').style.display = 'block';
+            
+            // Set up resend button
+            const resendBtn = document.getElementById('resendBtn');
+            resendBtn.onclick = async () => {
+                await resendResetLink(lastEmailSent);
+            };
             
             // Reset button after showing success
             submitBtn.innerHTML = "SEND RESET LINK";
@@ -107,3 +116,47 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 });
+
+// Resend reset link function
+async function resendResetLink(email) {
+    const resendBtn = document.getElementById('resendBtn');
+    const successMessage = document.getElementById('successMessage');
+    const errorMessage = document.getElementById('errorMessage');
+    
+    resendBtn.innerHTML = "Sending...";
+    resendBtn.disabled = true;
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            resendBtn.innerHTML = "REQUEST NEW LINK";
+            resendBtn.disabled = false;
+            errorMessage.textContent = result.message || 'Failed to resend email';
+            errorMessage.style.display = 'block';
+            return;
+        }
+
+        // Success
+        console.log('Reset email resent:', email);
+        successMessage.textContent = 'New reset link sent! Check your email.';
+        successMessage.style.display = 'block';
+        resendBtn.innerHTML = "REQUEST NEW LINK";
+        resendBtn.disabled = false;
+
+    } catch (error) {
+        console.error('Resend error:', error);
+        resendBtn.innerHTML = "REQUEST NEW LINK";
+        resendBtn.disabled = false;
+        errorMessage.textContent = 'Error resending email. Please try again.';
+        errorMessage.style.display = 'block';
+    }
+}
