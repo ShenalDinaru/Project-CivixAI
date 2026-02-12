@@ -42,6 +42,25 @@ body {
   z-index: 2;
 }
 
+/* --- Glassmorphism Card --- */
+.ui-card {
+  position: relative;
+  z-index: 3;
+  width: 90%;
+  max-width: 420px;
+  min-height: 500px;
+  padding: 2.5rem 2rem;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+
+}
 
 
 /* --- Inner Layout --- */
