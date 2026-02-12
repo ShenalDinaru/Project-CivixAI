@@ -7,72 +7,65 @@
     <link rel="stylesheet" href="VerifyEmail_Styles.css" />
 </head>
 <body>
-    <div class="container">
-        <div class="logo">
-            <img src="Resources/Background/welcome1.png" alt="CivixAI Logo" />
-        </div>
 
-        <div id="verificationContainer">
-            <!-- Loading State -->
-            <div id="loadingState" style="display: none;">
-                <h1>Verifying Your Email</h1>
-                <p class="subtitle">Please wait while we verify your email address...</p>
-                <div class="status loading">
-                    <div class="spinner">
+    <div class="video-wrapper">
+        <video autoplay muted loop playsinline poster="Resources/sigiriya.jpg">
+            <source src="Resources/Background/SL Edited.mp4" type="video/mp4" />
+        </video>
+
+        <div class="overlay"></div>
+
+        <div class="ui-card">
+            
+            <div class="brand-container">
+                <img src="Resources/Background/welcome1.png" alt="CivixAI Logo" class="brand-img">
+            </div>
+
+            <div id="verificationContainer" class="content-wrapper">
+                
+                <div id="loadingState" class="state-container">
+                    <div class="spinner-container">
                         <div class="spinner-ring">
-                            <div class="spinner-circle"></div>
-                            <div class="spinner-circle"></div>
-                            <div class="spinner-circle"></div>
-                            <div class="spinner-circle"></div>
+                            <div></div><div></div><div></div><div></div>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Success State -->
-            <div id="successState" style="display: none;">
-                <div class="success-icon">✅</div>
-                <h1>Email Verified!</h1>
-                <p class="subtitle">Your email has been successfully verified.</p>
-                <div class="status success">
-                    <p>You can now log in to your CivixAI account.</p>
-                </div>
-                <div class="button-group">
-                    <a href="LoginPG.html" class="button button-primary">Go to Login</a>
-                </div>
-            </div>
-
-            <!-- Error State -->
-            <div id="errorState" style="display: none;">
-                <div class="error-icon">❌</div>
-                <h1>Verification Failed</h1>
-                <p class="subtitle" id="errorMessage">The verification link is invalid or has expired.</p>
-                <div class="status error">
-                    <p id="errorDetails"></p>
-                </div>
-                <div class="button-group">
-                    <a href="SignupPG.html" class="button button-primary">Try Signing Up Again</a>
-                    <a href="LoginPG.html" class="button button-secondary">Back to Login</a>
+                    <h2>Verifying...</h2>
+                    <p class="subtitle">Please wait while we verify your email address.</p>
                 </div>
 
-                <div class="resend-section">
-                    <p class="resend-text">Already have an account?</p>
-                    <a href="LoginPG.html" class="resend-link">Login here</a>
+                <div id="successState" class="state-container" style="display: none;">
+                    <div class="icon-box success-glow">✅</div>
+                    <h2>Email Verified!</h2>
+                    <p class="subtitle">Your account has been successfully verified.</p>
+                    
+                    <div class="action-box">
+                        <button class="btn primary full-width" id="btnGoLogin">Go to Login</button>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Expired State -->
-            <div id="expiredState" style="display: none;">
-                <div class="error-icon">⏱️</div>
-                <h1>Verification Link Expired</h1>
-                <p class="subtitle">Your verification link has expired. Please request a new one.</p>
-                <div class="status error">
-                    <p>Verification links are valid for 24 hours.</p>
+                <div id="errorState" class="state-container" style="display: none;">
+                    <div class="icon-box error-glow">❌</div>
+                    <h2>Verification Failed</h2>
+                    <p class="subtitle" id="errorMessage">Invalid link.</p>
+                    <p class="detail-text" id="errorDetails"></p>
+                    
+                    <div class="action-box">
+                        <button class="btn primary full-width" id="btnRetrySignup">Sign Up Again</button>
+                        <button class="btn secondary full-width" id="btnBackLogin">Back to Login</button>
+                    </div>
                 </div>
-                <div class="button-group">
-                    <button class="button button-primary" onclick="resendVerificationEmail()">Resend Verification Email</button>
-                    <a href="SignupPG.html" class="button button-secondary">Sign Up Again</a>
+
+                <div id="expiredState" class="state-container" style="display: none;">
+                    <div class="icon-box warning-glow">⏱️</div>
+                    <h2>Link Expired</h2>
+                    <p class="subtitle">This verification link has expired.</p>
+                    
+                    <div class="action-box">
+                        <button class="btn chat-btn full-width" id="btnResendEmail">Resend Verification Email</button>
+                        <button class="btn secondary full-width" id="btnBackSignup">Sign Up Again</button>
+                    </div>
                 </div>
+
             </div>
         </div>
     </div>
