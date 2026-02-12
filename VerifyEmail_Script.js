@@ -1,0 +1,132 @@
+const API_BASE_URL = 'http://localhost:5000/api';
+
+// --- Initialization & Navigation --- //
+
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Attach Button Listeners (JS Navigation)
+    const attachListener = (id, action) => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('click', action);
+    };
+
+    // Login Redirects
+    attachListener('btnGoLogin', () => window.location.href = 'LoginPG.html');
+    attachListener('btnBackLogin', () => window.location.href = 'LoginPG.html');
+    
+    // Signup Redirects
+    attachListener('btnRetrySignup', () => window.location.href = 'SignupPG.html');
+    attachListener('btnBackSignup', () => window.location.href = 'SignupPG.html');
+    
+    // Action Buttons
+    attachListener('btnResendEmail', resendVerificationEmail);
+
+    // 2. Start Verification Process
+    verifyEmail();
+});
+
+
+// --- Core Logic --- //
+
+function getTokenFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('token');
+}
+
+function showState(stateName) {
+    // Hide all states first
+    const states = ['loadingState', 'successState', 'errorState', 'expiredState'];
+    states.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+    });
+
+    // Show the requested state with animation reset
+    const activeEl = document.getElementById(stateName + 'State');
+    if (activeEl) {
+        activeEl.style.display = 'block';
+        // Trigger reflow to restart CSS animation
+        activeEl.style.animation = 'none';
+        activeEl.offsetHeight; 
+        activeEl.style.animation = 'elementFadeUp 0.6s ease-out forwards';
+    }
+}
+
+async function verifyEmail() {
+    const token = getTokenFromURL();
+
+    if (!token) {
+        showState('error');
+        updateText('errorMessage', 'No verification token found.');
+        updateText('errorDetails', 'Please check the link in your email.');
+        return;
+    }
+
+    showState('loading');
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/auth/verify-email-token/${token}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Confirm verification to backend
+            const email = data.email;
+            await fetch(`${API_BASE_URL}/auth/mark-email-verified`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+
+            showState('success');
+            console.log('Success: Email verified for', email);
+        } else {
+            // Handle Expired vs Error
+            if (data.message && data.message.toLowerCase().includes('expired')) {
+                showState('expired');
+            } else {
+                showState('error');
+                updateText('errorMessage', data.message || 'Verification failed');
+                updateText('errorDetails', 'The link is invalid or corrupted.');
+            }
+        }
+    } catch (error) {
+        console.error('Network/Server Error:', error);
+        showState('error');
+        updateText('errorMessage', 'Connection Error');
+        updateText('errorDetails', 'Please check your internet connection and try again.');
+    }
+}
+
+async function resendVerificationEmail() {
+    // Simple prompt for now (can be upgraded to a modal later)
+    const email = prompt('Please enter your email address to resend the link:');
+    if (!email) return;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/auth/resend-verification-email`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert('Verification email sent! Please check your inbox.');
+        } else {
+            alert(data.message || 'Failed to resend verification email.');
+        }
+    } catch (error) {
+        console.error('Resend Error:', error);
+        alert('Error communicating with the server.');
+    }
+}
+
+// Helper to safely update text content
+function updateText(id, text) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+}
