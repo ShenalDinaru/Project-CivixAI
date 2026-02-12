@@ -1,7 +1,7 @@
 
 const API_BASE_URL = 'http://localhost:5000/api';
 
-// ELEMENTS
+// Elements
 const askNowBtn = document.getElementById('askNowBtn');
 const backBtn = document.getElementById('backBtn');
 const registerLink = document.getElementById('registerLink');
@@ -9,7 +9,7 @@ const loginForm = document.getElementById('loginForm');
 const togglePassword = document.getElementById('togglePassword');
 const passwordField = document.getElementById('passwordField');
 
-// Pswrd visibbility
+// Password visibility
 togglePassword.addEventListener('click', () => {
     const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
     passwordField.setAttribute('type', type);
@@ -92,7 +92,7 @@ loginForm.onsubmit = async (e) => {
             askNowBtn.disabled = false;
             askNowBtn.style.opacity = "1";
 
-            // Handle unverified email specially (only if error is specifically UNVERIFIED_EMAIL)
+            // Handle unverified email specially with resend verification mail
             if (result.error === 'UNVERIFIED_EMAIL') {
                 const resendChoice = confirm(
                     `Your email has not been verified yet. Please check your email for a verification link.\n\nWould you like us to resend the verification email?`
