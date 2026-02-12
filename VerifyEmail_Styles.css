@@ -59,6 +59,10 @@ body {
   text-align: center;
   display: flex;
   flex-direction: column;
+  opacity: 0;
+  transform: translateY(40px);
+  animation: cardRise 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: 0.2s;
 
 }
 
