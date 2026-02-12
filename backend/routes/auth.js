@@ -538,8 +538,11 @@ router.post('/forgot-password', async (req, res) => {
         
         // Send password reset email
         console.log(' Sending password reset email...');
-        sendPasswordResetEmail(email, resetLink, userData.firstName).catch(emailError => {
-            console.error('  Email sending failed:', emailError.message);
+        sendPasswordResetEmail(email, resetLink, userData.firstName).then(() => {
+            console.log(' Email sent successfully');
+        }).catch(emailError => {
+            console.error('❌ Email sending failed:', emailError.message);
+            console.error('❌ Full error:', emailError);
         });
 
         console.log(' Password reset email sent');
