@@ -158,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // All checks passed, redirect to password setup
                 setTimeout(() => {
-                    window.location.href = 'password_setup.html'; 
+                    window.location.href = 'PasswordPG.html'; 
                 }, 800);
             } catch (error) {
                 console.error('Error:', error);

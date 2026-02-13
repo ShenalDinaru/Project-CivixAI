@@ -33,7 +33,9 @@
 /* Form Elements */
 .auth-form { display: flex; flex-direction: column; gap: 15px; width: 100%; }
 
-.password-container { position: relative; display: flex; align-items: center; }
+.password-container { position: relative; display: flex; align-items: center; width: 100%; }
+
+.input-group-wrapper { width: 100%; }
 
 .toggle-password {
     position: absolute;
@@ -94,4 +96,57 @@
 
 .input-group-wrapper.input-error input::placeholder {
     color: rgba(255, 107, 107, 0.6);
+}
+
+/* Strength Meter */
+.strength-meter-wrapper {
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 10px 0;
+}
+
+.strength-bar {
+    height: 100%;
+    width: 0%;
+    transition: width 0.3s ease, background 0.3s ease;
+    border-radius: 10px;
+}
+
+/* Password Requirements Box */
+.pass-req-box {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 10px 15px;
+    text-align: left;
+    margin: 5px 0;
+}
+
+.pass-req-box p {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.pass-req-box ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.pass-req-box li {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 4px 0;
+    transition: color 0.3s ease, opacity 0.3s ease;
+    opacity: 0.6;
+}
+
+.pass-req-box li.completed {
+    color: #4CAF50;
+    opacity: 1;
 }
