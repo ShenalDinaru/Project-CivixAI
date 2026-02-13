@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Icon paths
     const viewIcon = 'Resources/Icons/Password View Eye Icon.svg';
     const hideIcon = 'Resources/Icons/Password Hidden Eye Icon.svg'; 
+    const API_BASE_URL = 'http://localhost:5000/api';
 
     // 1. Smooth Entry Animation
     requestAnimationFrame(() => {
@@ -18,7 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. Navigation
     document.getElementById('backBtn').onclick = () => {
-        window.location.href = 'SignupPG.html'; // Adjust this filename if your signup page has a different name
+        sessionStorage.removeItem('pendingRegistration');
+        window.location.href = 'SignupPG.html';
     };
 
     // 3. Visibility Toggle Logic
@@ -82,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // 5. Submit Flow
-    document.getElementById('passwordForm').onsubmit = (e) => {
+    document.getElementById('passwordForm').onsubmit = async (e) => {
         e.preventDefault();
         
         // Final password match check
@@ -91,12 +93,53 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
+        // Get pending registration from sessionStorage
+        const pendingRegistration = sessionStorage.getItem('pendingRegistration');
+        if (!pendingRegistration) {
+            alert("Session expired. Please sign up again.");
+            window.location.href = 'SignupPG.html';
+            return;
+        }
+
+        const userData = JSON.parse(pendingRegistration);
+        const signupData = {
+            ...userData,
+            password: passInput.value
+        };
+
         submitBtn.innerHTML = "CREATING ACCOUNT...";
         submitBtn.disabled = true;
 
-        // Simulate Account Creation
-        setTimeout(() => {
-            window.location.href = 'LoginPG.html';
-        }, 1500);
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(signupData)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Store email for verification page
+                sessionStorage.setItem('registeredEmail', result.user.email);
+                sessionStorage.removeItem('pendingRegistration');
+                
+                // Redirect to email verification
+                setTimeout(() => {
+                    window.location.href = 'verify_email.html';
+                }, 1500);
+            } else {
+                submitBtn.innerHTML = "SIGN UP";
+                submitBtn.disabled = false;
+                alert(result.message || 'Error creating account. Please try again.');
+            }
+        } catch (error) {
+            console.error('Signup error:', error);
+            submitBtn.innerHTML = "SIGN UP";
+            submitBtn.disabled = false;
+            alert('Error connecting to server. Please try again.');
+        }
     };
 });

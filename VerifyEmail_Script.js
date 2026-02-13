@@ -14,8 +14,14 @@ document.addEventListener('DOMContentLoaded', () => {
     attachListener('btnBackLogin', () => window.location.href = 'LoginPG.html');
     
     // Signup Redirects
-    attachListener('btnRetrySignup', () => window.location.href = 'SignupPG.html');
-    attachListener('btnBackSignup', () => window.location.href = 'SignupPG.html');
+    attachListener('btnRetrySignup', () => {
+        sessionStorage.removeItem('registeredEmail');
+        window.location.href = 'SignupPG.html';
+    });
+    attachListener('btnBackSignup', () => {
+        sessionStorage.removeItem('registeredEmail');
+        window.location.href = 'SignupPG.html';
+    });
     
     // Action Buttons
     attachListener('btnResendEmail', resendVerificationEmail);
@@ -34,7 +40,7 @@ function getTokenFromURL() {
 
 function showState(stateName) {
     // Hide all states first
-    const states = ['loadingState', 'successState', 'errorState', 'expiredState'];
+    const states = ['loadingState', 'pendingState', 'successState', 'errorState', 'expiredState'];
     states.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
@@ -53,6 +59,13 @@ function showState(stateName) {
 
 async function verifyEmail() {
     const token = getTokenFromURL();
+    const registeredEmail = sessionStorage.getItem('registeredEmail');
+
+    // If no token and just signed up, show pending state
+    if (!token && registeredEmail) {
+        showState('pending');
+        return;
+    }
 
     if (!token) {
         showState('error');
@@ -80,6 +93,7 @@ async function verifyEmail() {
                 body: JSON.stringify({ email })
             });
 
+            sessionStorage.removeItem('registeredEmail');
             showState('success');
             console.log('Success: Email verified for', email);
         } else {
@@ -101,8 +115,13 @@ async function verifyEmail() {
 }
 
 async function resendVerificationEmail() {
-    // Simple prompt for now (can be upgraded to a modal later)
-    const email = prompt('Please enter your email address to resend the link:');
+    // Try to get email from sessionStorage first, then prompt user
+    let email = sessionStorage.getItem('registeredEmail');
+    
+    if (!email) {
+        email = prompt('Please enter your email address to resend the link:');
+    }
+    
     if (!email) return;
 
     try {

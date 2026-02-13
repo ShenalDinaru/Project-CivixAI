@@ -109,11 +109,12 @@ h2 {
 
 .detail-text {
   font-size: 0.85rem;
-  color: #ff6b6b; /* Soft red for errors */
+  color: rgba(255, 255, 255, 0.8);
   margin-bottom: 1rem;
-  background: rgba(255, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.05);
   padding: 0.8rem;
   border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* --- Icons --- */
@@ -121,6 +122,22 @@ h2 {
   font-size: 3.5rem;
   margin-bottom: 1rem;
   filter: drop-shadow(0 0 10px rgba(255,255,255,0.3));
+}
+
+.success-glow {
+  filter: drop-shadow(0 0 15px rgba(76, 175, 80, 0.6));
+}
+
+.error-glow {
+  filter: drop-shadow(0 0 15px rgba(255, 107, 107, 0.6));
+}
+
+.warning-glow {
+  filter: drop-shadow(0 0 15px rgba(255, 193, 7, 0.6));
+}
+
+.info-glow {
+  filter: drop-shadow(0 0 15px rgba(66, 165, 245, 0.6));
 }
 
 /* --- Buttons --- */
