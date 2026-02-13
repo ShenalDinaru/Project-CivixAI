@@ -106,35 +106,45 @@ document.addEventListener('DOMContentLoaded', () => {
     // Password strength checker
     function checkPasswordStrength(password) {
         const requirements = {
-            length: password.length >= 8,
-            uppercase: /[A-Z]/.test(password),
-            lowercase: /[a-z]/.test(password),
-            number: /\d/.test(password)
+            len: password.length >= 8,
+            upper: /[A-Z]/.test(password),
+            lower: /[a-z]/.test(password),
+            spec: /\d/.test(password)
         };
 
-        updateRequirement('lengthReq', requirements.length);
-        updateRequirement('uppercaseReq', requirements.uppercase);
-        updateRequirement('lowercaseReq', requirements.lowercase);
-        updateRequirement('numberReq', requirements.number);
+        let passedCount = 0;
 
-        const strength = Object.values(requirements).filter(Boolean).length;
-        const strengthDiv = document.getElementById('passwordStrength');
+        // Check each requirement
+        Object.keys(requirements).forEach(id => {
+            const element = document.getElementById(id);
+            if (requirements[id]) {
+                element.classList.add('met');
+                passedCount++;
+            } else {
+                element.classList.remove('met');
+            }
+        });
+
+        // Update Strength Bar Color and Width
+        const strengthBar = document.getElementById('strengthBar');
+        strengthBar.style.width = (passedCount / 4) * 100 + "%";
         
-        strengthDiv.className = 'password-strength';
-        if (strength <= 2) strengthDiv.classList.add('weak');
-        else if (strength <= 3) strengthDiv.classList.add('fair');
-        else strengthDiv.classList.add('strong');
+        if (passedCount < 2) strengthBar.style.background = "#ff4d4d"; // Red
+        else if (passedCount === 3) strengthBar.style.background = "#ffd700"; // Gold/Yellow
+        else if (passedCount === 4) strengthBar.style.background = "#4CAF50"; // Green
 
-        return Object.values(requirements).every(Boolean);
-    }
-
-    function updateRequirement(id, met) {
-        const element = document.getElementById(id);
-        if (met) {
-            element.classList.add('met');
+        // Enable button only if all 4 requirements are met
+        if (passedCount === 4) {
+            resetBtn.disabled = false;
+            resetBtn.style.opacity = "1";
+            resetBtn.style.cursor = "pointer";
         } else {
-            element.classList.remove('met');
+            resetBtn.disabled = true;
+            resetBtn.style.opacity = "0.5";
+            resetBtn.style.cursor = "not-allowed";
         }
+
+        return passedCount === 4;
     }
 
     // Password visibility toggle
@@ -144,21 +154,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Set up toggle functionality with proper event listeners
     if (toggleButtons.length > 0) {
-        toggleButtons.forEach((toggle, index) => {
+        toggleButtons.forEach((toggle) => {
             toggle.style.cursor = 'pointer';
             toggle.addEventListener('click', (e) => {
                 e.preventDefault();
-                const input = index === 0 ? passwordInput : confirmPasswordInput;
+                const targetId = toggle.dataset.target;
+                const input = document.getElementById(targetId);
                 if (input) {
                     const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
                     input.setAttribute('type', type);
-                    toggle.style.opacity = type === 'text' ? '0.7' : '1';
+                    toggle.style.opacity = type === 'text' ? '0.7' : '0.5';
                 }
             });
         });
     }
 
-    // Password strength feedback
+    // Password strength feedback - check on input
     passwordInput.addEventListener('input', () => {
         checkPasswordStrength(passwordInput.value);
     });
@@ -184,26 +195,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const newPassword = document.getElementById('newPassword').value;
         const confirmPassword = document.getElementById('confirmPassword').value;
 
-        // Reset error styling
-        document.querySelectorAll('.input-group-wrapper').forEach(el => el.classList.remove('input-error'));
-
         // Validation
-        const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
-        
-        if (!passwordPattern.test(newPassword)) {
-            document.getElementById('newPassword').parentElement.classList.add('input-error');
-            alert('Password must be at least 8 characters with uppercase, lowercase, and a number.');
+        if (!checkPasswordStrength(newPassword)) {
+            alert('Password must contain all requirements: 8+ characters, uppercase, lowercase, and a number.');
             return;
         }
 
         if (newPassword !== confirmPassword) {
-            document.getElementById('confirmPassword').parentElement.classList.add('input-error');
             alert('Passwords do not match.');
             return;
         }
 
         // Show loading state
-        resetBtn.innerHTML = "Resetting Password...";
+        resetBtn.innerHTML = "RESETTING PASSWORD...";
         resetBtn.disabled = true;
         resetBtn.style.opacity = "0.7";
 
