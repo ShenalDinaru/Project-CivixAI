@@ -55,12 +55,10 @@ document.addEventListener('DOMContentLoaded', () => {
         Object.keys(reqs).forEach(id => {
             const element = document.getElementById(id);
             if (reqs[id](value)) {
-                element.style.color = "#4CAF50"; // Green
-                element.style.opacity = "1";
+                element.classList.add('met');
                 passedCount++;
             } else {
-                element.style.color = ""; // Default
-                element.style.opacity = "0.6";
+                element.classList.remove('met');
             }
         });
 

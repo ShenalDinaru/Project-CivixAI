@@ -120,7 +120,7 @@
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 16px;
-    padding: 10px 15px;
+    padding: 12px 15px;
     text-align: left;
     margin: 5px 0;
 }
@@ -141,12 +141,35 @@
 .pass-req-box li {
     font-size: 0.8rem;
     color: rgba(255, 255, 255, 0.7);
-    margin: 4px 0;
-    transition: color 0.3s ease, opacity 0.3s ease;
-    opacity: 0.6;
+    margin: 6px 0;
+    padding-left: 18px;
+    position: relative;
+    transition: color 0.3s ease;
+    line-height: 1.4;
 }
 
-.pass-req-box li.completed {
+.pass-req-box li::before {
+    content: "•";
+    position: absolute;
+    left: 3px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 1rem;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+.pass-req-box li#len,
+.pass-req-box li#upper,
+.pass-req-box li#lower,
+.pass-req-box li#spec {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.pass-req-box li.met {
     color: #4CAF50;
-    opacity: 1;
+    font-weight: 600;
+}
+
+.pass-req-box li.met::before {
+    color: #4CAF50;
 }
