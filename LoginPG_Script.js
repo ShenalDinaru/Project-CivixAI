@@ -137,7 +137,7 @@ loginForm.onsubmit = async (e) => {
         }
 
         // Store user data and redirect
-        console.log('✅ Login successful:', result.user);
+        console.log(' Login successful:', result.user);
         
        
         sessionStorage.setItem('currentUser', JSON.stringify(result.user));

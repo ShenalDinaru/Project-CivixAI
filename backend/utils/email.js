@@ -13,9 +13,9 @@ const transporter = nodemailer.createTransport({
 // Verify transporter connection
 transporter.verify((error, success) => {
     if (error) {
-        console.error('❌ Email transporter error:', error);
+        console.error(' Email transporter error:', error);
     } else {
-        console.log('✅ Email service is ready to send emails');
+        console.log(' Email service is ready to send emails');
     }
 });
 
@@ -101,7 +101,7 @@ const sendVerificationEmail = async (email, verificationLink, firstName) => {
                 <body>
                     <div class="container">
                         <div class="header">
-                            <h1>Welcome to CivixAI! 🎉</h1>
+                            <h1>Welcome to CivixAI! 🔆</h1>
                         </div>
                         <div class="content">
                             <p>Hi ${firstName},</p>
@@ -131,16 +131,16 @@ const sendVerificationEmail = async (email, verificationLink, firstName) => {
         };
 
         const info = await transporter.sendMail(mailOptions);
-        console.log('✅ Verification email sent:', info.response);
+        console.log(' Verification email sent:', info.response);
         return true;
     } catch (error) {
-        console.error('❌ Error sending verification email:', error);
+        console.error(' Error sending verification email:', error);
         throw error;
     }
 };
 
 /**
- * Send password reset email (for later use)
+ * Send password reset email 
  */
 const sendPasswordResetEmail = async (email, resetLink, firstName) => {
     try {
@@ -162,7 +162,7 @@ const sendPasswordResetEmail = async (email, resetLink, firstName) => {
                 </head>
                 <body>
                     <div class="container">
-                        <h1>Reset Your Password</h1>
+                        <h1>Reset Your Password♻️</h1>
                         <p>Hi ${firstName},</p>
                         <p>We received a request to reset your CivixAI password. Click the button below to proceed:</p>
                         <div class="button-container">
@@ -177,10 +177,10 @@ const sendPasswordResetEmail = async (email, resetLink, firstName) => {
         };
 
         await transporter.sendMail(mailOptions);
-        console.log('✅ Password reset email sent');
+        console.log(' Password reset email sent...');
         return true;
     } catch (error) {
-        console.error('❌ Error sending password reset email:', error);
+        console.error(' Error sending password reset email:', error);
         throw error;
     }
 };
