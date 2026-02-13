@@ -162,7 +162,7 @@ const sendPasswordResetEmail = async (email, resetLink, firstName) => {
                 </head>
                 <body>
                     <div class="container">
-                        <h1>Reset Your Password♻️</h1>
+                        <h1>Reset Your Password 🔑</h1>
                         <p>Hi ${firstName},</p>
                         <p>We received a request to reset your CivixAI password. Click the button below to proceed:</p>
                         <div class="button-container">
