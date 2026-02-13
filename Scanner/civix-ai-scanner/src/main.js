@@ -10,10 +10,28 @@ const logger = require('./utils/logger');
 
 const app = express();
 const upload = multer({ dest: 'uploads/' });
+const fsp = fs.promises;
 
-// Create uploads directory if it doesn't exist
-if (!fs.existsSync('uploads')) {
-    fs.mkdirSync('uploads', { recursive: true });
+// Ensure core directories exist
+function ensureDir(dirPath) {
+    if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath, { recursive: true });
+    }
+}
+
+const UPLOADS_DIR = path.join(__dirname, '../uploads');
+const PROCESSED_DIR = path.join(__dirname, '../processed');
+
+ensureDir(UPLOADS_DIR);
+ensureDir(PROCESSED_DIR);
+
+async function saveScanResultToFile(filename, payload) {
+    const safeName = (filename || 'document').replace(/[^a-z0-9_\-\.]/gi, '_');
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const outPath = path.join(PROCESSED_DIR, `${timestamp}__${safeName}.json`);
+
+    await fsp.writeFile(outPath, JSON.stringify(payload, null, 2), 'utf8');
+    return outPath;
 }
 
 // Middleware
@@ -86,7 +104,28 @@ app.post('/api/scan', upload.single('document'), async (req, res) => {
         
         const fileType = req.file.mimetype.split('/')[1];
         const result = await scanner.scanDocument(req.file.path, fileType);
-        res.json(result);
+
+        // Persist result to JSON file for later chatbot usage
+        let savedPath = null;
+        try {
+            const payload = {
+                filename: req.file.originalname,
+                uploadedAt: new Date().toISOString(),
+                mimeType: req.file.mimetype,
+                size: req.file.size,
+                result
+            };
+            savedPath = await saveScanResultToFile(req.file.originalname, payload);
+            logger.info(`Saved scan result to ${savedPath}`);
+        } catch (persistError) {
+            logger.error(`Error saving scan result: ${persistError.message}`);
+        }
+
+        res.json({
+            ...result,
+            filename: req.file.originalname,
+            savedPath
+        });
     } catch (error) {
         console.error('Scan error:', error);
         res.status(500).json({ 
@@ -102,7 +141,35 @@ app.post('/api/batch-scan', upload.array('documents', 10), async (req, res) => {
             return res.status(400).json({ error: 'No files uploaded' });
         }
         
-        const results = await scanner.batchScan(req.files);
+        const rawResults = await scanner.batchScan(req.files);
+
+        const results = [];
+        for (let i = 0; i < rawResults.length; i++) {
+            const fileMeta = req.files[i];
+            const scanResult = rawResults[i];
+
+            let savedPath = null;
+            try {
+                const payload = {
+                    filename: fileMeta.originalname,
+                    uploadedAt: new Date().toISOString(),
+                    mimeType: fileMeta.mimetype,
+                    size: fileMeta.size,
+                    result: scanResult
+                };
+                savedPath = await saveScanResultToFile(fileMeta.originalname, payload);
+                logger.info(`Saved batch scan result to ${savedPath}`);
+            } catch (persistError) {
+                logger.error(`Error saving batch scan result: ${persistError.message}`);
+            }
+
+            results.push({
+                ...scanResult,
+                filename: fileMeta.originalname,
+                savedPath
+            });
+        }
+
         res.json({ results });
     } catch (error) {
         console.error('Batch scan error:', error);

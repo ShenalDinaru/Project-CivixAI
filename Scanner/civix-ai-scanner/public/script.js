@@ -601,10 +601,17 @@ function updateExtractedData(extractedData) {
     
     DOM.extractedData.innerHTML = '';
     
-    if (!extractedData.fields || Object.keys(extractedData.fields).length === 0) {
+    const fields = extractedData.fields || {};
+    if (!fields || Object.keys(fields).length === 0) {
         DOM.extractedData.innerHTML = '<p>No data extracted</p>';
         return;
     }
+
+    // The backend currently returns primitive/array values in fields plus a global confidence score.
+    // Normalize everything so the UI can still show a value and a confidence badge.
+    const overallConfidence = typeof extractedData.confidence === 'number'
+        ? extractedData.confidence
+        : null;
     
     const table = document.createElement('table');
     table.className = 'data-table';
@@ -617,17 +624,37 @@ function updateExtractedData(extractedData) {
             </tr>
         </thead>
         <tbody>
-            ${Object.entries(extractedData.fields).map(([field, data]) => `
-                <tr>
-                    <td><strong>${field}</strong></td>
-                    <td>${data.value || 'N/A'}</td>
-                    <td>
-                        <span class="confidence ${getConfidenceClass(data.confidence)}">
-                            ${data.confidence ? `${data.confidence}%` : 'N/A'}
-                        </span>
-                    </td>
-                </tr>
-            `).join('')}
+            ${Object.entries(fields).map(([field, rawValue]) => {
+                let displayValue;
+                let fieldConfidence = overallConfidence;
+
+                if (rawValue && typeof rawValue === 'object' && !Array.isArray(rawValue)) {
+                    // If at some point fields come back as { value, confidence }
+                    displayValue = rawValue.value ?? JSON.stringify(rawValue);
+                    if (typeof rawValue.confidence === 'number') {
+                        fieldConfidence = rawValue.confidence;
+                    }
+                } else if (Array.isArray(rawValue)) {
+                    displayValue = rawValue.join(', ');
+                } else {
+                    displayValue = rawValue ?? 'N/A';
+                }
+
+                const confidenceLabel = fieldConfidence != null ? `${Math.round(fieldConfidence)}%` : 'N/A';
+                const confidenceClass = fieldConfidence != null ? getConfidenceClass(fieldConfidence) : 'low';
+
+                return `
+                    <tr>
+                        <td><strong>${field}</strong></td>
+                        <td>${displayValue || 'N/A'}</td>
+                        <td>
+                            <span class="confidence ${confidenceClass}">
+                                ${confidenceLabel}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            }).join('')}
         </tbody>
     `;
     
