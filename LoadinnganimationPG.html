@@ -36,6 +36,7 @@
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 30px;
+            display: none;
         }
 
         @keyframes spin {
@@ -77,6 +78,13 @@
             width: 40px;
             height: 40px;
             border-width: 3px;
+        }
+
+        .pulse-circle img {
+            width: 70px;
+            height: 70px;
+            object-fit: contain;
+            filter: brightness(0) invert(1);
         }
 
         /* Loading Text */
@@ -177,9 +185,9 @@
 </head>
 <body>
     <div class="loading-container">
-        <!-- Option 1: Spinner with Pulse -->
+        <!-- Lotus Tower Image with Pulse -->
         <div class="pulse-circle">
-            <div class="spinner"></div>
+            <img src="Resources/Icons/Silhouette/Lotus Tower.png" alt="Lotus Tower">
         </div>
 
         <div class="loading-text">
