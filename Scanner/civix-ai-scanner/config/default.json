@@ -1,0 +1,29 @@
+{
+    "scanner": {
+        "pdf": {
+            "maxPages": 50,
+            "extractImages": false
+        },
+        "ocr": {
+            "language": "eng",
+            "engine": "tesseract",
+            "confidenceThreshold": 70
+        }
+    },
+    "validation": {
+        "requiredFields": ["name", "date", "signature"],
+        "optionalFields": ["middle_name", "secondary_email"],
+        "strictMode": false
+    },
+    "extraction": {
+        "enableNLP": false,
+        "patterns": {
+            "customPatterns": []
+        }
+    },
+    "server": {
+        "port": 3000,
+        "maxFileSize": "10mb",
+        "allowedTypes": ["pdf", "jpg", "jpeg", "png", "tiff"]
+    }
+}
