@@ -23,7 +23,8 @@ router.post('/signup', async (req, res) => {
             surname, 
             username, 
             email, 
-            phone 
+            phone,
+            password 
         });
 
         if (!validation.isValid) {

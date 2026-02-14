@@ -27,6 +27,21 @@ const validateUsername = (username) => {
     return username.length >= 3 && username.length <= 20 && /^[a-zA-Z]+$/.test(username);
 };
 
+// Validate password - must have 8-20 characters, 1 uppercase, 1 lowercase, 1 number or special character
+const validatePassword = (password) => {
+    if (!password) return false;
+    
+    const checks = {
+        length: password.length >= 8 && password.length <= 20,
+        uppercase: /[A-Z]/.test(password),
+        lowercase: /[a-z]/.test(password),
+        numberOrSpecial: /[0-9!@#$%^&*]/.test(password)
+    };
+    
+    // All 4 checks must be true
+    return checks.length && checks.uppercase && checks.lowercase && checks.numberOrSpecial;
+};
+
 // Validate required fields
 const validateSignupData = (data) => {
     const errors = {};
@@ -59,6 +74,12 @@ const validateSignupData = (data) => {
         errors.phone = 'Invalid phone number format';
     }
 
+    if (!data.password || !data.password.trim()) {
+        errors.password = 'Password is required';
+    } else if (!validatePassword(data.password)) {
+        errors.password = 'Password must contain: 8-20 characters, 1 uppercase letter, 1 lowercase letter, and 1 number or special character';
+    }
+
     return {
         isValid: Object.keys(errors).length === 0,
         errors
@@ -69,5 +90,6 @@ module.exports = {
     validateEmail,
     validatePhone,
     validateUsername,
+    validatePassword,
     validateSignupData
 };

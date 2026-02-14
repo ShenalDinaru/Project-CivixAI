@@ -69,8 +69,8 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (passedCount === 3) strengthBar.style.background = "#ffd700"; // Gold/Yellow
         else if (passedCount === 4) strengthBar.style.background = "#4CAF50"; // Green
 
-        // Final Validation: Enable button only if 3 or more conditions are met
-        if (passedCount >= 3) {
+        // Final Validation: Enable button only if all 4 conditions are met
+        if (passedCount === 4) {
             submitBtn.disabled = false;
             submitBtn.style.opacity = "1";
             submitBtn.style.cursor = "pointer";
