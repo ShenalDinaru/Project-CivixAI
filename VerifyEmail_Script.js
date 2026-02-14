@@ -1,9 +1,9 @@
 const API_BASE_URL = 'http://localhost:5000/api';
 
-// --- Initialization & Navigation --- //
+
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Attach Button Listeners (JS Navigation)
+    // 1. Attach Button Listeners 
     const attachListener = (id, action) => {
         const el = document.getElementById(id);
         if (el) el.addEventListener('click', action);
@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-// --- Core Logic --- //
+
 
 function getTokenFromURL() {
     const params = new URLSearchParams(window.location.search);
@@ -50,7 +50,6 @@ function showState(stateName) {
     const activeEl = document.getElementById(stateName + 'State');
     if (activeEl) {
         activeEl.style.display = 'block';
-        // Trigger reflow to restart CSS animation
         activeEl.style.animation = 'none';
         activeEl.offsetHeight; 
         activeEl.style.animation = 'elementFadeUp 0.6s ease-out forwards';
@@ -97,7 +96,7 @@ async function verifyEmail() {
             showState('success');
             console.log('Success: Email verified for', email);
         } else {
-            // Handle Expired vs Error
+            // Handle Expired Error
             if (data.message && data.message.toLowerCase().includes('expired')) {
                 showState('expired');
             } else {
@@ -115,7 +114,6 @@ async function verifyEmail() {
 }
 
 async function resendVerificationEmail() {
-    // Try to get email from sessionStorage first, then prompt user
     let email = sessionStorage.getItem('registeredEmail');
     
     if (!email) {
@@ -144,7 +142,6 @@ async function resendVerificationEmail() {
     }
 }
 
-// Helper to safely update text content
 function updateText(id, text) {
     const el = document.getElementById(id);
     if (el) el.textContent = text;

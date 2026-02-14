@@ -92,7 +92,7 @@ loginForm.onsubmit = async (e) => {
             askNowBtn.disabled = false;
             askNowBtn.style.opacity = "1";
 
-            // Handle unverified email specially with resend verification mail
+            // Handle unverified email (resend verification mail)
             if (result.error === 'UNVERIFIED_EMAIL') {
                 const resendChoice = confirm(
                     `Your email has not been verified yet. Please check your email for a verification link.\n\nWould you like us to resend the verification email?`
@@ -146,7 +146,7 @@ loginForm.onsubmit = async (e) => {
         // Show success positive message
         askNowBtn.innerHTML = "Logged in!";
         
-        // Redirect to chat or dashboard
+        // Redirect to chat
         setTimeout(() => {
             window.location.href = 'chat.html'; 
         }, 800);

@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
             submitBtn.disabled = false;
             submitBtn.style.opacity = "1";
 
-            // Optionally redirect back to login after a delay
+          
             setTimeout(() => {
                 
             }, 3000);

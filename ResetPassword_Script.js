@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusBox = document.getElementById('statusBox');
     const statusText = document.getElementById('statusText');
 
-    // Initialize: Show resetPasswordCard, hide errorCard
+    
     resetPasswordCard.style.display = 'block';
     errorCard.style.display = 'none';
     
@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log(' Frontend: Response status:', response.status);
             console.log(' Frontend: Response ok:', response.ok);
             
-            // Parse response regardless of status code
+            
             let data;
             try {
                 data = await response.json();
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             
-            // Check if verification was successful (status 200 and success: true)
+            // Check if verification was successful 
             if (response.ok && data.success) {
                 console.log(' Reset token verified for:', data.email);
                 statusBox.className = 'status-box success';
@@ -129,9 +129,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const strengthBar = document.getElementById('strengthBar');
         strengthBar.style.width = (passedCount / 4) * 100 + "%";
         
-        if (passedCount < 2) strengthBar.style.background = "#ff4d4d"; // Red
-        else if (passedCount === 3) strengthBar.style.background = "#ffd700"; // Gold/Yellow
-        else if (passedCount === 4) strengthBar.style.background = "#4CAF50"; // Green
+        if (passedCount < 2) strengthBar.style.background = "#ff4d4d"; 
+        else if (passedCount === 3) strengthBar.style.background = "#ffd700"; 
+        else if (passedCount === 4) strengthBar.style.background = "#4CAF50"; 
 
         // Enable button only if all 4 requirements are met
         if (passedCount === 4) {
@@ -152,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const passwordInput = document.getElementById('newPassword');
     const confirmPasswordInput = document.getElementById('confirmPassword');
 
-    // Set up toggle functionality with proper event listeners
+    // Set toggle functionality with proper event listeners
     if (toggleButtons.length > 0) {
         toggleButtons.forEach((toggle) => {
             toggle.style.cursor = 'pointer';
@@ -169,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Password strength feedback - check on input
+    // Password strength feedback 
     passwordInput.addEventListener('input', () => {
         checkPasswordStrength(passwordInput.value);
     });
