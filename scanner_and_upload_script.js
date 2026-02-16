@@ -6,6 +6,10 @@ const galleryBtn = document.getElementById('galleryBtn');
 const backBtn = document.getElementById('backBtn');
 const menuBtn = document.getElementById('menuBtn');
 const optionsMenu = document.getElementById('optionsMenu');
+const actionButtons = document.getElementById('actionButtons');
+const cancelScanBtn = document.getElementById('cancelScanBtn');
+const retakeBtn = document.getElementById('retakeBtn');
+const proceedBtn = document.getElementById('proceedBtn');
 
 // Camera constraints based on device
 function getCameraConstraints() {
@@ -36,27 +40,18 @@ async function initCamera() {
 
 // Capture photo
 function capturePhoto() {
-  const canvas = document.createElement('canvas');
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  
-  // Convert to blob and download
-  canvas.toBlob((blob) => {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `document-scan-${Date.now()}.jpg`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }, 'image/jpeg', 0.95);
+  // Freeze video to simulate capture
+  video.pause();
   
   // Visual feedback
   captureBtn.style.transform = 'translateX(-50%) translateY(50%) scale(0.9)';
   setTimeout(() => {
     captureBtn.style.transform = 'translateX(-50%) translateY(50%) scale(1)';
+    
+    // Hide capture UI, show actions
+    captureBtn.style.display = 'none';
+    document.querySelector('.bottom-bar').style.display = 'none';
+    actionButtons.style.display = 'flex';
   }, 150);
 }
 
@@ -94,6 +89,28 @@ function handleGallery() {
 captureBtn.addEventListener('click', capturePhoto);
 attachBtn.addEventListener('click', handleAttach);
 galleryBtn.addEventListener('click', handleGallery);
+
+if (retakeBtn) {
+  retakeBtn.addEventListener('click', () => {
+    video.play();
+    actionButtons.style.display = 'none';
+    captureBtn.style.display = 'flex';
+    document.querySelector('.bottom-bar').style.display = 'flex';
+  });
+}
+
+if (cancelScanBtn) {
+  cancelScanBtn.addEventListener('click', () => {
+    // Cancel implies exiting the scanner or going back
+    if (window.history.length > 1) window.history.back();
+  });
+}
+
+if (proceedBtn) {
+  proceedBtn.addEventListener('click', () => {
+    console.log('Proceed clicked - Navigation removed');
+  });
+}
 
 // Back button
 if (backBtn) {
