@@ -12,7 +12,7 @@ const dropdownMenu = document.getElementById('dropdownMenu');
 const backBtn = document.getElementById('backBtn');
 
 // --- CONSTANTS ---
-const BOT_AVATAR = 'Resources/Chatbot icon - Elephant/elephant.png';
+const BOT_AVATAR = '../Resources/Chatbot icon - Elephant/elephant.png';
 const API_URL = 'http://localhost:3000/api/chat/message';
 let conversationHistory = [];
 
