@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import chatRoutes from './routes/chatRoutes.js';
+import documentRoutes from './routes/documentRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { initializeRAG } from './services/ragService.js';
 
@@ -25,6 +26,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/chat', chatRoutes);
+app.use('/api/documents', documentRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

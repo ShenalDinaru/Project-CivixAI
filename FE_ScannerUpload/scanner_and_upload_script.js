@@ -38,8 +38,21 @@ async function initCamera() {
   }
 }
 
+// Store captured image
+let capturedImageData = null;
+
 // Capture photo
 function capturePhoto() {
+  // Create canvas to capture frame
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  
+  // Convert to base64
+  capturedImageData = canvas.toDataURL('image/jpeg', 0.8);
+  
   // Freeze video to simulate capture
   video.pause();
   
@@ -92,6 +105,7 @@ galleryBtn.addEventListener('click', handleGallery);
 
 if (retakeBtn) {
   retakeBtn.addEventListener('click', () => {
+    capturedImageData = null;
     video.play();
     actionButtons.style.display = 'none';
     captureBtn.style.display = 'flex';
@@ -108,7 +122,13 @@ if (cancelScanBtn) {
 
 if (proceedBtn) {
   proceedBtn.addEventListener('click', () => {
-    console.log('Proceed clicked - Navigation removed');
+    if (capturedImageData) {
+      // Redirect to document upload page with scanned image
+      const uploadUrl = '../FE_DocumentUpload/document_uploader.html?scannedImage=' + encodeURIComponent(capturedImageData);
+      window.location.href = uploadUrl;
+    } else {
+      alert('Please capture an image first');
+    }
   });
 }
 

@@ -144,6 +144,13 @@ class VectorStore {
   }
 
   /**
+   * Check if user-uploaded documents are in the store
+   */
+  hasUserDocuments() {
+    return this.chunks.some(chunk => chunk.source === 'User Uploaded Document');
+  }
+
+  /**
    * Clear all chunks from the store
    */
   async clear() {

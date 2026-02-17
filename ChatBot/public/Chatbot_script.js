@@ -20,7 +20,43 @@ let conversationHistory = [];
 window.onload = function() {
     startBackgroundSlider();
     runIntroSequence();
+    
+    // Initialize chat container scrolling
+    initializeChatScrolling();
 };
+
+// Initialize chat container for proper scrolling
+function initializeChatScrolling() {
+    // Ensure chat container can scroll
+    chatContainer.style.overflowY = 'auto';
+    chatContainer.style.overflowX = 'hidden';
+    
+    // Scroll to bottom on initial load
+    setTimeout(() => {
+        scrollToBottom();
+    }, 500);
+    
+    // Add scroll event listener to maintain scroll position
+    let isUserScrolling = false;
+    let scrollTimeout;
+    
+    chatContainer.addEventListener('scroll', () => {
+        isUserScrolling = true;
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+            isUserScrolling = false;
+        }, 1000);
+    });
+    
+    // Auto-scroll only if user hasn't manually scrolled up
+    const observer = new MutationObserver(() => {
+        if (!isUserScrolling) {
+            scrollToBottom();
+        }
+    });
+    
+    observer.observe(chatContainer, { childList: true, subtree: true });
+}
 
 // --- 1. INTRO SEQUENCE (Text -> Flight) ---
 function runIntroSequence() {
@@ -70,7 +106,20 @@ function startFlightAnimation() {
                 setTimeout(() => {
                     typingAvatarPopup.classList.remove('show');
                 }, 1000);
-                addMessage("Hey! I’m Kandula, and I’m here to help you with your tax related issues.", 'assistant');
+                
+                // Check if documents were just loaded
+                const urlParams = new URLSearchParams(window.location.search);
+                const documentsLoaded = urlParams.get('documentsLoaded');
+                
+                if (documentsLoaded === 'true') {
+                    // Show welcome message about documents
+                    addMessage("I understood your document/s, how may I help you now?", 'assistant');
+                    // Clean URL
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                } else {
+                    // Standard welcome message
+                    addMessage("Hey! I'm Kandula, and I'm here to help you with your tax related issues.", 'assistant');
+                }
             }, 200);
 
         }, 1200);
@@ -79,7 +128,17 @@ function startFlightAnimation() {
         console.error("Animation Fallback", e);
         uiCard.classList.add('visible');
         introOverlay.style.display = 'none';
-        addMessage("Hey! I’m Kandula, and I’m here to help you with your tax related issues.", 'assistant');
+        
+        // Check if documents were just loaded
+        const urlParams = new URLSearchParams(window.location.search);
+        const documentsLoaded = urlParams.get('documentsLoaded');
+        
+        if (documentsLoaded === 'true') {
+            addMessage("I understood your document/s, how may I help you now?", 'assistant');
+            window.history.replaceState({}, document.title, window.location.pathname);
+        } else {
+            addMessage("Hey! I'm Kandula, and I'm here to help you with your tax related issues.", 'assistant');
+        }
     }
 }
 
@@ -157,7 +216,7 @@ async function sendMessage() {
 function showThinking() {
     const id = 'think-' + Date.now();
     chatContainer.insertAdjacentHTML('beforeend', `<div id="${id}" class="thinking-bubble"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`);
-    chatContainer.scrollTop = chatContainer.scrollHeight;
+    scrollToBottom();
     return id;
 }
 
@@ -166,7 +225,16 @@ function addMessage(text, sender) {
     let avatar = sender === 'assistant' ? `<div class="avatar"><img src="${BOT_AVATAR}"></div>` : '';
     const html = `<div class="message-wrapper ${sender}">${avatar}<div class="message-bubble">${text.replace(/\n/g, '<br>')}<div style="font-size:10px; opacity:0.5; margin-top:5px;">${time}</div></div></div>`;
     chatContainer.insertAdjacentHTML('beforeend', html);
-    chatContainer.scrollTop = chatContainer.scrollHeight;
+    
+    // Scroll to bottom for new messages
+    scrollToBottom();
+}
+
+function scrollToBottom() {
+    // Use requestAnimationFrame for smooth scrolling
+    requestAnimationFrame(() => {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    });
 }
 
 function startBackgroundSlider() {

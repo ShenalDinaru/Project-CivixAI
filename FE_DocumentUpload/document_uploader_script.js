@@ -173,7 +173,9 @@ function toggleDropdown(button) {
   };
   
   dropdown.querySelector('#dd-scan').onclick = () => {
-    console.log('Scan Document clicked - Navigation removed');
+    closeDropdown();
+    // Redirect to scanner page
+    window.location.href = '../FE_ScannerUpload/scanner_and_upload.html';
   };
   
   activeDropdown = dropdown;
@@ -430,20 +432,16 @@ function showProceedConfirmation() {
   
   overlay.querySelector('#modalCancel').onclick = close;
   
-  overlay.querySelector('#modalConfirm').onclick = () => {
+  overlay.querySelector('#modalConfirm').onclick = async () => {
     const attach = toggle.checked;
     close();
     
     if (attach) {
-      showStatus('success', 'Files attached. Redirecting to chat...');
-      setTimeout(() => {
-        console.log('Proceed clicked - Redirecting to Chat (Navigation removed)');
-      }, 1000);
+      // Process documents and redirect to chatbot
+      await processAndRedirectToChatbot();
     } else {
-      showStatus('success', 'Documents saved successfully.');
-      setTimeout(() => {
-        console.log('Proceed clicked - Saved & Finished (Navigation removed)');
-      }, 1000);
+      // Just save documents without loading to chatbot
+      await processDocumentsOnly();
     }
   };
 }
@@ -489,5 +487,161 @@ if (backBtn) {
 }
 
 window.removeFile = removeFile;
+
+// API Configuration
+const API_BASE_URL = 'http://localhost:3000/api';
+
+/**
+ * Process documents and redirect to chatbot
+ */
+async function processAndRedirectToChatbot() {
+  if (files.length === 0) {
+    showStatus('error', 'No documents to process.');
+    return;
+  }
+
+  try {
+    // Show processing status
+    showStatus('success', 'Processing documents...');
+    doneBtn.disabled = true;
+    doneBtn.textContent = 'Processing...';
+
+    // Create FormData with all files
+    const formData = new FormData();
+    files.forEach(file => {
+      formData.append('documents', file);
+    });
+
+    // Step 1: Process documents (extract text and save as JSON)
+    const processResponse = await fetch(`${API_BASE_URL}/documents/process`, {
+      method: 'POST',
+      body: formData
+    });
+
+    const processResult = await processResponse.json();
+
+    if (!processResult.success) {
+      throw new Error(processResult.error || 'Failed to process documents');
+    }
+
+    // Check if any documents were successfully processed
+    const successful = processResult.results.filter(r => r.success);
+    if (successful.length === 0) {
+      throw new Error('No documents could be processed successfully');
+    }
+
+    showStatus('success', `Processed ${successful.length} document(s). Loading into chatbot...`);
+
+    // Step 2: Load processed documents into RAG system
+    const loadResponse = await fetch(`${API_BASE_URL}/documents/load`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const loadResult = await loadResponse.json();
+
+    if (!loadResult.success) {
+      throw new Error(loadResult.message || 'Failed to load documents into chatbot');
+    }
+
+    // Step 3: Redirect immediately after loading completes (no delay)
+    showStatus('success', 'Redirecting to chatbot...');
+    const chatbotUrl = '../ChatBot/public/Chatbot.html?documentsLoaded=true';
+    window.location.href = chatbotUrl;
+
+  } catch (error) {
+    console.error('Error processing documents:', error);
+    showStatus('error', `Error: ${error.message}`);
+    doneBtn.disabled = false;
+    doneBtn.textContent = 'Proceed';
+    setTimeout(() => hideStatus(), 5000);
+  }
+}
+
+/**
+ * Process documents only (without loading to chatbot)
+ */
+async function processDocumentsOnly() {
+  if (files.length === 0) {
+    showStatus('error', 'No documents to process.');
+    return;
+  }
+
+  try {
+    showStatus('success', 'Processing documents...');
+    doneBtn.disabled = true;
+    doneBtn.textContent = 'Processing...';
+
+    const formData = new FormData();
+    files.forEach(file => {
+      formData.append('documents', file);
+    });
+
+    const response = await fetch(`${API_BASE_URL}/documents/process`, {
+      method: 'POST',
+      body: formData
+    });
+
+    const result = await response.json();
+
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to process documents');
+    }
+
+    const successful = result.results.filter(r => r.success);
+    showStatus('success', `Successfully processed ${successful.length} document(s).`);
+    
+    doneBtn.disabled = false;
+    doneBtn.textContent = 'Proceed';
+    setTimeout(() => hideStatus(), 3000);
+
+  } catch (error) {
+    console.error('Error processing documents:', error);
+    showStatus('error', `Error: ${error.message}`);
+    doneBtn.disabled = false;
+    doneBtn.textContent = 'Proceed';
+    setTimeout(() => hideStatus(), 5000);
+  }
+}
+
+// Check if redirected from scanner with image data
+window.addEventListener('DOMContentLoaded', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const scannedImage = urlParams.get('scannedImage');
+  
+  if (scannedImage) {
+    // Convert base64 to file and add to files array
+    try {
+      const base64Data = scannedImage.split(',')[1];
+      const imageBlob = base64ToBlob(base64Data, 'image/jpeg');
+      const fileName = `scanned_${Date.now()}.jpg`;
+      const file = new File([imageBlob], fileName, { type: 'image/jpeg' });
+      
+      file.extractionStatus = 'extracting';
+      files.push(file);
+      simulateExtraction(files.length - 1);
+      renderFiles();
+      updateButtons();
+      simulateUpload();
+      
+      // Clean URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } catch (error) {
+      console.error('Error loading scanned image:', error);
+    }
+  }
+});
+
+function base64ToBlob(base64, mimeType) {
+  const byteCharacters = atob(base64);
+  const byteNumbers = new Array(byteCharacters.length);
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i);
+  }
+  const byteArray = new Uint8Array(byteNumbers);
+  return new Blob([byteArray], { type: mimeType });
+}
 
 updateButtons();

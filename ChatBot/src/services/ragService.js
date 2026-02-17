@@ -53,8 +53,12 @@ export const generateRAGResponse = async (userMessage, conversationHistory = [])
       return await generateResponse(userMessage, conversationHistory);
     }
 
+    // Check if user documents are loaded (chunks with "User Uploaded Document" source)
+    const hasUserDocuments = vectorStore.hasUserDocuments();
+    
     // Check if the question needs tax knowledge
-    const requiresRAG = needsRAG(userMessage);
+    // If user documents are loaded, always use RAG (user might ask about their documents)
+    const requiresRAG = hasUserDocuments || needsRAG(userMessage);
     
     if (!requiresRAG) {
       console.log('Question does not require tax knowledge, using standard response');
