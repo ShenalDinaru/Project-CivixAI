@@ -10,42 +10,194 @@ const backBtn = document.getElementById('backBtn');
 
 let files = [];
 
-function loadPreviousDocuments() {
-  try {
-    const savedFiles = localStorage.getItem('civixaiUploadedDocuments');
-    if (savedFiles) {
-      const parsedFiles = JSON.parse(savedFiles);
-      files = parsedFiles.map(fileData => ({
-        name: fileData.name,
-        size: fileData.size,
-        type: fileData.type,
-        lastModified: fileData.lastModified
-      }));
-      renderFiles();
-      updateButtons();
-    }
-  } catch (e) {
-    console.warn('Unable to load previous documents:', e);
+// Inject styles for extraction status and upload options
+const style = document.createElement('style');
+style.textContent = `
+  .extraction-status {
+    font-size: 12px;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+  }
+  .status-extracting { color: #f59e0b; }
+  .status-complete { color: #10b981; }
+  .status-icon { width: 14px; height: 14px; }
+  .spin { animation: spin 1s linear infinite; }
+  @keyframes spin { 100% { transform: rotate(360deg); } }
+  
+  /* Dropdown Styles */
+  .custom-dropdown {
+    position: absolute;
+    background: rgba(26, 11, 46, 0.85);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 16px;
+    padding: 8px;   
+    min-width: 220px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+    transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: none;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .custom-dropdown.active {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: all;
+  }
+  .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.9);
+    cursor: pointer;
+    border-radius: 12px;
+    transition: all 0.2s;
+    text-align: left;
+    font-family: inherit;
+    font-size: 14px;
+    width: 100%;
+  }
+  .dropdown-item:hover {
+    background: rgba(255,255,255,0.1);
+    color: white;
+    transform: translateX(4px);
+  }
+  .dropdown-icon {
+    width: 20px;
+    height: 20px;
+    filter: brightness(0) invert(1);
+    opacity: 0.8;
+  }
+  .dropdown-item:hover .dropdown-icon {
+    opacity: 1;
+  }
+
+  /* Proceed Modal Styles */
+  .proceed-modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6); z-index: 10000;
+    display: flex; justify-content: center; align-items: flex-end;
+    backdrop-filter: blur(4px);
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .proceed-modal-overlay.active { opacity: 1; }
+  
+  .proceed-card {
+    background: #1a0b2e; border: 1px solid rgba(255,255,255,0.1);
+    width: 100%; max-width: 400px;
+    border-radius: 24px 24px 0 0;
+    padding: 32px;
+    transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+    display: flex; flex-direction: column; gap: 24px;
+  }
+  @media (min-width: 768px) {
+    .proceed-modal-overlay { align-items: center; }
+    .proceed-card { border-radius: 24px; transform: translateY(20px) scale(0.95); }
+  }
+  .proceed-modal-overlay.active .proceed-card { transform: translateY(0) scale(1); }
+
+  .toggle-row { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 16px; border-radius: 12px; }
+  .toggle-label { color: white; font-size: 15px; font-weight: 500; }
+  .toggle-switch { position: relative; width: 50px; height: 28px; flex-shrink: 0; }
+  .toggle-input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.2); transition: .4s; border-radius: 34px; }
+  .toggle-slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+  .toggle-input:checked + .toggle-slider { background-color: #ff4e02; }
+  .toggle-input:checked + .toggle-slider:before { transform: translateX(22px); }
+  
+  .btn-group { display: flex; gap: 12px; }
+  .btn-confirm { flex: 1; background: linear-gradient(135deg, #bb0e0e 0%, #ff4e02 100%); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 16px; transition: transform 0.2s; }
+  .btn-confirm:hover { transform: translateY(-2px); }
+  .btn-cancel { flex: 1; background: rgba(255,255,255,0.1); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 16px; transition: background 0.2s; }
+  .btn-cancel:hover { background: rgba(255,255,255,0.15); }
+  #cancelBtn { border-radius: 30px; }
+`;
+document.head.appendChild(style);
+
+// Dropdown Logic
+let activeDropdown = null;
+
+function toggleDropdown(button) {
+  if (activeDropdown && activeDropdown.dataset.triggerId === button.id) {
+    closeDropdown();
+    return;
+  }
+  closeDropdown();
+
+  const rect = button.getBoundingClientRect();
+  const dropdown = document.createElement('div');
+  dropdown.className = 'custom-dropdown';
+  dropdown.dataset.triggerId = button.id;
+  
+  dropdown.innerHTML = `
+    <button class="dropdown-item" id="dd-upload">
+      <img src="Resources/Icons/Upload Icon.svg" class="dropdown-icon">
+      <span>Upload File</span>
+    </button>
+    <button class="dropdown-item" id="dd-scan">
+      <img src="Resources/Icons/Camera Icon.svg" class="dropdown-icon">
+      <span>Scan Document</span>
+    </button>
+  `;
+
+  document.body.appendChild(dropdown);
+  
+  // Position logic
+  const dropdownWidth = 220;
+  let left = rect.left + (rect.width / 2) - (dropdownWidth / 2);
+  
+  // Keep within viewport
+  if (left < 10) left = 10;
+  if (left + dropdownWidth > window.innerWidth - 10) left = window.innerWidth - dropdownWidth - 10;
+  
+  dropdown.style.top = `${rect.bottom + 8 + window.scrollY}px`;
+  dropdown.style.left = `${left}px`;
+  
+  requestAnimationFrame(() => dropdown.classList.add('active'));
+
+  dropdown.querySelector('#dd-upload').onclick = () => {
+    fileInput.click();
+    closeDropdown();
+  };
+  
+  dropdown.querySelector('#dd-scan').onclick = () => {
+    console.log('Scan Document clicked - Navigation removed');
+  };
+  
+  activeDropdown = dropdown;
+}
+
+function closeDropdown() {
+  if (activeDropdown) {
+    activeDropdown.remove();
+    activeDropdown = null;
   }
 }
 
-function saveDocuments() {
-  try {
-    const fileData = files.map(file => ({
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      lastModified: file.lastModified || Date.now()
-    }));
-    localStorage.setItem('civixaiUploadedDocuments', JSON.stringify(fileData));
-  } catch (e) {
-    console.warn('Unable to save documents:', e);
+document.addEventListener('click', (e) => {
+  if (activeDropdown && 
+      !e.target.closest('.custom-dropdown') && 
+      !e.target.closest('#browseBtn') && 
+      !e.target.closest('#addMoreBtn')) {
+    closeDropdown();
   }
-}
+});
 
 browseBtn.addEventListener('click', (e) => {
   e.stopPropagation();
-  fileInput.click();
+  toggleDropdown(browseBtn);
 });
 
 uploadArea.addEventListener('click', () => {
@@ -88,16 +240,38 @@ function handleFiles(fileList) {
     return;
   }
 
+  let addedCount = 0;
+  let duplicateCount = 0;
+
   validFiles.forEach(file => {
     if (!files.find(f => f.name === file.name && f.size === file.size)) {
+      file.extractionStatus = 'extracting';
       files.push(file);
+      simulateExtraction(files.length - 1);
+      addedCount++;
+    } else {
+      duplicateCount++;
     }
   });
 
-  renderFiles();
-  updateButtons();
-  saveDocuments();
-  simulateUpload();
+  if (addedCount > 0) {
+    renderFiles();
+    updateButtons();
+    simulateUpload();
+  } else if (duplicateCount > 0) {
+    showStatus('error', 'Document already uploaded.');
+    setTimeout(() => hideStatus(), 2000);
+  }
+}
+
+function simulateExtraction(index) {
+  setTimeout(() => {
+    if (files[index]) {
+      files[index].extractionStatus = 'complete';
+      renderFiles();
+      updateButtons();
+    }
+  }, 2500 + Math.random() * 1500);
 }
 
 function renderFiles() {
@@ -111,13 +285,35 @@ function renderFiles() {
     const isImage = ['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension);
     const iconSrc = isImage ? 'Resources/Icons/Image Icon.svg' : 'Resources/Icons/Vault Icon.svg';
     
+    let statusHtml = '';
+    if (file.extractionStatus === 'extracting') {
+      statusHtml = `
+        <div class="extraction-status status-extracting">
+          <svg class="status-icon spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+          </svg>
+          <span>Extracting text...</span>
+        </div>`;
+    } else {
+      statusHtml = `
+        <div class="extraction-status status-complete">
+          <svg class="status-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+            <path d="M20 6L9 17l-5-5"/>
+          </svg>
+          <span>Text Extracted & Verified</span>
+        </div>`;
+    }
+
     fileItem.innerHTML = `
       <div class="file-info">
         <svg class="file-icon" viewBox="0 0 24 24" fill="none">
           <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        <span class="file-name">${file.name}</span>
+        <div style="display: flex; flex-direction: column;">
+          <span class="file-name">${file.name}</span>
+          ${statusHtml}
+        </div>
       </div>
       <button class="remove-btn" onclick="removeFile(${index})">
         <svg class="remove-icon" viewBox="0 0 24 24" fill="none">
@@ -133,7 +329,6 @@ function removeFile(index) {
   files.splice(index, 1);
   renderFiles();
   updateButtons();
-  saveDocuments();
   
   if (files.length === 0) {
     hideStatus();
@@ -167,19 +362,105 @@ function hideStatus() {
 function updateButtons() {
   const hasFiles = files.length > 0;
   addMoreBtn.disabled = !hasFiles;
-  doneBtn.disabled = !hasFiles;
+  
+  const isExtracting = files.some(f => f.extractionStatus === 'extracting');
+  doneBtn.disabled = !hasFiles || isExtracting;
+  
+  if (doneBtn) {
+    doneBtn.textContent = isExtracting ? 'Processing...' : (hasFiles ? 'Proceed' : 'Done');
+    doneBtn.style.opacity = doneBtn.disabled ? '0.5' : '1';
+    doneBtn.style.cursor = doneBtn.disabled ? 'not-allowed' : 'pointer';
+  }
+
+  if (cancelBtn) {
+    cancelBtn.disabled = !hasFiles;
+    cancelBtn.style.opacity = cancelBtn.disabled ? '0.5' : '1';
+    cancelBtn.style.cursor = cancelBtn.disabled ? 'not-allowed' : 'pointer';
+  }
 }
 
-addMoreBtn.addEventListener('click', () => {
-  fileInput.click();
+function showProceedConfirmation() {
+  const overlay = document.createElement('div');
+  overlay.className = 'proceed-modal-overlay';
+  
+  overlay.innerHTML = `
+    <div class="proceed-card">
+      <div style="text-align: center;">
+        <h3 style="color:white; margin:0 0 8px 0; font-size:20px;">Ready to Proceed</h3>
+        <p style="color:rgba(255,255,255,0.6); margin:0; font-size:14px;">Choose how you want to continue.</p>
+      </div>
+      
+      <div class="toggle-row">
+        <span class="toggle-label">Analyze in Chatbot</span>
+        <label class="toggle-switch">
+          <input type="checkbox" class="toggle-input" checked id="attachToggle">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      
+      <div class="btn-group">
+        <button class="btn-cancel" id="modalCancel">Cancel</button>
+        <button class="btn-confirm" id="modalConfirm">Proceed to Chat</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(overlay);
+  
+  requestAnimationFrame(() => overlay.classList.add('active'));
+  
+  const toggle = overlay.querySelector('#attachToggle');
+  const confirmBtn = overlay.querySelector('#modalConfirm');
+  
+  // Update button text based on toggle state
+  toggle.addEventListener('change', () => {
+    if (toggle.checked) {
+      confirmBtn.textContent = 'Proceed to Chat';
+      confirmBtn.style.background = 'linear-gradient(135deg, #bb0e0e 0%, #ff4e02 100%)';
+    } else {
+      confirmBtn.textContent = 'Save & Finish';
+      confirmBtn.style.background = '#10b981'; // Green for save
+    }
+  });
+  
+  const close = () => {
+    overlay.classList.remove('active');
+    setTimeout(() => overlay.remove(), 300);
+  };
+  
+  overlay.querySelector('#modalCancel').onclick = close;
+  
+  overlay.querySelector('#modalConfirm').onclick = () => {
+    const attach = toggle.checked;
+    close();
+    
+    if (attach) {
+      showStatus('success', 'Files attached. Redirecting to chat...');
+      setTimeout(() => {
+        console.log('Proceed clicked - Redirecting to Chat (Navigation removed)');
+      }, 1000);
+    } else {
+      showStatus('success', 'Documents saved successfully.');
+      setTimeout(() => {
+        console.log('Proceed clicked - Saved & Finished (Navigation removed)');
+      }, 1000);
+    }
+  };
+}
+
+addMoreBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  toggleDropdown(addMoreBtn);
 });
 
 doneBtn.addEventListener('click', () => {
   if (files.length > 0) {
-    showStatus('success', `✓ Processing complete! ${files.length} document${files.length > 1 ? 's' : ''} ready.`);
-    setTimeout(() => {
-      hideStatus();
-    }, 2000);
+    const pending = files.some(f => f.extractionStatus === 'extracting');
+    if (pending) {
+      showStatus('error', 'Please wait for all documents to finish extraction.');
+      return;
+    }
+    showProceedConfirmation();
   }
 });
 
@@ -189,7 +470,6 @@ cancelBtn.addEventListener('click', () => {
       files = [];
       renderFiles();
       updateButtons();
-      saveDocuments();
       hideStatus();
     }
   } else {
@@ -203,11 +483,11 @@ if (backBtn) {
     if (window.history.length > 1) {
       window.history.back();
     } else {
-      window.location.href = 'home.html';
+      console.log('Back clicked - Navigation removed');
     }
   });
 }
 
 window.removeFile = removeFile;
 
-loadPreviousDocuments();
+updateButtons();
