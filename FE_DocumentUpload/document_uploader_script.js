@@ -143,11 +143,11 @@ function toggleDropdown(button) {
   
   dropdown.innerHTML = `
     <button class="dropdown-item" id="dd-upload">
-      <img src="Resources/Icons/Upload Icon.svg" class="dropdown-icon">
+      <img src="../Resources/Icons/Upload Icon.svg" class="dropdown-icon">
       <span>Upload File</span>
     </button>
     <button class="dropdown-item" id="dd-scan">
-      <img src="Resources/Icons/Camera Icon.svg" class="dropdown-icon">
+      <img src="../Resources/Icons/Camera Icon.svg" class="dropdown-icon">
       <span>Scan Document</span>
     </button>
   `;
@@ -285,7 +285,7 @@ function renderFiles() {
     
     const fileExtension = file.name.split('.').pop().toLowerCase();
     const isImage = ['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension);
-    const iconSrc = isImage ? 'Resources/Icons/Image Icon.svg' : 'Resources/Icons/Vault Icon.svg';
+    const iconSrc = isImage ? '../Resources/Icons/Image Icon.svg' : '../Resources/Icons/Vault Icon.svg';
     
     let statusHtml = '';
     if (file.extractionStatus === 'extracting') {
