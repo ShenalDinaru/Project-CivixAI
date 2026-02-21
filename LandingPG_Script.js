@@ -30,7 +30,7 @@ function showLoadingOverlay(destination) {
     
     loadingInterval = setInterval(updateProgress, 300);
     
-    // Complete loading after 2 seconds and redirect
+    // Complete loading after 1 second and redirect
     setTimeout(() => {
         clearInterval(loadingInterval);
         progress = 100;
@@ -40,7 +40,7 @@ function showLoadingOverlay(destination) {
         setTimeout(() => {
             window.location.href = destination;
         }, 500);
-    }, 2000);
+    }, 1000);
 }
 
 // Show loading overlay on page load
