@@ -169,7 +169,7 @@ function showTypingIndicator() {
         </div>
     `;
     chatContainer.insertAdjacentHTML('beforeend', indicator);
-    chatContainer.scrollTop = chatContainer.scrollHeight;
+    smartScroll();
     return id;
 }
 
@@ -188,7 +188,20 @@ function addMessage(text, sender) {
     let avatar = sender === 'assistant' ? `<div class="avatar"><img src="${BOT_AVATAR}"></div>` : '';
     const html = `<div class="message-wrapper ${sender}">${avatar}<div class="message-bubble">${text.replace(/\n/g, '<br>')}<div style="font-size:10px; opacity:0.5; margin-top:5px;">${time}</div></div></div>`;
     chatContainer.insertAdjacentHTML('beforeend', html);
-    chatContainer.scrollTop = chatContainer.scrollHeight;
+    smartScroll();
+}
+
+// Smart scroll: only auto-scroll if user is already near the bottom
+function smartScroll() {
+    const threshold = 150; // pixels from bottom
+    const isNearBottom = chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight < threshold;
+    
+    if (isNearBottom) {
+        chatContainer.scrollTo({
+            top: chatContainer.scrollHeight,
+            behavior: 'smooth'
+        });
+    }
 }
 
 function startBackgroundSlider() {

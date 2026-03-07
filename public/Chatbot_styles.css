@@ -74,7 +74,16 @@
 .three-dots { font-size: 20px; letter-spacing: 2px; }
 
 /* --- CHAT AREA --- */
-.chat-container { flex: 1; overflow-y: auto; padding: 25px; display: flex; flex-direction: column; justify-content: flex-end; gap: 15px; }
+.chat-container { 
+    flex: 1; 
+    overflow-y: auto; 
+    overflow-x: hidden;
+    padding: 25px; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 15px;
+    /* Remove justify-content: flex-end to enable proper scrolling */
+}
 .message-wrapper { display: flex; align-items: flex-start; gap: 15px; max-width: 80%; }
 .message-wrapper.user { align-self: flex-end; flex-direction: row-reverse; }
 .message-wrapper.assistant { align-self: flex-start; }
