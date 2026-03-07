@@ -128,7 +128,7 @@ async function sendMessage() {
     typingAvatarPopup.classList.remove('show'); 
     
     messageInput.disabled = true;
-    const thinkingId = showThinking();
+    const thinkingId = showTypingIndicator();
 
     try {
         const res = await fetch(API_URL, {
@@ -137,7 +137,7 @@ async function sendMessage() {
             body: JSON.stringify({ message: txt, conversationHistory })
         });
         const data = await res.json();
-        document.getElementById(thinkingId)?.remove();
+        removeTypingIndicator(thinkingId);
 
         if (data.success) {
             addMessage(data.response, 'assistant');
@@ -146,7 +146,7 @@ async function sendMessage() {
             setTimeout(() => typingAvatarPopup.classList.remove('show'), 2000);
         }
     } catch (err) {
-        document.getElementById(thinkingId)?.remove();
+        removeTypingIndicator(thinkingId);
         addMessage("Connection error. Please try again.", 'assistant');
     }
     
@@ -154,11 +154,33 @@ async function sendMessage() {
     messageInput.focus();
 }
 
-function showThinking() {
-    const id = 'think-' + Date.now();
-    chatContainer.insertAdjacentHTML('beforeend', `<div id="${id}" class="thinking-bubble"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`);
+function showTypingIndicator() {
+    const id = 'typing-' + Date.now();
+    const indicator = `
+        <div id="${id}" class="typing-indicator">
+            <div class="avatar">
+                <img src="${BOT_AVATAR}" alt="Kandula">
+            </div>
+            <div class="typing-dots">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+        </div>
+    `;
+    chatContainer.insertAdjacentHTML('beforeend', indicator);
     chatContainer.scrollTop = chatContainer.scrollHeight;
     return id;
+}
+
+function removeTypingIndicator(id) {
+    const element = document.getElementById(id);
+    if (element) {
+        element.style.opacity = '0';
+        element.style.transform = 'translateY(-10px)';
+        element.style.transition = 'all 0.3s ease';
+        setTimeout(() => element.remove(), 300);
+    }
 }
 
 function addMessage(text, sender) {
