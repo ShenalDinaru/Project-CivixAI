@@ -16,6 +16,16 @@ const BOT_AVATAR = '../Resources/Chatbot icon - Elephant/elephant.png';
 const API_URL = 'http://localhost:3000/api/chat/message';
 let conversationHistory = [];
 
+// --- MARKDOWN CONFIGURATION ---
+if (typeof marked !== 'undefined') {
+    marked.setOptions({
+        breaks: true,
+        gfm: true,
+        headerIds: false,
+        mangle: false
+    });
+}
+
 // --- INITIALIZATION ---
 window.onload = function() {
     startBackgroundSlider();
@@ -198,7 +208,18 @@ function addMessage(text, sender, sources) {
             }).join('') +
             '</ul></div>';
     }
-    const html = `<div class="message-wrapper ${sender}">${avatar}<div class="message-bubble">${text.replace(/\n/g, '<br>')}<div style="font-size:10px; opacity:0.5; margin-top:5px;">${time}</div>${sourcesHtml}</div></div>`;
+    
+    // Format message content based on sender
+    let formattedContent;
+    if (sender === 'assistant' && typeof marked !== 'undefined') {
+        // Use markdown for assistant messages
+        formattedContent = marked.parse(text);
+    } else {
+        // Plain text with line breaks for user messages
+        formattedContent = escapeHtml(text).replace(/\n/g, '<br>');
+    }
+    
+    const html = `<div class="message-wrapper ${sender}">${avatar}<div class="message-bubble"><div class="message-content">${formattedContent}</div><div style="font-size:10px; opacity:0.5; margin-top:5px;">${time}</div>${sourcesHtml}</div></div>`;
     chatContainer.insertAdjacentHTML('beforeend', html);
     smartScroll();
 }
