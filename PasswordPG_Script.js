@@ -5,9 +5,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const strengthBar = document.getElementById('strengthBar');
     const submitBtn = document.getElementById('submitBtn');
     
-    // Icon paths
-    const viewIcon = 'Resources/Icons/Password View Eye Icon.svg';
-    const hideIcon = 'Resources/Icons/Password Hidden Eye Icon.svg'; 
+    // Icon symbols
+    const viewIcon = '👁️';
+    const hideIcon = '🙈'; 
     const API_BASE_URL = 'http://localhost:5000/api';
 
     // 1. Smooth Entry Animation
@@ -24,17 +24,17 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // 3. Visibility Toggle Logic
-    document.querySelectorAll('.toggle-password').forEach(img => {
-        img.onclick = () => {
-            const input = document.getElementById(img.dataset.target);
+    document.querySelectorAll('.toggle-password').forEach(icon => {
+        icon.onclick = () => {
+            const input = document.getElementById(icon.dataset.target);
             if (input.type === 'password') {
                 input.type = 'text';
-                img.src = hideIcon;
-                img.style.opacity = '1';
+                icon.textContent = hideIcon;
+                icon.style.opacity = '1';
             } else {
                 input.type = 'password';
-                img.src = viewIcon;
-                img.style.opacity = '0.5';
+                icon.textContent = viewIcon;
+                icon.style.opacity = '0.5';
             }
         };
     });
