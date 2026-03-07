@@ -98,6 +98,7 @@ export const generateRAGResponse = async (userMessage, conversationHistory = [])
           title: c.title,
           section: c.section,
           year: c.year,
+          source: c.source || null,
           relevance: (c.score * 100).toFixed(1) + '%'
         }))
       }

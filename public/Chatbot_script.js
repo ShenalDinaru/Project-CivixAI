@@ -140,7 +140,7 @@ async function sendMessage() {
         removeTypingIndicator(thinkingId);
 
         if (data.success) {
-            addMessage(data.response, 'assistant');
+            addMessage(data.response, 'assistant', data.rag?.sources);
             conversationHistory.push({role:'user', content:txt}, {role:'assistant', content:data.response});
             typingAvatarPopup.classList.add('show');
             setTimeout(() => typingAvatarPopup.classList.remove('show'), 2000);
@@ -183,12 +183,31 @@ function removeTypingIndicator(id) {
     }
 }
 
-function addMessage(text, sender) {
+function addMessage(text, sender, sources) {
     const time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}).toLowerCase();
     let avatar = sender === 'assistant' ? `<div class="avatar"><img src="${BOT_AVATAR}"></div>` : '';
-    const html = `<div class="message-wrapper ${sender}">${avatar}<div class="message-bubble">${text.replace(/\n/g, '<br>')}<div style="font-size:10px; opacity:0.5; margin-top:5px;">${time}</div></div></div>`;
+    let sourcesHtml = '';
+    if (sources && Array.isArray(sources) && sources.length > 0 && sender === 'assistant') {
+        sourcesHtml = '<div class="message-sources"><span class="sources-label">Sources</span><ul class="sources-list">' +
+            sources.map((s, i) => {
+                const name = s.title || s.source || 'Source ' + (i + 1);
+                const parts = [escapeHtml(name)];
+                if (s.section) parts.push(escapeHtml(s.section));
+                if (s.year) parts.push(String(s.year));
+                return '<li class="source-item">' + parts.join(' · ') + '</li>';
+            }).join('') +
+            '</ul></div>';
+    }
+    const html = `<div class="message-wrapper ${sender}">${avatar}<div class="message-bubble">${text.replace(/\n/g, '<br>')}<div style="font-size:10px; opacity:0.5; margin-top:5px;">${time}</div>${sourcesHtml}</div></div>`;
     chatContainer.insertAdjacentHTML('beforeend', html);
     smartScroll();
+}
+
+function escapeHtml(str) {
+    if (str == null) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
 }
 
 // Smart scroll: only auto-scroll if user is already near the bottom

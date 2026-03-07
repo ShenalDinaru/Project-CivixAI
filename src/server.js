@@ -14,6 +14,8 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
+// Serve assets from project root (HTML references ../Resources/... → /Resources/...)
+app.use('/Resources', express.static('Resources'));
 
 // routes
 app.get('/', (req, res) => {

@@ -96,6 +96,13 @@
 .message-wrapper.user .message-bubble { background: rgba(255,255,255,0.2); border-radius: 20px 4px 20px 20px; }
 .message-wrapper.assistant .message-bubble { background: rgba(20, 24, 35, 0.85); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px 20px 20px 20px; margin-top: 10px; }
 
+/* Sources (RAG citations) */
+.message-sources { margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.15); }
+.sources-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: rgba(255,255,255,0.6); }
+.sources-list { list-style: none; margin: 8px 0 0; padding: 0; }
+.source-item { font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 4px; padding-left: 0; }
+.source-item::before { content: "• "; color: rgba(255,255,255,0.5); }
+
 /* --- INPUT AREA & POPUP --- */
 .input-area { position: relative; padding: 25px; }
 
