@@ -257,22 +257,50 @@ if (profileCircle) {
   });
 }
 
-// Gazette notifications in-app panel
+// Gazette notifications in-app panel (only show NEW gazette updates)
 const notifBtn = document.querySelector('.notif-btn');
 const notifPanel = document.getElementById('notifPanel');
 const notifList = document.getElementById('notifList');
+const SEEN_GAZETTES_KEY = 'civixaiSeenGazettes';
+
+function loadSeenGazettes() {
+  try {
+    const raw = localStorage.getItem(SEEN_GAZETTES_KEY);
+    if (!raw) return new Set();
+    const arr = JSON.parse(raw);
+    if (!Array.isArray(arr)) return new Set();
+    return new Set(arr);
+  } catch {
+    return new Set();
+  }
+}
+
+function saveSeenGazettes(set) {
+  try {
+    localStorage.setItem(SEEN_GAZETTES_KEY, JSON.stringify(Array.from(set)));
+  } catch {
+    // ignore storage errors
+  }
+}
 
 function buildGazetteNotificationsFromSlides() {
-  if (!notifList || !slides.length) return;
+  if (!notifList || !slides.length || !notifBtn) return;
   notifList.innerHTML = '';
+
+  const seen = loadSeenGazettes();
+  let newCount = 0;
 
   slides.forEach((slide, index) => {
     const titleEl = slide.querySelector('.text-box h3');
     const descEl = slide.querySelector('.text-box p');
     if (!titleEl || !descEl) return;
 
+    const key = (titleEl.textContent || '').trim();
+    if (!key || seen.has(key)) return; // skip already seen gazette updates
+
     const item = document.createElement('div');
     item.className = 'notif-item';
+    item.dataset.gazetteKey = key;
 
     const iconWrap = document.createElement('div');
     iconWrap.className = 'notif-item-icon';
@@ -285,7 +313,7 @@ function buildGazetteNotificationsFromSlides() {
     textWrap.className = 'notif-item-text';
 
     const title = document.createElement('h5');
-    title.textContent = titleEl.textContent || `Gazette update ${index + 1}`;
+    title.textContent = key || `Gazette update ${index + 1}`;
 
     const desc = document.createElement('p');
     desc.textContent = descEl.textContent || '';
@@ -297,7 +325,28 @@ function buildGazetteNotificationsFromSlides() {
     item.appendChild(textWrap);
 
     notifList.appendChild(item);
+    newCount += 1;
   });
+
+  if (newCount > 0) {
+    notifBtn.classList.add('has-unread');
+  } else {
+    notifBtn.classList.remove('has-unread');
+    if (notifPanel) notifPanel.style.display = 'none';
+  }
+}
+
+function markGazetteNotificationsAsSeen() {
+  if (!notifList) return;
+  const seen = loadSeenGazettes();
+
+  notifList.querySelectorAll('.notif-item').forEach((item) => {
+    const key = item.dataset.gazetteKey;
+    if (key) seen.add(key);
+  });
+
+  saveSeenGazettes(seen);
+  buildGazetteNotificationsFromSlides();
 }
 
 buildGazetteNotificationsFromSlides();
@@ -306,13 +355,21 @@ if (notifBtn && notifPanel) {
   notifBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     const isHidden = notifPanel.style.display === 'none' || !notifPanel.style.display;
-    notifPanel.style.display = isHidden ? 'block' : 'none';
+    if (isHidden) {
+      notifPanel.style.display = 'block';
+    } else {
+      notifPanel.style.display = 'none';
+      markGazetteNotificationsAsSeen();
+    }
   });
 
   // Close panel when clicking outside
   window.addEventListener('click', (e) => {
     if (!notifPanel.contains(e.target) && !notifBtn.contains(e.target)) {
-      notifPanel.style.display = 'none';
+      if (notifPanel.style.display === 'block') {
+        notifPanel.style.display = 'none';
+        markGazetteNotificationsAsSeen();
+      }
     }
   });
 }

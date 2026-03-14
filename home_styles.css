@@ -150,7 +150,7 @@
     position: relative;
   }
   
-  .notif-btn::after {
+  .notif-btn.has-unread::after {
     content: "";
     position: absolute;
     top: 8px;
