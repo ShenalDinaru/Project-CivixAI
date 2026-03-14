@@ -257,11 +257,79 @@ if (profileCircle) {
   });
 }
 
-// Notification button click
-const notifBtn = document.querySelector('.notif-btn');
-if (notifBtn) {
-  notifBtn.addEventListener('click', () => {
-    console.log('Notifications clicked');
-    alert('You have 3 new notifications!');
+// Notifications
+const notifBtn = document.getElementById('notifBtn');
+const notifBadge = document.getElementById('notifBadge');
+const notifPanel = document.getElementById('notifPanel');
+const notifList = document.getElementById('notifList');
+
+// Example notifications – can be wired to real data later
+const notifications = [
+  {
+    title: 'Gazette Update',
+    description: 'New Income Tax regulations updated for 2026.'
+  },
+  {
+    title: 'TIN Deadline',
+    description: 'Complete your TIN registration before the end of this month.'
+  },
+  {
+    title: 'Legal Framework',
+    description: 'Amendments to the Companies Act are now in effect.'
+  }
+];
+
+function renderNotifications() {
+  if (!notifBadge || !notifList) return;
+
+  const count = notifications.length;
+  if (count > 0) {
+    notifBadge.textContent = count;
+    notifBadge.classList.remove('hidden');
+  } else {
+    notifBadge.classList.add('hidden');
+  }
+
+  notifList.innerHTML = '';
+
+  if (count === 0) {
+    const li = document.createElement('li');
+    li.className = 'notif-item';
+    li.innerHTML = '<span class="notif-item-title">You are all caught up</span><span class="notif-item-desc">No new notifications right now.</span>';
+    notifList.appendChild(li);
+    return;
+  }
+
+  notifications.forEach((n) => {
+    const li = document.createElement('li');
+    li.className = 'notif-item';
+
+    const title = document.createElement('span');
+    title.className = 'notif-item-title';
+    title.textContent = n.title;
+
+    const desc = document.createElement('span');
+    desc.className = 'notif-item-desc';
+    desc.textContent = n.description;
+
+    li.appendChild(title);
+    li.appendChild(desc);
+    notifList.appendChild(li);
+  });
+}
+
+renderNotifications();
+
+if (notifBtn && notifPanel) {
+  notifBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    notifPanel.classList.toggle('open');
+  });
+
+  // Close panel when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!notifPanel.classList.contains('open')) return;
+    if (notifPanel.contains(e.target) || notifBtn.contains(e.target)) return;
+    notifPanel.classList.remove('open');
   });
 }

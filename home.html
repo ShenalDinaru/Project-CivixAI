@@ -15,10 +15,20 @@
             <div class="brand-center">
                 <img src="Resources/CivixAi Logo/CivixAI Logo (Dark Mode) - No BG (Home).png" alt="CivixAI Logo" class="nav-logo-xl">
             </div>
-            <button class="notif-btn">
+            <button class="notif-btn" id="notifBtn" aria-label="Notifications">
                 <img src="Resources/Icons/Notification Bell Icon.svg" alt="Notifications">
+                <span class="notif-badge" id="notifBadge">0</span>
             </button>
         </header>
+
+        <div class="notif-panel" id="notifPanel" aria-live="polite">
+            <div class="notif-panel-header">
+                <h4>Notifications</h4>
+            </div>
+            <ul class="notif-list" id="notifList">
+                <!-- Notifications will be injected here -->
+            </ul>
+        </div>
 
         <div class="neon-outline-container">
             <section class="gazette-box">
