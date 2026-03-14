@@ -1,0 +1,44 @@
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import chatRoutes from './routes/chatRoutes.js';
+import documentRoutes from './routes/documentRoutes.js';
+import { errorHandler } from './middleware/errorHandler.js';
+import { initializeRAG } from './services/ragService.js';
+
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.static('public'));
+
+// routes
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'CivixAI - Personal AI Tax Assistant API',
+    description: 'An intelligent tax assistant powered by OpenRouter',
+    version: '1.0.0'
+  });
+});
+
+app.use('/api/chat', chatRoutes);
+app.use('/api/documents', documentRoutes);
+
+// Error handling middleware
+app.use(errorHandler);
+
+// Initialize RAG system and start server
+async function startServer() {
+  console.log('Initializing RAG system...');
+  await initializeRAG();
+  
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+}
+
+startServer();
