@@ -150,7 +150,7 @@
     position: relative;
   }
   
-  .notif-btn.has-unread::after {
+  .notif-btn::after {
     content: "";
     position: absolute;
     top: 8px;
@@ -179,86 +179,6 @@
     transform: translateY(-2px);
     box-shadow: 0 4px 20px rgba(255, 78, 2, 0.3);
     border-color: rgba(255, 78, 2, 0.4);
-  }
-  
-  /* In-app notification panel for gazette updates */
-  .notif-panel {
-    position: absolute;
-    top: 80px;
-    right: 0;
-    width: 340px;
-    background: rgba(8, 8, 16, 0.96);
-    border-radius: 20px;
-    border: 1.5px solid rgba(255, 255, 255, 0.18);
-    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(26px);
-    -webkit-backdrop-filter: blur(26px);
-    padding: 14px 14px 10px;
-    z-index: 20;
-  }
-  
-  .notif-panel-header h4 {
-    font-size: 15px;
-    font-weight: 700;
-    margin-bottom: 2px;
-  }
-  
-  .notif-panel-subtitle {
-    font-size: 12px;
-    opacity: 0.6;
-  }
-  
-  .notif-list {
-    margin-top: 10px;
-    max-height: 260px;
-    overflow-y: auto;
-  }
-  
-  .notif-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 10px 8px;
-    border-radius: 14px;
-    transition: background 0.25s ease, transform 0.2s ease;
-  }
-  
-  .notif-item + .notif-item {
-    margin-top: 4px;
-  }
-  
-  .notif-item-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.08);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    border: 1px solid rgba(255, 255, 255, 0.16);
-  }
-  
-  .notif-item-icon img {
-    width: 18px;
-    height: 18px;
-  }
-  
-  .notif-item-text h5 {
-    font-size: 13px;
-    font-weight: 600;
-    margin-bottom: 3px;
-  }
-  
-  .notif-item-text p {
-    font-size: 12px;
-    opacity: 0.75;
-    line-height: 1.4;
-  }
-  
-  .notif-item:hover {
-    background: rgba(255, 78, 2, 0.1);
-    transform: translateY(-1px);
   }
   
   /* Neon Notification Bar */
