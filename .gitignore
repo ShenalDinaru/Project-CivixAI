@@ -1,3 +1,10 @@
+<<<<<<< HEAD
 .env
 node_modules/
 .DS_Store
+=======
+# Environment variables
+.env
+.env.local
+.env.*.local
+>>>>>>> origin/Chatbo_Dev
