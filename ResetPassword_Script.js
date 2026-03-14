@@ -13,8 +13,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusBox = document.getElementById('statusBox');
     const statusText = document.getElementById('statusText');
 
-    const viewIcon = '👁️';
-    const hideIcon = '🙈';
     
     resetPasswordCard.style.display = 'block';
     errorCard.style.display = 'none';
@@ -158,26 +156,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (toggleButtons.length > 0) {
         toggleButtons.forEach((toggle) => {
             toggle.style.cursor = 'pointer';
-            const handleToggle = (e) => {
+            toggle.addEventListener('click', (e) => {
                 e.preventDefault();
                 const targetId = toggle.dataset.target;
                 const input = document.getElementById(targetId);
-                if (!input) return;
-
-                if (input.type === 'password') {
-                    input.type = 'text';
-                    toggle.textContent = hideIcon;
-                    toggle.style.opacity = '1';
-                } else {
-                    input.type = 'password';
-                    toggle.textContent = viewIcon;
-                    toggle.style.opacity = '0.5';
+                if (input) {
+                    const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                    input.setAttribute('type', type);
+                    toggle.style.opacity = type === 'text' ? '0.7' : '0.5';
                 }
-            };
-
-            toggle.addEventListener('click', handleToggle);
-            toggle.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') handleToggle(e);
             });
         });
     }

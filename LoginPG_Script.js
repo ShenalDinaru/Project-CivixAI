@@ -6,16 +6,27 @@ const askNowBtn = document.getElementById('askNowBtn');
 const backBtn = document.getElementById('backBtn');
 const registerLink = document.getElementById('registerLink');
 const loginForm = document.getElementById('loginForm');
-const togglePassword = document.getElementById('togglePassword');
 const passwordField = document.getElementById('passwordField');
 
-// Password visibility
-togglePassword.addEventListener('click', () => {
-    const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
-    passwordField.setAttribute('type', type);
-    
-    
-    togglePassword.style.opacity = type === 'text' ? '0.7' : '1';
+// Password visibility (matches PasswordPG behavior)
+const viewIcon = '👁️';
+const hideIcon = '🙈';
+document.querySelectorAll('.toggle-password').forEach(icon => {
+    icon.onclick = (e) => {
+        e.preventDefault();
+        const input = document.getElementById(icon.dataset.target);
+        if (!input) return;
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.textContent = hideIcon;
+            icon.style.opacity = '1';
+        } else {
+            input.type = 'password';
+            icon.textContent = viewIcon;
+            icon.style.opacity = '0.5';
+        }
+    };
 });
 
 
