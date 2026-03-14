@@ -257,11 +257,62 @@ if (profileCircle) {
   });
 }
 
-// Notification button click
+// Gazette notifications in-app panel
 const notifBtn = document.querySelector('.notif-btn');
-if (notifBtn) {
-  notifBtn.addEventListener('click', () => {
-    console.log('Notifications clicked');
-    alert('You have 3 new notifications!');
+const notifPanel = document.getElementById('notifPanel');
+const notifList = document.getElementById('notifList');
+
+function buildGazetteNotificationsFromSlides() {
+  if (!notifList || !slides.length) return;
+  notifList.innerHTML = '';
+
+  slides.forEach((slide, index) => {
+    const titleEl = slide.querySelector('.text-box h3');
+    const descEl = slide.querySelector('.text-box p');
+    if (!titleEl || !descEl) return;
+
+    const item = document.createElement('div');
+    item.className = 'notif-item';
+
+    const iconWrap = document.createElement('div');
+    iconWrap.className = 'notif-item-icon';
+    const iconImg = document.createElement('img');
+    iconImg.src = 'Resources/Icons/File Scanner Icon.svg';
+    iconImg.alt = 'Gazette update';
+    iconWrap.appendChild(iconImg);
+
+    const textWrap = document.createElement('div');
+    textWrap.className = 'notif-item-text';
+
+    const title = document.createElement('h5');
+    title.textContent = titleEl.textContent || `Gazette update ${index + 1}`;
+
+    const desc = document.createElement('p');
+    desc.textContent = descEl.textContent || '';
+
+    textWrap.appendChild(title);
+    textWrap.appendChild(desc);
+
+    item.appendChild(iconWrap);
+    item.appendChild(textWrap);
+
+    notifList.appendChild(item);
+  });
+}
+
+buildGazetteNotificationsFromSlides();
+
+if (notifBtn && notifPanel) {
+  notifBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isHidden = notifPanel.style.display === 'none' || !notifPanel.style.display;
+    notifPanel.style.display = isHidden ? 'block' : 'none';
+  });
+
+  // Close panel when clicking outside
+  window.addEventListener('click', (e) => {
+    if (!notifPanel.contains(e.target) && !notifBtn.contains(e.target)) {
+      notifPanel.style.display = 'none';
+    }
   });
 }
