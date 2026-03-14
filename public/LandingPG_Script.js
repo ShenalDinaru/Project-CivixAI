@@ -93,5 +93,5 @@ askNowBtn.addEventListener('mouseleave', () => {
 
 // Navigation Redirects with Loading Animation
 loginBtn.onclick = () => showLoadingOverlay('LoginPG.html');
-signupBtn.onclick = () => showLoadingOverlay('ignupPG.html');
+signupBtn.onclick = () => showLoadingOverlay('SignupPG.html');
 askNowBtn.onclick = () => showLoadingOverlay('Chatbot.html');
