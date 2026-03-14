@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Verify Your Email | CivixAI</title>
+    <link rel="stylesheet" href="VerifyEmail_Styles.css" />
+</head>
+<body>
+
+    <div class="video-wrapper">
+        <video autoplay muted loop playsinline poster="Resources/sigiriya.jpg">
+            <source src="Resources/Background/SL Edited.mp4" type="video/mp4" />
+        </video>
+
+        <div class="overlay"></div>
+
+        <div class="ui-card">
+            
+            <div class="brand-container">
+                <img src="Resources/Background/welcome1.png" alt="CivixAI Logo" class="brand-img">
+            </div>
+
+            <div id="verificationContainer" class="content-wrapper">
+                
+                <div id="loadingState" class="state-container">
+                    <div class="spinner-container">
+                        <div class="spinner-ring">
+                            <div></div><div></div><div></div><div></div>
+                        </div>
+                    </div>
+                    <h2>Verifying...</h2>
+                    <p class="subtitle">Please wait while we verify your email address.</p>
+                </div>
+
+                <div id="pendingState" class="state-container" style="display: none;">
+                    <div class="icon-box info-glow">📧</div>   <!--Add email text icon to show check email to user-->
+                    <h2>Check Your Email</h2>
+                    <p class="subtitle">We've sent a verification link to your email address.</p>
+                    <p class="detail-text">Please click the link in the email to verify your account.</p>
+                    
+                    <div class="action-box">
+                        <button class="btn chat-btn full-width" id="btnResendEmail">Resend Verification Email</button>
+                        <button class="btn secondary full-width" id="btnBackSignup">Sign Up Again</button>
+                    </div>
+                </div>
+
+                <div id="successState" class="state-container" style="display: none;">
+                    <div class="icon-box success-glow">😀</div>  <!--Add smile face text icon to show verification success to user-->
+                    <h2>Email Verified!</h2>
+                    <p class="subtitle">Your account has been successfully verified.</p>
+                    
+                    <div class="action-box">
+                        <button class="btn primary full-width" id="btnGoLogin">Go to Login</button>
+                    </div>
+                </div>
+
+                <div id="errorState" class="state-container" style="display: none;">
+                    <div class="icon-box error-glow">❌</div>    <!--Add cross text icon to show verification failure to user-->
+                    <h2>Verification Failed</h2>  
+                    <p class="subtitle" id="errorMessage">Invalid link.</p>
+                    <p class="detail-text" id="errorDetails"></p>
+                    
+                    <div class="action-box">
+                        <button class="btn primary full-width" id="btnRetrySignup">Sign Up Again</button>
+                        <button class="btn secondary full-width" id="btnBackLogin">Back to Login</button>
+                    </div>
+                </div>
+
+                <div id="expiredState" class="state-container" style="display: none;">
+                    <div class="icon-box warning-glow">⚠️</div>  <!--Add warning text icon to show link expired to user-->
+                    <h2>Link Expired</h2>
+                    <p class="subtitle">This verification link has expired.</p>
+                    
+                    <div class="action-box">
+                        <button class="btn chat-btn full-width" id="btnResendEmail">Resend Verification Email</button>
+                        <button class="btn secondary full-width" id="btnBackSignup">Sign Up Again</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="VerifyEmail_Script.js"></script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>CivixAI | Sign Up</title>
+    <link rel="stylesheet" href="LandingPG_Styles.css" />
+    <link rel="stylesheet" href="LoginPG_Styles.css" />
+</head>
+<body>
+
+    <div class="video-wrapper">
+        <video autoplay muted loop playsinline poster="Resources/Background/sigiriya.jpg">
+            <source src="Resources/Background/SL Edited.mp4" type="video/mp4" />
+        </video>
+
+        <div class="overlay"></div>
+
+        <div class="ui-card" id="signupCard">
+            <div class="back-nav" id="backBtn">
+                <img src="Resources/Icons/Back Button Icon.svg" alt="Back" class="back-icon">
+            </div>
+
+            <div class="brand-container login-logo">
+                <img src="Resources/Background/welcome1.png" alt="CivixAI Logo" class="brand-img">
+            </div>
+
+            <h2 class="form-title">Initialize Your Journey</h2>
+
+            <form id="signupForm" class="auth-form">
+                <div class="input-group-wrapper">
+                    <input type="text" id="firstName" placeholder="Enter your First Name*" required>
+                    <span class="error-message" id="firstNameError"></span>
+                </div>
+
+                <div class="input-group-wrapper">
+                    <input type="text" id="surname" placeholder="Enter your Surname*" required>
+                    <span class="error-message" id="surnameError"></span>
+                </div>
+
+                <div class="input-group-wrapper">
+                    <input type="text" id="username" placeholder="Set a Username*" required>
+                    <span class="error-message" id="usernameError"></span>
+                </div>
+                
+                <div class="input-group-wrapper">
+                    <input type="email" id="email" placeholder="Enter your Email*" required>
+                    <span class="error-message" id="emailError"></span>
+                </div>
+
+                <div class="input-group-wrapper">
+                    <input type="tel" id="phone" placeholder="Enter your Phone Number">
+                    <span class="error-message" id="phoneError"></span>
+                </div>
+
+                <button type="submit" class="btn chat-btn" id="nextBtn">NEXT ></button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Already a Civica? <span class="reg-link" id="loginLink">Login Now</span></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="SignupPG_Script.js"></script>
+</body>
+</html>
