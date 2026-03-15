@@ -2,6 +2,10 @@ const API_BASE_URL = 'http://localhost:5000/api';
 
 let resetToken = null;
 
+// Icon symbols for password visibility toggle
+const viewIcon = '👁️';
+const hideIcon = '🙈';
+
 document.addEventListener('DOMContentLoaded', () => {
     const resetPasswordCard = document.getElementById('resetPasswordCard');
     const errorCard = document.getElementById('errorCard');
@@ -147,23 +151,33 @@ document.addEventListener('DOMContentLoaded', () => {
         return passedCount === 4;
     }
 
-    // Password visibility toggle
+    // Password visibility toggle with emoji icons
     const toggleButtons = document.querySelectorAll('.toggle-password');
     const passwordInput = document.getElementById('newPassword');
     const confirmPasswordInput = document.getElementById('confirmPassword');
 
-    // Set toggle functionality with proper event listeners
+    // Set toggle functionality with emoji icons
     if (toggleButtons.length > 0) {
         toggleButtons.forEach((toggle) => {
             toggle.style.cursor = 'pointer';
+            toggle.style.fontSize = '20px';
+            toggle.textContent = viewIcon;
+            toggle.style.opacity = '0.5';
+            
             toggle.addEventListener('click', (e) => {
                 e.preventDefault();
                 const targetId = toggle.dataset.target;
                 const input = document.getElementById(targetId);
                 if (input) {
-                    const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
-                    input.setAttribute('type', type);
-                    toggle.style.opacity = type === 'text' ? '0.7' : '0.5';
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        toggle.textContent = hideIcon;
+                        toggle.style.opacity = '1';
+                    } else {
+                        input.type = 'password';
+                        toggle.textContent = viewIcon;
+                        toggle.style.opacity = '0.5';
+                    }
                 }
             });
         });
