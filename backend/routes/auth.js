@@ -96,7 +96,10 @@ router.post('/signup', async (req, res) => {
         const verificationToken = await createVerificationToken(email, firstName);
         
         // Build verification link
-        const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify_email?token=${verificationToken}`;
+        const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:5500'}/public/verify_email.html?token=${verificationToken}`;
+        
+        // Log the verification link for debugging
+        console.log('📧 Verification Link:', verificationLink);
         
         // Send verification email (non-blocking - don't await)
         console.log(' Sending verification email...');
@@ -271,6 +274,61 @@ router.get('/verify-email-token/:token', async (req, res) => {
     }
 });
 
+// Handle /verify_email with query parameter (for direct email links)
+router.get('/verify_email', async (req, res) => {
+    try {
+        const { token } = req.query;
+
+        if (!token) {
+            return res.status(400).json({
+                success: false,
+                message: 'Verification token is required'
+            });
+        }
+
+        console.log('🔍 Verifying email token from query parameter...');
+        const result = await verifyToken(token);
+
+        if (!result.success) {
+            console.log('❌ Token verification failed:', result.message);
+            return res.status(400).json({
+                success: false,
+                message: result.message,
+                expired: result.message.includes('expired')
+            });
+        }
+
+        // Mark email as verified in database
+        console.log('📧 Marking email as verified:', result.email);
+        try {
+            const userSnapshot = await db.ref('users').orderByChild('email').equalTo(result.email.toLowerCase()).once('value');
+            if (userSnapshot.exists()) {
+                const userData = Object.entries(userSnapshot.val())[0];
+                const uid = userData[0];
+                await db.ref(`users/${uid}/emailVerified`).set(true);
+                await db.ref(`users/${uid}/emailVerifiedAt`).set(new Date().toISOString());
+                console.log('✅ Email marked as verified in database');
+            }
+        } catch (dbError) {
+            console.error('Database error updating emailVerified:', dbError);
+            // Continue anyway as token was verified
+        }
+
+        console.log('✅ Email verification successful!');
+        return res.status(200).json({
+            success: true,
+            message: result.message,
+            email: result.email
+        });
+
+    } catch (error) {
+        console.error('❌ Email verification error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error verifying email'
+        });
+    }
+});
 
  
  // Resend verification email
@@ -307,7 +365,10 @@ router.post('/resend-verification-email', async (req, res) => {
 
         // Create new verification token
         const verificationToken = await createVerificationToken(email, userData.firstName);
-        const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify_email?token=${verificationToken}`;
+        const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:5500'}/public/verify_email.html?token=${verificationToken}`;
+        
+        // Log the verification link for debugging
+        console.log('📧 Resend - Verification Link:', verificationLink);
 
         // Send verification email 
         sendVerificationEmail(email, verificationLink, userData.firstName).catch(error => {

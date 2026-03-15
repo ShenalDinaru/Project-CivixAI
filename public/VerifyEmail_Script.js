@@ -76,7 +76,8 @@ async function verifyEmail() {
     showState('loading');
 
     try {
-        const response = await fetch(`${API_BASE_URL}/auth/verify-email-token/${token}`, {
+        // Use the query parameter route instead of URL parameter
+        const response = await fetch(`${API_BASE_URL}/auth/verify_email?token=${token}`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
         });
@@ -84,17 +85,9 @@ async function verifyEmail() {
         const data = await response.json();
 
         if (data.success) {
-            // Confirm verification to backend
-            const email = data.email;
-            await fetch(`${API_BASE_URL}/auth/mark-email-verified`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email })
-            });
-
             sessionStorage.removeItem('registeredEmail');
             showState('success');
-            console.log('Success: Email verified for', email);
+            console.log('Success: Email verified for', data.email);
         } else {
             // Handle Expired Error
             if (data.message && data.message.toLowerCase().includes('expired')) {
