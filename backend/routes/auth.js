@@ -596,7 +596,10 @@ router.post('/forgot-password', async (req, res) => {
         const resetToken = await createPasswordResetToken(email, userData.firstName);
         
         // Build reset link
-        const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset_password?token=${resetToken}`;
+        const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:5500'}/public/reset_password.html?token=${resetToken}`;
+        
+        // Log the reset link for debugging
+        console.log('📧 Reset Link:', resetLink);
         
         // Send password reset email
         console.log(' Sending password reset email...');
@@ -769,7 +772,7 @@ router.get('/debug/latest-reset-token/:email', async (req, res) => {
         }
 
         const latestToken = tokensForEmail[0];
-        const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset_password?token=${latestToken[0]}`;
+        const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:5500'}/public/reset_password.html?token=${latestToken[0]}`;
 
         console.log(' DEBUG: Latest reset token for', email);
         res.status(200).json({
