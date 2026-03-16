@@ -1,12 +1,16 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const path = require('path'); // ✅ move here
 require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+app.use(express.static(path.join(__dirname, '../public')));
+
 
 // Middleware
 app.use(cors());

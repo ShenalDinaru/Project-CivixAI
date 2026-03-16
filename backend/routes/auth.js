@@ -96,7 +96,8 @@ router.post('/signup', async (req, res) => {
         const verificationToken = await createVerificationToken(email, firstName);
         
         // Build verification link
-        const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:5500'}/public/verify_email.html?token=${verificationToken}`;
+        const verificationLink = `${process.env.FRONTEND_URL}/verify_email.html?token=${verificationToken}`;
+
         
         // Log the verification link for debugging
         console.log('📧 Verification Link:', verificationLink);
@@ -365,7 +366,7 @@ router.post('/resend-verification-email', async (req, res) => {
 
         // Create new verification token
         const verificationToken = await createVerificationToken(email, userData.firstName);
-        const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:5500'}/public/verify_email.html?token=${verificationToken}`;
+        const verificationLink = `${process.env.FRONTEND_URL}/verify_email.html?token=${verificationToken}`;
         
         // Log the verification link for debugging
         console.log('📧 Resend - Verification Link:', verificationLink);
@@ -596,7 +597,7 @@ router.post('/forgot-password', async (req, res) => {
         const resetToken = await createPasswordResetToken(email, userData.firstName);
         
         // Build reset link
-        const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:5500'}/public/reset_password.html?token=${resetToken}`;
+        const resetLink = `${process.env.FRONTEND_URL}/reset_password.html?token=${resetToken}`;
         
         // Log the reset link for debugging
         console.log('📧 Reset Link:', resetLink);
@@ -772,7 +773,8 @@ router.get('/debug/latest-reset-token/:email', async (req, res) => {
         }
 
         const latestToken = tokensForEmail[0];
-        const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:5500'}/public/reset_password.html?token=${latestToken[0]}`;
+        const resetLink = `${process.env.FRONTEND_URL}/reset_password.html?token=${latestToken[0]}`;
+
 
         console.log(' DEBUG: Latest reset token for', email);
         res.status(200).json({
