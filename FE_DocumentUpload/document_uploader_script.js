@@ -8,6 +8,11 @@ const doneBtn = document.getElementById('doneBtn');
 const cancelBtn = document.getElementById('cancelBtn');
 const backBtn = document.getElementById('backBtn');
 
+// API Configuration
+const BASE_URL = window.location.origin;
+const API_BASE_URL = `${BASE_URL}/api`;
+const CHATBOT_URL = `${BASE_URL}/Chatbot.html`;
+
 let files = [];
 
 // Inject styles for extraction status and upload options
@@ -488,8 +493,6 @@ if (backBtn) {
 
 window.removeFile = removeFile;
 
-// API Configuration
-const API_BASE_URL = 'http://localhost:3000/api';
 
 /**
  * Process documents and redirect to chatbot
@@ -548,8 +551,8 @@ async function processAndRedirectToChatbot() {
 
     // Step 3: Redirect immediately after loading completes (no delay)
     showStatus('success', 'Redirecting to chatbot...');
-    const chatbotUrl = '../ChatBot/public/Chatbot.html?documentsLoaded=true';
-    window.location.href = chatbotUrl;
+    window.location.href = `${CHATBOT_URL}?documentsLoaded=true`;
+
 
   } catch (error) {
     console.error('Error processing documents:', error);

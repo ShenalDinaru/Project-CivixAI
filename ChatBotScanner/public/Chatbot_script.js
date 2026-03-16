@@ -13,7 +13,8 @@ const backBtn = document.getElementById('backBtn');
 
 // --- CONSTANTS ---
 const BOT_AVATAR = 'Resources/Chatbot icon - Elephant/elephant.png';
-const API_URL = 'http://localhost:3000/api/chat/message';
+const API_URL = `${window.location.origin}/api/chat/message`;
+
 let conversationHistory = [];
 
 // --- INITIALIZATION ---
