@@ -20,6 +20,9 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
+app.use('/upload', express.static(path.join(__dirname, '../../FE_DocumentUpload')));
+app.use('/Resources', express.static(path.join(__dirname, '../../Resources')));
+
 
 // routes
 app.get('/', (req, res) => {
