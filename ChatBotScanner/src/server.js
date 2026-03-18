@@ -19,18 +19,18 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '../../public')));
-app.use('/upload', express.static(path.join(__dirname, '../../FE_DocumentUpload')));
-app.use('/Resources', express.static(path.join(__dirname, '../../Resources')));
+app.use(express.static(path.join(__dirname, '../public'))); // ChatBotScanner/public
+app.use(express.static(path.join(__dirname, '../../public'))); // root public (uploader, scanner)
+app.use('/Resources', express.static(path.join(__dirname, '../../Resources'))); // shared icons
 
 
 // routes
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/Chatbot.html'));
+  res.sendFile(path.join(__dirname, '../public/ChatbotScanner.html'));
 });
 
 app.get('/Chatbot.html', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/Chatbot.html'));
+  res.sendFile(path.join(__dirname, '../public/ChatbotScanner.html'));
 });
 
 app.use('/api/chat', chatRoutes);
