@@ -148,11 +148,11 @@ function toggleDropdown(button) {
   
   dropdown.innerHTML = `
     <button class="dropdown-item" id="dd-upload">
-      <img src="../Resources/Icons/Upload Icon.svg" class="dropdown-icon">
+      <img src="/Resources/Icons/Upload Icon.svg" class="dropdown-icon">
       <span>Upload File</span>
     </button>
     <button class="dropdown-item" id="dd-scan">
-      <img src="../Resources/Icons/Camera Icon.svg" class="dropdown-icon">
+      <img src="/Resources/Icons/Camera Icon.svg" class="dropdown-icon">
       <span>Scan Document</span>
     </button>
   `;
@@ -180,7 +180,7 @@ function toggleDropdown(button) {
   dropdown.querySelector('#dd-scan').onclick = () => {
     closeDropdown();
     // Redirect to scanner page
-    window.location.href = '../FE_ScannerUpload/scanner_and_upload.html';
+    window.location.href = 'scanner_and_upload.html';
   };
   
   activeDropdown = dropdown;

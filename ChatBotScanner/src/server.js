@@ -19,7 +19,7 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(__dirname, '../../public')));
 app.use('/upload', express.static(path.join(__dirname, '../../FE_DocumentUpload')));
 app.use('/Resources', express.static(path.join(__dirname, '../../Resources')));
 
@@ -35,7 +35,7 @@ app.get('/Chatbot.html', (req, res) => {
 
 app.use('/api/chat', chatRoutes);
 app.use('/api/documents', documentRoutes);
-app.use('/upload', express.static(path.join(__dirname, '../../FE_DocumentUpload')));
+
 
 
 // Error handling middleware
