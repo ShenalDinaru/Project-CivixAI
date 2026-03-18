@@ -157,9 +157,9 @@ loginForm.onsubmit = async (e) => {
         // Show success positive message
         askNowBtn.innerHTML = "Logged in!";
         
-        // Redirect to chat
+        // Redirect to home page after successful login
         setTimeout(() => {
-            window.location.href = 'chat.html'; 
+            window.location.href = 'home.html';
         }, 800);
 
     } catch (error) {
