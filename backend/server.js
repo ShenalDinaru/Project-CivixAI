@@ -10,6 +10,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(express.static(path.join(__dirname, '../public')));
+app.use('/ChatBot', express.static(path.join(__dirname, '../ChatBot/public')));
 
 
 // Middleware

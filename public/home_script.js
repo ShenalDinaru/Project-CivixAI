@@ -119,9 +119,8 @@ document.querySelectorAll('.slide-next-btn').forEach((btn) => {
 const askBtn = document.getElementById('askNowBtn');
 if (askBtn) {
   askBtn.addEventListener('click', () => {
-    console.log("Start conversation clicked - navigate to chat page");
-    // TODO: Navigate to chat page
-    alert('Opening chat page...');
+    console.log('Start conversation clicked - navigate to chatbot');
+    window.location.href = '/ChatBot/public/Chatbot.html';
   });
 }
 
@@ -129,9 +128,8 @@ if (askBtn) {
 const scannerCard = document.getElementById('scannerCard');
 if (scannerCard) {
   scannerCard.addEventListener('click', () => {
-    console.log("Scanner clicked - navigate to scanner page");
-    // TODO: Navigate to scanner page
-    alert('Opening scanner page...');
+    console.log('Scanner clicked - navigate to document uploader');
+    window.location.href = '/public/document_uploader.html';
   });
 }
 
