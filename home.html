@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CivixAI | Home</title>
+    <link rel="stylesheet" href="home_styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="top-nav">
+            <div class="profile-circle">
+                <img src="Resources/Icons/User Profile Icon.svg" alt="User Profile">
+            </div>
+            <div class="brand-center">
+                <img src="Resources/CivixAi Logo/CivixAI Logo (Dark Mode) - No BG (Home).png" alt="CivixAI Logo" class="nav-logo-xl">
+            </div>
+            <button class="notif-btn" id="notifBtn" aria-label="Notifications">
+                <img src="Resources/Icons/Notification Bell Icon.svg" alt="Notifications">
+                <span class="notif-badge" id="notifBadge">0</span>
+            </button>
+        </header>
+
+        <div class="notif-panel" id="notifPanel" aria-live="polite">
+            <div class="notif-panel-header">
+                <h4>Notifications</h4>
+            </div>
+            <ul class="notif-list" id="notifList">
+                <!-- Notifications will be injected here -->
+            </ul>
+        </div>
+
+        <div class="neon-outline-container">
+            <section class="gazette-box">
+                <div class="slider-container">
+                    <div class="slider-track" id="gazetteTrack">
+                        <div class="slide">
+                            <div class="slide-content">
+                                <div class="slide-main">
+                                    <div class="icon-circle-bg">
+                                        <img src="Resources/Icons/File Scanner Icon.svg" alt="Update">
+                                    </div>
+                                    <div class="text-box">
+                                        <h3>Gazette Update!</h3>
+                                        <p>New Income Tax regulations updated for 2026.</p>
+                                    </div>
+                                </div>
+                                <button class="slide-next-btn" type="button" aria-label="Next update">
+                                    <img src="Resources/Icons/Next Icon.svg" alt="Next">
+                                </button>
+                            </div>
+                        </div>
+                        <div class="slide">
+                            <div class="slide-content">
+                                <div class="slide-main">
+                                    <div class="icon-circle-bg">
+                                        <img src="Resources/Icons/File Scanner Icon.svg" alt="Deadline">
+                                    </div>
+                                    <div class="text-box">
+                                        <h3>TIN Deadline</h3>
+                                        <p>Ensure your TIN registration is completed by the end of the month.</p>
+                                    </div>
+                                </div>
+                                <button class="slide-next-btn" type="button" aria-label="Next update">
+                                    <img src="Resources/Icons/Next Icon.svg" alt="Next">
+                                </button>
+                            </div>
+                        </div>
+                        <div class="slide">
+                            <div class="slide-content">
+                                <div class="slide-main">
+                                    <div class="icon-circle-bg">
+                                        <img src="Resources/Icons/File Scanner Icon.svg" alt="Legal">
+                                    </div>
+                                    <div class="text-box">
+                                        <h3>Legal Framework Update</h3>
+                                        <p>New amendments to the Companies Act are now in effect.</p>
+                                    </div>
+                                </div>
+                                <button class="slide-next-btn" type="button" aria-label="Next update">
+                                    <img src="Resources/Icons/Next Icon.svg" alt="Next">
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="dashboard-grid">
+            <section class="glass-card main-feature orange-glow">
+                <div class="card-top">
+                    <div class="icon-circle-bg">
+                        <img src="Resources/Icons/Search Icon.svg" alt="Ask" class="card-svg">
+                    </div>
+                    <h2>Start conversation</h2>
+                    <p class="feature-description">Ask questions about legal documents, regulations, and get instant AI-powered answers.</p>
+                </div>
+                <button class="btn-ask" id="askNowBtn">Ask now</button>
+            </section>
+
+            <div class="side-column">
+                <section class="glass-card utility-card" id="scannerCard">
+                    <div class="icon-circle-bg">
+                        <img src="Resources/Icons/File Scanner Icon.svg" alt="Scanner" class="card-svg">
+                    </div>
+                    <p>Scanner</p>
+                </section>
+                <section class="glass-card utility-card" id="vaultCard">
+                    <div class="icon-circle-bg">
+                        <img src="Resources/Icons/Vault Icon.svg" alt="Vault" class="card-svg">
+                    </div>
+                    <p>Your vault</p>
+                </section>
+            </div>
+        </div>
+
+        <section id="chatHistory" class="history-section" style="display: none;">
+            <div class="history-header">
+                <h4>Your chat history</h4>
+            </div>
+            <div class="history-list" id="historyList">
+                <!-- Chat history items will be injected here -->
+            </div>
+        </section>
+    </div>
+
+    <script src="home_script.js"></script>
+</body>
+</html>

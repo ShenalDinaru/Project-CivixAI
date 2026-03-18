@@ -1,3 +1,7 @@
+<<<<<<< HEAD
 
+=======
+.env
+>>>>>>> FE_HomePG_Dev
 node_modules/
-.DS_Store
+.DS_Store.DS_Store
