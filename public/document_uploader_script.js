@@ -8,10 +8,28 @@ const doneBtn = document.getElementById('doneBtn');
 const cancelBtn = document.getElementById('cancelBtn');
 const backBtn = document.getElementById('backBtn');
 
+function getSafeReturnOrigin() {
+  const params = new URLSearchParams(window.location.search);
+  const originFromQuery = params.get('origin');
+
+  if (!originFromQuery) {
+    return window.location.origin;
+  }
+
+  try {
+    const parsed = new URL(originFromQuery);
+    return parsed.origin;
+  } catch (error) {
+    console.warn('Invalid return origin in uploader:', originFromQuery, error);
+    return window.location.origin;
+  }
+}
+
 // API Configuration
 const BASE_URL = window.location.origin;
 const API_BASE_URL = `${BASE_URL}/api`;
 const CHATBOT_URL = `${BASE_URL}/ChatbotScanner.html`;
+const RETURN_ORIGIN = getSafeReturnOrigin();
 
 let files = [];
 
@@ -180,7 +198,7 @@ function toggleDropdown(button) {
   dropdown.querySelector('#dd-scan').onclick = () => {
     closeDropdown();
     // Redirect to scanner page
-    window.location.href = 'scanner_and_upload.html';
+    window.location.href = `${BASE_URL}/scanner_and_upload.html?origin=${encodeURIComponent(RETURN_ORIGIN)}`;
   };
   
   activeDropdown = dropdown;
@@ -483,7 +501,7 @@ cancelBtn.addEventListener('click', () => {
 
 if (backBtn) {
   backBtn.addEventListener('click', () => {
-    window.location.href = '/home.html';
+    window.location.href = `${RETURN_ORIGIN}/home.html`;
   });
 }
 
@@ -547,7 +565,7 @@ async function processAndRedirectToChatbot() {
 
     // Step 3: Redirect immediately after loading completes (no delay)
     showStatus('success', 'Redirecting to chatbot...');
-    window.location.href = `${CHATBOT_URL}?documentsLoaded=true`;
+    window.location.href = `${CHATBOT_URL}?documentsLoaded=true&origin=${encodeURIComponent(RETURN_ORIGIN)}`;
 
 
   } catch (error) {

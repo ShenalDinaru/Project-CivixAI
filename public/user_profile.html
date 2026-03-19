@@ -12,12 +12,12 @@
     <div class="nav-container">
       <div class="nav-left">
         <button class="back-btn" type="button" aria-label="Back">
-          <img src="Resources/Icons/Back Icon.svg" alt="Back">
+          <img src="/Resources/Icons/Back Icon.svg" alt="Back">
         </button>
       </div>
       <div class="nav-right">
         <button class="logout-btn" type="button">
-          <img src="Resources/Icons/Exit Icon.svg" alt="Logout">
+          <img src="/Resources/Icons/Exit Icon.svg" alt="Logout">
           <span>Logout</span>
         </button>
       </div>
@@ -33,12 +33,12 @@
           <h3 class="sidebar-title">Account</h3>
           <ul class="sidebar-menu">
             <li class="menu-item active">
-              <img src="Resources/Icons/User Profile Icon.svg" alt="Profile" class="menu-icon">
+              <img src="/Resources/Icons/User Profile Icon.svg" alt="Profile" class="menu-icon">
               <span>Profile</span>
             </li>
-            <li class="menu-item">
+            <li class="menu-item" id="userSettingsMenuItem" role="button" tabindex="0" aria-label="Open user settings">
               <span class="menu-link">
-                <img src="Resources/Icons/Settings Icon.svg" alt="Settings" class="menu-icon icon-white">
+                <img src="/Resources/Icons/Settings Icon.svg" alt="Settings" class="menu-icon icon-white">
                 <span>User Settings</span>
               </span>
             </li>
@@ -57,7 +57,7 @@
           <!-- Profile picture with User Profile Icon -->
           <div class="profile-avatar-wrap">
             <div class="profile-avatar">
-              <img src="Resources/Icons/User Profile Icon.svg" alt="Profile" class="profile-pic-icon">
+              <img src="/Resources/Icons/User Profile Icon.svg" alt="Profile" class="profile-pic-icon">
             </div>
             <h2 class="profile-name">Peter Davidson</h2>
           </div>
@@ -85,8 +85,8 @@
             </div>
           </div>
 
-          <button type="button" class="btn-primary settings-cta">
-            <img src="Resources/Icons/Settings Icon.svg" alt="" class="icon-white">
+          <button type="button" class="btn-primary settings-cta" id="openSettingsBtn">
+            <img src="/Resources/Icons/Settings Icon.svg" alt="" class="icon-white">
             <span>User Settings</span>
           </button>
         </div>

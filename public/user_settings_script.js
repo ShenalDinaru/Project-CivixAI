@@ -1,3 +1,96 @@
+function showOriginWarning() {
+  const allowedOrigins = ['http://localhost:5000', 'http://127.0.0.1:5000'];
+  if (allowedOrigins.includes(window.location.origin)) {
+    return;
+  }
+
+  const banner = document.createElement('div');
+  banner.textContent = `Unexpected origin: ${window.location.origin}. Open profile/settings from http://localhost:5000 to preserve session state.`;
+  banner.style.cssText = [
+    'position:fixed',
+    'top:0',
+    'left:0',
+    'right:0',
+    'z-index:99999',
+    'padding:10px 14px',
+    'background:#f59e0b',
+    'color:#111827',
+    'font:600 13px/1.4 Arial, sans-serif',
+    'text-align:center',
+    'box-shadow:0 2px 10px rgba(0,0,0,0.2)'
+  ].join(';');
+
+  document.body.prepend(banner);
+}
+
+showOriginWarning();
+
+function getAuthenticatedUser() {
+  const rawUser = sessionStorage.getItem('currentUser');
+  const userUID = sessionStorage.getItem('userUID');
+
+  if (!rawUser || !userUID) {
+    return null;
+  }
+
+  try {
+    const user = JSON.parse(rawUser);
+    if (!user || typeof user !== 'object') {
+      return null;
+    }
+    return user;
+  } catch (error) {
+    console.warn('Unable to parse current user from sessionStorage.', error);
+    return null;
+  }
+}
+
+function enforceAuth() {
+  const user = getAuthenticatedUser();
+  if (!user) {
+    window.location.replace('LoginPG.html');
+    return null;
+  }
+  return user;
+}
+
+const authenticatedUser = enforceAuth();
+
+function hydrateUserSettingsDetails(user) {
+  if (!user) return;
+
+  const fullName = user.fullName || user.name || user.username || '';
+  const email = user.email || '';
+  const mobile = user.mobile || user.phone || user.phoneNumber || '';
+
+  const fullNameInput = document.getElementById('fullName');
+  const emailInput = document.getElementById('email');
+  const mobileInput = document.getElementById('mobile');
+  const avatar = document.querySelector('.user-avatar');
+
+  if (fullNameInput) {
+    fullNameInput.value = fullName;
+  }
+  if (emailInput) {
+    emailInput.value = email;
+  }
+  if (mobileInput) {
+    mobileInput.value = mobile;
+  }
+
+  if (avatar) {
+    const initialsSource = (fullName || email || 'U').trim();
+    const initials = initialsSource
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((part) => part.charAt(0).toUpperCase())
+      .join('');
+    avatar.textContent = initials || 'U';
+  }
+}
+
+hydrateUserSettingsDetails(authenticatedUser);
+
 // Toggle edit mode for input fields
 function toggleEdit(fieldId) {
     const input = document.getElementById(fieldId);

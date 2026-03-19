@@ -1,5 +1,33 @@
 # How to Run CivixAI Document Processing System
 
+## Stable Local Run (Recommended)
+
+Use this exact flow to avoid inconsistent behavior caused by mixed ports.
+
+1. Start authentication + main frontend server on `5000`:
+   ```bash
+   cd backend
+   npm run start
+   ```
+
+2. Start chatbot/document server on `3000`:
+   ```bash
+   cd ChatBotScanner
+   npm run start
+   ```
+
+3. Open the app only from:
+   - `http://localhost:5000/LoginPG.html`
+
+4. Important:
+   - Do not open HTML files directly.
+   - Do not use Live Server (`5500`) for this project flow.
+   - Navigate to chatbot only through the app buttons/links.
+
+Port roles:
+- `5000`: login/auth + main app pages (`home`, `profile`, `settings`)
+- `3000`: chatbot and document processing pages
+
 ## Prerequisites
 
 1. **Node.js** installed (v18 or higher)

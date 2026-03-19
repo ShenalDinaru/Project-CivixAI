@@ -1,4 +1,29 @@
 // Gazette slider functionality with auto-loop and drag support
+(function showOriginWarning() {
+  const allowedOrigins = ['http://localhost:5000', 'http://127.0.0.1:5000'];
+  if (allowedOrigins.includes(window.location.origin)) {
+    return;
+  }
+
+  const banner = document.createElement('div');
+  banner.textContent = `Unexpected origin: ${window.location.origin}. Open main app pages from http://localhost:5000 for stable auth and assets.`;
+  banner.style.cssText = [
+    'position:fixed',
+    'top:0',
+    'left:0',
+    'right:0',
+    'z-index:99999',
+    'padding:10px 14px',
+    'background:#f59e0b',
+    'color:#111827',
+    'font:600 13px/1.4 Arial, sans-serif',
+    'text-align:center',
+    'box-shadow:0 2px 10px rgba(0,0,0,0.2)'
+  ].join(';');
+
+  document.body.prepend(banner);
+})();
+
 const gazetteTrack = document.getElementById('gazetteTrack');
 const slides = document.querySelectorAll('.slide');
 const sliderContainer = document.querySelector('.slider-container');
@@ -121,7 +146,9 @@ const askBtn = document.getElementById('askNowBtn');
 if (askBtn) {
   askBtn.addEventListener('click', () => {
     console.log('Start conversation clicked - navigate to chatbot');
-    window.location.href = window.APP_CONFIG?.chatbotUrl || 'http://localhost:3000/ChatbotScanner.html';
+    const chatbotUrl = window.APP_CONFIG?.chatbotUrl || 'http://localhost:3000/ChatbotScanner.html';
+    const separator = chatbotUrl.includes('?') ? '&' : '?';
+    window.location.href = `${chatbotUrl}${separator}origin=${encodeURIComponent(window.location.origin)}`;
   });
 }
 
@@ -130,7 +157,9 @@ const scannerCard = document.getElementById('scannerCard');
 if (scannerCard) {
   scannerCard.addEventListener('click', () => {
     console.log('Scanner clicked - navigate to document uploader');
-    window.location.href = window.APP_CONFIG?.scannerUrl || 'http://localhost:3000/document_uploader.html';
+    const scannerUrl = window.APP_CONFIG?.scannerUrl || 'http://localhost:3000/document_uploader.html';
+    const separator = scannerUrl.includes('?') ? '&' : '?';
+    window.location.href = `${scannerUrl}${separator}origin=${encodeURIComponent(window.location.origin)}`;
   });
 }
 
@@ -171,7 +200,7 @@ function renderChatHistoryFromStorage() {
     const iconWrap = document.createElement('div');
     iconWrap.className = 'icon-circle-bg';
     const iconImg = document.createElement('img');
-    iconImg.src = 'Resources/Icons/Chat Icon.svg';
+    iconImg.src = '/Resources/Icons/Chat Icon.svg';
     iconImg.alt = 'Chat';
     iconWrap.appendChild(iconImg);
 
@@ -203,7 +232,7 @@ function renderChatHistoryFromStorage() {
     const iconWrap = document.createElement('div');
     iconWrap.className = 'icon-circle-bg';
     const iconImg = document.createElement('img');
-    iconImg.src = 'Resources/Icons/Chat Icon.svg';
+    iconImg.src = '/Resources/Icons/Chat Icon.svg';
     iconImg.alt = 'Chat';
     iconWrap.appendChild(iconImg);
 
@@ -220,7 +249,7 @@ function renderChatHistoryFromStorage() {
     textWrap.appendChild(date);
 
     const arrow = document.createElement('img');
-    arrow.src = 'Resources/Icons/Next Icon.svg';
+    arrow.src = '/Resources/Icons/Next Icon.svg';
     arrow.alt = 'Open';
     arrow.className = 'arrow-icon history-open-icon';
 
@@ -251,8 +280,8 @@ renderChatHistoryFromStorage();
 const profileCircle = document.querySelector('.profile-circle');
 if (profileCircle) {
   profileCircle.addEventListener('click', () => {
-    console.log('Profile clicked');
-    alert('Profile settings coming soon!');
+    console.log('Profile clicked - navigate to profile page');
+    window.location.href = 'user_profile.html';
   });
 }
 

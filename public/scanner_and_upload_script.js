@@ -11,6 +11,25 @@ const cancelScanBtn = document.getElementById('cancelScanBtn');
 const retakeBtn = document.getElementById('retakeBtn');
 const proceedBtn = document.getElementById('proceedBtn');
 
+function getSafeReturnOrigin() {
+  const params = new URLSearchParams(window.location.search);
+  const originFromQuery = params.get('origin');
+
+  if (!originFromQuery) {
+    return window.location.origin;
+  }
+
+  try {
+    const parsed = new URL(originFromQuery);
+    return parsed.origin;
+  } catch (error) {
+    console.warn('Invalid return origin in scanner:', originFromQuery, error);
+    return window.location.origin;
+  }
+}
+
+const RETURN_ORIGIN = getSafeReturnOrigin();
+
 // Camera constraints based on device
 function getCameraConstraints() {
   const isMobile = window.innerWidth < 768;
@@ -124,7 +143,7 @@ if (proceedBtn) {
   proceedBtn.addEventListener('click', () => {
     if (capturedImageData) {
       // Redirect to document upload page with scanned image
-      const uploadUrl = '../FE_DocumentUpload/document_uploader.html?scannedImage=' + encodeURIComponent(capturedImageData);
+      const uploadUrl = `${window.location.origin}/document_uploader.html?scannedImage=${encodeURIComponent(capturedImageData)}&origin=${encodeURIComponent(RETURN_ORIGIN)}`;
       window.location.href = uploadUrl;
     } else {
       alert('Please capture an image first');
@@ -138,7 +157,7 @@ if (backBtn) {
     if (window.history.length > 1) {
       window.history.back();
     } else {
-      window.location.href = 'home.html';
+      window.location.href = `${RETURN_ORIGIN}/home.html`;
     }
   });
 }

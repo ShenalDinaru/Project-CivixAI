@@ -10,12 +10,40 @@ const sendButton = document.getElementById('sendButton');
 const menuBtn = document.getElementById('menuBtn');
 const dropdownMenu = document.getElementById('dropdownMenu');
 const backBtn = document.getElementById('backBtn');
+const homeLink = document.getElementById('homeLink');
+const userProfileLink = document.getElementById('userProfileLink');
 
 // --- CONSTANTS ---
 const BOT_AVATAR = 'Resources/Chatbot icon - Elephant/elephant.png';
 const API_URL = `${window.location.origin}/api/chat/message`;
 
 let conversationHistory = [];
+
+function getSafeReturnOrigin() {
+    const params = new URLSearchParams(window.location.search);
+    const originFromQuery = params.get('origin');
+
+    if (!originFromQuery) {
+        return window.location.origin;
+    }
+
+    try {
+        const parsed = new URL(originFromQuery);
+        return parsed.origin;
+    } catch (error) {
+        console.warn('Invalid return origin:', originFromQuery, error);
+        return window.location.origin;
+    }
+}
+
+const returnOrigin = getSafeReturnOrigin();
+
+if (homeLink) {
+    homeLink.href = `${returnOrigin}/home.html`;
+}
+if (userProfileLink) {
+    userProfileLink.href = `${returnOrigin}/user_profile.html`;
+}
 
 // --- INITIALIZATION ---
 window.onload = function() {
@@ -166,9 +194,9 @@ if (backBtn) backBtn.onclick = () => {
     // Check where user came from
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('documentsLoaded') === 'true' || document.referrer.includes('document_uploader')) {
-      window.location.href = '/document_uploader.html';
+            window.location.href = `${returnOrigin}/document_uploader.html`;
     } else {
-      window.location.href = '/home.html';
+            window.location.href = `${returnOrigin}/home.html`;
     }
   };
 
