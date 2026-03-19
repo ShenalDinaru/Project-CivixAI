@@ -11,7 +11,7 @@ const backBtn = document.getElementById('backBtn');
 // API Configuration
 const BASE_URL = window.location.origin;
 const API_BASE_URL = `${BASE_URL}/api`;
-const CHATBOT_URL = `${BASE_URL}/Chatbot.html`;
+const CHATBOT_URL = `${BASE_URL}/ChatbotScanner.html`;
 
 let files = [];
 

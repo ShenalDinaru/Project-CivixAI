@@ -5,6 +5,10 @@ import chatRoutes from './routes/chatRoutes.js';
 import documentRoutes from './routes/documentRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { initializeRAG } from './services/ragService.js';
+import { fileURLToPath } from 'url';
+import path from 'path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
@@ -14,19 +18,22 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, '../public')));
 
 // routes
 app.get('/', (req, res) => {
-  res.json({ 
-    message: 'CivixAI - Personal AI Tax Assistant API',
-    description: 'An intelligent tax assistant powered by OpenRouter',
-    version: '1.0.0'
-  });
+  res.sendFile(path.join(__dirname, '../public/Chatbot.html'));
 });
 
 app.use('/api/chat', chatRoutes);
 app.use('/api/documents', documentRoutes);
+
+app.get('/config.js', (req, res) => {
+  res.type('application/javascript');
+  res.send(`window.APP_CONFIG = {
+    homeUrl: '${process.env.SCANNER_URL || "http://localhost:3000"}/home.html'
+  };`);
+});
 
 // Error handling middleware
 app.use(errorHandler);
