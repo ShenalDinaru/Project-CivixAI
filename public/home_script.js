@@ -2,8 +2,7 @@
 const gazetteTrack = document.getElementById('gazetteTrack');
 const slides = document.querySelectorAll('.slide');
 const sliderContainer = document.querySelector('.slider-container');
-const chatbotUrl = window.APP_CONFIG?.chatbotUrl || 'http://localhost:3001';
-const scannerUrl = window.APP_CONFIG?.scannerUrl || 'http://localhost:3000';
+
 
 let slideIndex = 0;
 let autoSlideTimer = null;
@@ -122,7 +121,7 @@ const askBtn = document.getElementById('askNowBtn');
 if (askBtn) {
   askBtn.addEventListener('click', () => {
     console.log('Start conversation clicked - navigate to chatbot');
-    window.location.href = `${chatbotUrl}/`;
+    window.location.href = window.APP_CONFIG?.chatbotUrl || 'http://localhost:3000/ChatbotScanner.html';
   });
 }
 
@@ -131,7 +130,7 @@ const scannerCard = document.getElementById('scannerCard');
 if (scannerCard) {
   scannerCard.addEventListener('click', () => {
     console.log('Scanner clicked - navigate to document uploader');
-    window.location.href = `${scannerUrl}/document_uploader.html`;
+    window.location.href = window.APP_CONFIG?.scannerUrl || 'http://localhost:3000/document_uploader.html';
   });
 }
 

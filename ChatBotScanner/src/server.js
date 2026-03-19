@@ -25,10 +25,6 @@ app.use('/Resources', express.static(path.join(__dirname, '../../Resources'))); 
 
 
 // routes
-// Main chatbot route
-app.get('/Chatbot.html', (req, res) => {
-  res.sendFile(path.join(__dirname, '../../public/Chatbot.html'));
-});
 
 // Scanner chatbot route  
 app.get('/ChatbotScanner.html', (req, res) => {
@@ -38,14 +34,7 @@ app.get('/ChatbotScanner.html', (req, res) => {
 app.use('/api/chat', chatRoutes);
 app.use('/api/documents', documentRoutes);
 
-//config endpoint
-app.get('/config.js', (req, res) => {
-  res.type('application/javascript');
-  res.send(`window.APP_CONFIG = {
-    chatbotUrl: '${process.env.CHATBOT_URL || "http://localhost:3001"}',
-    scannerUrl: '${process.env.SCANNER_URL || "http://localhost:3000"}'
-  };`);
-});
+
 
 // Error handling middleware
 app.use(errorHandler);

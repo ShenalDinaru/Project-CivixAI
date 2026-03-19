@@ -10,13 +10,21 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(express.static(path.join(__dirname, '../public')));
-app.use('/ChatBot', express.static(path.join(__dirname, '../ChatBot/public')));
 
 
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// Config endpoint for frontend
+app.get('/config.js', (req, res) => {
+    res.type('application/javascript');
+    res.send(`window.APP_CONFIG = {
+        chatbotUrl: '${process.env.CHATBOT_SCANNER_URL || "http://localhost:3000"}/ChatbotScanner.html',
+        scannerUrl: '${process.env.CHATBOT_SCANNER_URL || "http://localhost:3000"}/document_uploader.html'
+    };`);
+});
 
 // Routes
 app.use('/api/auth', authRoutes);
