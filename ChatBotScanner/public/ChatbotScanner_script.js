@@ -162,7 +162,7 @@ if (menuBtn) {
 window.onclick = (e) => {
     if (!dropdownMenu.contains(e.target) && e.target !== menuBtn) dropdownMenu.classList.remove('show');
 };
-if (backBtn) backBtn.onclick = () => window.location.href = 'LoginPG.html';
+if (backBtn) backBtn.onclick = () => window.location.href = '/home.html';
 
 // --- 4. CHAT & POPUP LOGIC ---
 messageInput.addEventListener('input', () => {

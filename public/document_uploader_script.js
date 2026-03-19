@@ -483,11 +483,7 @@ cancelBtn.addEventListener('click', () => {
 
 if (backBtn) {
   backBtn.addEventListener('click', () => {
-    if (window.history.length > 1) {
-      window.history.back();
-    } else {
-      console.log('Back clicked - Navigation removed');
-    }
+    window.location.href = '/home.html';
   });
 }
 

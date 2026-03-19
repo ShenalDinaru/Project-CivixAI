@@ -13,7 +13,7 @@ const backBtn = document.getElementById('backBtn');
 
 // --- CONSTANTS ---
 const BOT_AVATAR = 'Resources/Chatbot icon - Elephant/elephant.png';
-const API_URL = 'http://localhost:3000/api/chat/message';
+const API_URL = `${window.location.origin}/api/chat/message`;
 let conversationHistory = [];
 
 // --- INITIALIZATION ---
@@ -161,7 +161,7 @@ if (menuBtn) {
 window.onclick = (e) => {
     if (!dropdownMenu.contains(e.target) && e.target !== menuBtn) dropdownMenu.classList.remove('show');
 };
-if (backBtn) backBtn.onclick = () => window.location.href = '/public/home.html';
+if (backBtn) backBtn.onclick = () => window.location.href = '/home.html';
 
 // --- 4. CHAT & POPUP LOGIC ---
 messageInput.addEventListener('input', () => {
