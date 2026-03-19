@@ -162,8 +162,15 @@ if (menuBtn) {
 window.onclick = (e) => {
     if (!dropdownMenu.contains(e.target) && e.target !== menuBtn) dropdownMenu.classList.remove('show');
 };
-if (backBtn) backBtn.onclick = () => window.location.href = '/document_uploader.html';
-
+if (backBtn) backBtn.onclick = () => {
+    // Check where user came from
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('documentsLoaded') === 'true' || document.referrer.includes('document_uploader')) {
+      window.location.href = '/document_uploader.html';
+    } else {
+      window.location.href = '/home.html';
+    }
+  };
 
 // --- 4. CHAT & POPUP LOGIC ---
 messageInput.addEventListener('input', () => {
