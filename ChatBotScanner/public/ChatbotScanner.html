@@ -27,71 +27,68 @@
         <div class="overlay"></div> 
     </div>
 
-    <div class="container ui-card" id="mainCard">
-        
-        <header class="chat-header">
-            <div class="header-top">
-                <button class="icon-btn" id="backBtn">
-                    <img src="Resources/Icons/Back Button Icon.svg" alt="Back" width="24">
-                </button>
-                
-                <div class="logo-title">
-                    <img src="Resources/CivixAi Logo/CivixAI Logo (Dark Mode) - No BG.png" alt="CivixAI" class="header-logo">
+    <div class="main-layout" id="mainLayout">
+        <!-- Left Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <img src="Resources/CivixAi Logo/CivixAI Logo (Dark Mode) - No BG.png" alt="CivixAI" class="sidebar-logo">
+            </div>
+
+            <button class="new-conversation-btn" id="newConversationBtn">
+                <span class="plus-icon">+</span>
+                New Conversation
+            </button>
+
+            <div class="conversations-section">
+                <h3 class="section-title">Today</h3>
+                <div class="conversations-list" id="conversationsList">
+                    <!-- Conversations will be dynamically added here -->
                 </div>
-
-                <button class="icon-btn" id="menuBtn">
-                    <div class="three-dots">•••</div>
-                </button>
             </div>
-            <div class="version-tag">Kandula - Personal AI Civic Assistant</div>
-        </header>
-
-        <!-- Tab Bar -->
-        <div class="tab-bar" id="tabBar">
-            <div class="tabs-container" id="tabsContainer">
-                <!-- Tabs will be dynamically added here -->
-            </div>
-            <button class="add-tab-btn" id="addTabBtn" title="New Chat Tab">+</button>
         </div>
 
-        <div class="chat-container" id="chatContainer">
-            </div>
-
-        <div class="input-area">
+        <!-- Main Chat Area -->
+        <div class="container ui-card" id="mainCard">
             
-            <div id="typingAvatarPopup" class="typing-avatar-popup">
-                <img src="Resources/Chatbot icon - Elephant/elephant.png" alt="Kandula">
+            <header class="chat-header">
+                <div class="header-top">
+                    <button class="icon-btn" id="backBtn">
+                        <img src="Resources/Icons/Back Button Icon.svg" alt="Back" width="24">
+                    </button>
+                    
+                    <div class="logo-title">
+                        <span class="current-chat-title" id="currentChatTitle">New Chat</span>
+                    </div>
+
+                    <button class="icon-btn" id="menuBtn">
+                        <div class="three-dots">•••</div>
+                    </button>
+                </div>
+                <div class="version-tag">Kandula - Personal AI Civic Assistant</div>
+            </header>
+
+            <div class="chat-container" id="chatContainer">
             </div>
 
-            <div class="input-box-wrapper">
-                <textarea id="messageInput" placeholder="Ask Kandula about taxes..." rows="1"></textarea>
-                <button id="sendButton" class="robot-send-btn">Send</button>
+            <div class="input-area">
+                
+                <div id="typingAvatarPopup" class="typing-avatar-popup">
+                    <img src="Resources/Chatbot icon - Elephant/elephant.png" alt="Kandula">
+                </div>
+
+                <div class="input-box-wrapper">
+                    <textarea id="messageInput" placeholder="Ask Kandula about taxes..." rows="1"></textarea>
+                    <button id="sendButton" class="robot-send-btn">Send</button>
+                </div>
+                <p class="input-hint">Press Enter to send, Shift+Enter for new line</p>
             </div>
-            <p class="input-hint">Press Enter to send, Shift+Enter for new line</p>
         </div>
     </div>
 
     <div class="dropdown-menu" id="dropdownMenu">
         <a href="/home.html" id="homeLink">Home</a>
-        <a href="#" id="historyLink">Chat History</a>
-        <a href="#" id="newChatLink">New Chat</a>
+        <a href="#" id="deleteConversationLink">Delete Conversation</a>
         <a href="/user_profile.html" id="userProfileLink">User Profile</a>
-    </div>
-
-    <!-- Chat History Modal -->
-    <div class="history-modal" id="historyModal">
-        <div class="history-modal-content">
-            <div class="history-header">
-                <h2>Chat History</h2>
-                <button class="close-btn" id="closeHistoryBtn">&times;</button>
-            </div>
-            <div class="history-list" id="historyList">
-                <div class="empty-state">No conversations yet</div>
-            </div>
-            <div class="history-footer">
-                <button id="clearHistoryBtn" class="clear-btn">Clear All History</button>
-            </div>
-        </div>
     </div>
 
     <script src="ChatbotScanner_script.js"></script>
