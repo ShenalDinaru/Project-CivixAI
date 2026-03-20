@@ -1,4 +1,6 @@
 
+// API Configuration
+const API_BASE_URL = `${window.location.origin}/api`;
 
 function getAuthenticatedUser() {
   const rawUser = sessionStorage.getItem('currentUser');
@@ -124,12 +126,44 @@ function toggleEdit(fieldId) {
   }
   
   // Reset password
-  function resetPassword() {
+  async function resetPassword() {
     const email = document.getElementById('email').value;
+    
+    if (!email) {
+      showNotification('Email is required', 'error');
+      return;
+    }
+    
+    if (!validateEmail(email)) {
+      showNotification('Please enter a valid email address', 'error');
+      return;
+    }
+    
     if (confirm('A password reset link will be sent to ' + email + '. Continue?')) {
-      showNotification('Password reset link sent to your email', 'success');
-      // Here you would typically call your backend API
-      console.log('Sending password reset email to:', email);
+      try {
+        showNotification('Sending password reset link...', 'info');
+        
+        const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email: email })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          showNotification('Password reset link sent to your email. Please check your inbox.', 'success');
+          console.log('Password reset email sent to:', email);
+        } else {
+          showNotification(data.message || 'Failed to send password reset link', 'error');
+          console.error('Password reset error:', data);
+        }
+      } catch (error) {
+        console.error('Error sending password reset email:', error);
+        showNotification('Error sending password reset link. Please try again later.', 'error');
+      }
     }
   }
   
