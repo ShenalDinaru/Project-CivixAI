@@ -209,59 +209,57 @@
 
     <script>
         let progress = 0;
+        let hasRedirected = false;
         const progressBar = document.querySelector('.progress');
         const progressText = document.getElementById('progress-percent');
-        let hasRedirected = false;
-
-        function updateProgress() {
-            // Increment by 10% every 300ms
-            if (progress < 100) {
-                progress += 10;
-                if (progress > 100) progress = 100;
-                
+    
+        const urlParams = new URLSearchParams(window.location.search);
+        const nextUrl = urlParams.get('next');
+        const autoload = urlParams.get('autoload');
+    
+        // Animate progress bar slowly up to 90% while waiting
+        const interval = setInterval(() => {
+            const limit = autoload === 'true' ? 90 : 100;
+            if (progress < limit) {
+                progress += 5;
                 progressBar.style.width = progress + '%';
                 progressText.textContent = progress;
-
-                // If progress reaches 100%, prepare to redirect
-                if (progress === 100) {
-                    redirectToLanding();
-                }
             }
+            if (progress >= 100) {
+                clearInterval(interval);
+                redirectToNext();
+            }
+        }, 300);
+    
+        // If autoload, call /load API in background
+        if (autoload === 'true') {
+            fetch('http://localhost:3000/api/documents/load', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(res => res.json())
+            .then(() => {
+                clearInterval(interval);
+                progress = 100;
+                progressBar.style.width = '100%';
+                progressText.textContent = '100';
+                redirectToNext();
+            })
+            .catch(() => {
+                redirectToNext();
+            });
         }
-
-        function redirectToLanding() {
+    
+        function redirectToNext() {
             if (!hasRedirected) {
                 hasRedirected = true;
-                setTimeout(function() {
-                    window.location.href = 'LandingPG.html';
+                setTimeout(() => {
+                    window.location.href = nextUrl 
+                        ? decodeURIComponent(nextUrl) 
+                        : 'LandingPG.html';
                 }, 500);
             }
         }
-
-        // Start progress immediately when page loads
-        const progressInterval = setInterval(updateProgress, 300);
-
-        // Ensure progress reaches 100% after 3 seconds and redirects
-        setTimeout(function() {
-            if (progress < 100) {
-                clearInterval(progressInterval);
-                progress = 100;
-                progressBar.style.width = '100%';
-                progressText.textContent = '100';
-                redirectToLanding();
-            }
-        }, 3000);
-
-        // Also handle the standard load event
-        window.addEventListener('load', function() {
-            if (progress < 100) {
-                clearInterval(progressInterval);
-                progress = 100;
-                progressBar.style.width = '100%';
-                progressText.textContent = '100';
-                redirectToLanding();
-            }
-        });
     </script>
 </body>
 </html>

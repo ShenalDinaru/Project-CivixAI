@@ -518,18 +518,14 @@ async function processAndRedirectToChatbot() {
   }
 
   try {
-    // Show processing status
     showStatus('success', 'Processing documents...');
     doneBtn.disabled = true;
     doneBtn.textContent = 'Processing...';
 
-    // Create FormData with all files
     const formData = new FormData();
-    files.forEach(file => {
-      formData.append('documents', file);
-    });
+    files.forEach(file => formData.append('documents', file));
 
-    // Step 1: Process documents (extract text and save as JSON)
+    // Step 1: Process documents (extract text)
     const processResponse = await fetch(`${API_BASE_URL}/documents/process`, {
       method: 'POST',
       body: formData
@@ -541,32 +537,15 @@ async function processAndRedirectToChatbot() {
       throw new Error(processResult.error || 'Failed to process documents');
     }
 
-    // Check if any documents were successfully processed
     const successful = processResult.results.filter(r => r.success);
     if (successful.length === 0) {
       throw new Error('No documents could be processed successfully');
     }
 
-    showStatus('success', `Processed ${successful.length} document(s). Loading into chatbot...`);
-
-    // Step 2: Load processed documents into RAG system
-    const loadResponse = await fetch(`${API_BASE_URL}/documents/load`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-
-    const loadResult = await loadResponse.json();
-
-    if (!loadResult.success) {
-      throw new Error(loadResult.message || 'Failed to load documents into chatbot');
-    }
-
-    // Step 3: Redirect immediately after loading completes (no delay)
-    showStatus('success', 'Redirecting to chatbot...');
-    window.location.href = `${CHATBOT_URL}?documentsLoaded=true&origin=${encodeURIComponent(RETURN_ORIGIN)}`;
-
+    // Step 2: Redirect to loading page immediately
+    // Loading page will call /load itself and redirect to chatbot when done
+    const nextUrl = encodeURIComponent(`${CHATBOT_URL}?documentsLoaded=true`);
+    window.location.href = `/LoadinnganimationPG.html?next=${nextUrl}&autoload=true`;
 
   } catch (error) {
     console.error('Error processing documents:', error);
@@ -576,7 +555,6 @@ async function processAndRedirectToChatbot() {
     setTimeout(() => hideStatus(), 5000);
   }
 }
-
 /**
  * Process documents only (without loading to chatbot)
  */
