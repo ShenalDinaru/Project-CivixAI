@@ -46,6 +46,14 @@
             <div class="version-tag">Kandula - Personal AI Tax Assistant</div>
         </header>
 
+        <!-- Tab Bar -->
+        <div class="tab-bar" id="tabBar">
+            <div class="tabs-container" id="tabsContainer">
+                <!-- Tabs will be dynamically added here -->
+            </div>
+            <button class="add-tab-btn" id="addTabBtn" title="New Chat Tab">+</button>
+        </div>
+
         <div class="chat-container" id="chatContainer">
             </div>
 
@@ -68,6 +76,22 @@
         <a href="#" id="historyLink">Chat History</a>
         <a href="#" id="newChatLink">New Chat</a>
         <a href="/user_profile.html" id="userProfileLink">User Profile</a>
+    </div>
+
+    <!-- Chat History Modal -->
+    <div class="history-modal" id="historyModal">
+        <div class="history-modal-content">
+            <div class="history-header">
+                <h2>Chat History</h2>
+                <button class="close-btn" id="closeHistoryBtn">&times;</button>
+            </div>
+            <div class="history-list" id="historyList">
+                <div class="empty-state">No conversations yet</div>
+            </div>
+            <div class="history-footer">
+                <button id="clearHistoryBtn" class="clear-btn">Clear All History</button>
+            </div>
+        </div>
     </div>
 
     <script src="ChatbotScanner_script.js"></script>

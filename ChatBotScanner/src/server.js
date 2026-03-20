@@ -5,8 +5,10 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import chatRoutes from './routes/chatRoutes.js';
 import documentRoutes from './routes/documentRoutes.js';
+import historyRoutes from './routes/historyRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { initializeRAG } from './services/ragService.js';
+import './config/firebase.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -32,6 +34,7 @@ app.get('/ChatbotScanner.html', (req, res) => {
 });
 
 app.use('/api/chat', chatRoutes);
+app.use('/api/history', historyRoutes);
 app.use('/api/documents', documentRoutes);
 
 
