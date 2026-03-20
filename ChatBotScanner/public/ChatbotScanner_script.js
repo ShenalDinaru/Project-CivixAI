@@ -26,6 +26,16 @@ const STORAGE_KEY = 'civixai_chat_history';
 const TABS_STORAGE_KEY = 'civixai_open_tabs';
 const DELETED_KEY = 'civixai_deleted_conversations'; // Track deleted conversations
 
+// --- MARKDOWN CONFIGURATION ---
+if (typeof marked !== 'undefined') {
+    marked.setOptions({
+        breaks: true,
+        gfm: true,
+        headerIds: false,
+        mangle: false
+    });
+}
+
 // --- TAB MANAGEMENT ---
 class ChatTab {
     constructor(title = null) {
@@ -293,7 +303,7 @@ async function sendMessage() {
         document.getElementById(thinkingId)?.remove();
 
         if (data.success) {
-            addMessageToCurrentTab(data.response, 'assistant');
+            addMessageToCurrentTab(data.response, 'assistant', data.rag?.sources);
             typingAvatarPopup.classList.add('show');
             setTimeout(() => typingAvatarPopup.classList.remove('show'), 2000);
             
@@ -667,7 +677,7 @@ async function saveTabToBackend(tabHistory) {
 /**
  * Add message to current tab
  */
-function addMessageToCurrentTab(text, sender) {
+function addMessageToCurrentTab(text, sender, sources) {
     if (currentActiveTab) {
         const userMessageCount = currentActiveTab.getUserMessageCount();  
         const isFirstUserMessage = sender === 'user' && userMessageCount === 0;
@@ -678,7 +688,7 @@ function addMessageToCurrentTab(text, sender) {
             autoRenameTab(text);
         }
         
-        addMessageToUI(text, sender);
+        addMessageToUI(text, sender, sources);
     }
 }
 
@@ -712,10 +722,33 @@ function autoRenameTab(firstMessage) {
 /**
  * Add message to UI only (without saving to tab)
  */
-function addMessageToUI(text, sender) {
+function addMessageToUI(text, sender, sources) {
     const time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}).toLowerCase();
     let avatar = sender === 'assistant' ? `<div class="avatar"><img src="${BOT_AVATAR}"></div>` : '';
-    const html = `<div class="message-wrapper ${sender}">${avatar}<div class="message-bubble">${text.replace(/\n/g, '<br>')}<div style="font-size:10px; opacity:0.5; margin-top:5px;">${time}</div></div></div>`;
+    
+    // Sources HTML
+    let sourcesHtml = '';
+    if (sources && Array.isArray(sources) && sources.length > 0 && sender === 'assistant') {
+        sourcesHtml = '<div class="message-sources"><span class="sources-label">Sources</span><ul class="sources-list">' +
+            sources.map((s, i) => {
+                const name = s.title || s.source || 'Source ' + (i + 1);
+                const parts = [escapeHtml(name)];
+                if (s.section) parts.push(escapeHtml(s.section));
+                if (s.year) parts.push(String(s.year));
+                return '<li class="source-item">' + parts.join(' · ') + '</li>';
+            }).join('') +
+            '</ul></div>';
+    }
+
+    // Format with markdown for assistant
+    let formattedContent;
+    if (sender === 'assistant' && typeof marked !== 'undefined') {
+        formattedContent = marked.parse(text);
+    } else {
+        formattedContent = escapeHtml(text).replace(/\n/g, '<br>');
+    }
+
+    const html = `<div class="message-wrapper ${sender}">${avatar}<div class="message-bubble"><div class="message-content">${formattedContent}</div><div style="font-size:10px; opacity:0.5; margin-top:5px;">${time}</div>${sourcesHtml}</div></div>`;
     chatContainer.insertAdjacentHTML('beforeend', html);
     scrollToBottom();
 }

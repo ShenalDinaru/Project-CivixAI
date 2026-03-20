@@ -60,6 +60,7 @@ export const generateRAGResponse = async (userMessage, conversationHistory = [])
     // If user documents are loaded, always use RAG (user might ask about their documents)
     const requiresRAG = hasUserDocuments || needsRAG(userMessage);
     
+    
     if (!requiresRAG) {
       console.log('Question does not require tax knowledge, using standard response');
       return await generateResponse(userMessage, conversationHistory);
