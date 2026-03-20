@@ -1,0 +1,67 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "backend/server.js",
+      "use": "@vercel/node@3.2.24"
+    },
+    {
+      "src": "ChatBotScanner/src/server.js",
+      "use": "@vercel/node@3.2.24"
+    },
+    {
+      "src": "public/**",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "ChatBotScanner/public/**",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "Resources/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/auth/(.*)",
+      "dest": "/backend/server.js"
+    },
+    {
+      "src": "/api/health",
+      "dest": "/backend/server.js"
+    },
+    {
+      "src": "/config.js",
+      "dest": "/backend/server.js"
+    },
+    {
+      "src": "/api/chat/(.*)",
+      "dest": "/ChatBotScanner/src/server.js"
+    },
+    {
+      "src": "/api/documents/(.*)",
+      "dest": "/ChatBotScanner/src/server.js"
+    },
+    {
+      "src": "/api/document/(.*)",
+      "dest": "/ChatBotScanner/src/server.js"
+    },
+    {
+      "src": "/ChatbotScanner(.*)",
+      "dest": "/ChatBotScanner/public/ChatbotScanner$1"
+    },
+    {
+      "src": "/Resources/(.*)",
+      "dest": "/Resources/$1"
+    },
+    {
+      "src": "/",
+      "dest": "/public/LoginPG.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/public/$1"
+    }
+  ]
+}
