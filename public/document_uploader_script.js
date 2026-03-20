@@ -603,11 +603,10 @@ async function processDocumentsOnly() {
 
 // Check if redirected from scanner with image data
 window.addEventListener('DOMContentLoaded', () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const scannedImage = urlParams.get('scannedImage');
+  const scannedImage = sessionStorage.getItem('scannedImage');
   
   if (scannedImage) {
-    // Convert base64 to file and add to files array
+    sessionStorage.removeItem('scannedImage');
     try {
       const base64Data = scannedImage.split(',')[1];
       const imageBlob = base64ToBlob(base64Data, 'image/jpeg');
@@ -620,9 +619,6 @@ window.addEventListener('DOMContentLoaded', () => {
       renderFiles();
       updateButtons();
       simulateUpload();
-      
-      // Clean URL
-      window.history.replaceState({}, document.title, window.location.pathname);
     } catch (error) {
       console.error('Error loading scanned image:', error);
     }

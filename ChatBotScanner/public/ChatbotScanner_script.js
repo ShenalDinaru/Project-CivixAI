@@ -209,7 +209,7 @@ function startFlightAnimation() {
                     window.history.replaceState({}, document.title, window.location.pathname);
                 } else {
                     // Standard welcome message
-                    addMessage("Hey! I'm Kandula, and I'm here to help you with your tax related issues.", 'assistant');
+                    addMessage("Hey! I'm Kandula, and I'm here to help you with your tax and driving license related issues.", 'assistant');
                 }
             }, 200);
 
@@ -228,7 +228,7 @@ function startFlightAnimation() {
             addMessage("Your document has been analysed. What would you like to know?", 'assistant');
             window.history.replaceState({}, document.title, window.location.pathname);
         } else {
-            addMessage("Hey! I'm Kandula, and I'm here to help you with your tax related issues.", 'assistant');
+            addMessage("Hey! I'm Kandula, and I'm here to help you with your tax and driving license related issues.", 'assistant');
         }
     }
 }
