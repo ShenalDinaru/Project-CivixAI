@@ -1,28 +1,4 @@
 // Gazette slider functionality with auto-loop and drag support
-(function showOriginWarning() {
-  const allowedOrigins = ['http://localhost:5000', 'http://127.0.0.1:5000'];
-  if (allowedOrigins.includes(window.location.origin)) {
-    return;
-  }
-
-  const banner = document.createElement('div');
-  banner.textContent = `Unexpected origin: ${window.location.origin}. Open main app pages from http://localhost:5000 for stable auth and assets.`;
-  banner.style.cssText = [
-    'position:fixed',
-    'top:0',
-    'left:0',
-    'right:0',
-    'z-index:99999',
-    'padding:10px 14px',
-    'background:#f59e0b',
-    'color:#111827',
-    'font:600 13px/1.4 Arial, sans-serif',
-    'text-align:center',
-    'box-shadow:0 2px 10px rgba(0,0,0,0.2)'
-  ].join(';');
-
-  document.body.prepend(banner);
-})();
 
 const gazetteTrack = document.getElementById('gazetteTrack');
 const slides = document.querySelectorAll('.slide');

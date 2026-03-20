@@ -1,29 +1,4 @@
-function showOriginWarning() {
-  const allowedOrigins = ['http://localhost:5000', 'http://127.0.0.1:5000'];
-  if (allowedOrigins.includes(window.location.origin)) {
-    return;
-  }
 
-  const banner = document.createElement('div');
-  banner.textContent = `Unexpected origin: ${window.location.origin}. Open profile/settings from http://localhost:5000 to preserve session state.`;
-  banner.style.cssText = [
-    'position:fixed',
-    'top:0',
-    'left:0',
-    'right:0',
-    'z-index:99999',
-    'padding:10px 14px',
-    'background:#f59e0b',
-    'color:#111827',
-    'font:600 13px/1.4 Arial, sans-serif',
-    'text-align:center',
-    'box-shadow:0 2px 10px rgba(0,0,0,0.2)'
-  ].join(';');
-
-  document.body.prepend(banner);
-}
-
-showOriginWarning();
 
 function getAuthenticatedUser() {
   const rawUser = sessionStorage.getItem('currentUser');

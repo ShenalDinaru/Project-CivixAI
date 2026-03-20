@@ -47,21 +47,9 @@ app.get('/ChatbotScanner.html', (req, res) => {
   res.sendFile(path.join(__dirname, '../../public/ChatbotScanner.html'));
 });
 
-<<<<<<< HEAD
 app.use('/api/chat', chatRoutes);
 app.use('/api/history', historyRoutes);
 app.use('/api/documents', documentRoutes);
-=======
-app.use('/api/chat', async (req, res, next) => {
-  await ensureRAGInitialized();
-  next();
-}, chatRoutes);
-
-app.use('/api/documents', async (req, res, next) => {
-  await ensureRAGInitialized();
-  next();
-}, documentRoutes);
->>>>>>> ffd1e19 (vercel functions complete)
 
 
 
