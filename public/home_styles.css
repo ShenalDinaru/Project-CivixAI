@@ -522,11 +522,15 @@
     height: 24px;
     object-fit: contain;
     opacity: 0.95;
+    /* Force SVG icons to render white even when the SVG has a dark default color */
+    filter: brightness(0) invert(1);
   }
   
   .card-svg {
     width: 24px;
     height: 24px;
+    /* Force SVG icons to render white even when the SVG has a dark default color */
+    filter: brightness(0) invert(1);
   }
   
   .btn-ask {
@@ -647,6 +651,8 @@
     opacity: 0.7;
     transform: rotate(-45deg);
     transition: all 0.3s ease;
+    /* Force SVG icons to render white */
+    filter: brightness(0) invert(1);
   }
   
   .history-item:hover .history-open-icon {
