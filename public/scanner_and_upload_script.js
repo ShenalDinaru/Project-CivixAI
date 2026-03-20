@@ -142,9 +142,8 @@ if (cancelScanBtn) {
 if (proceedBtn) {
   proceedBtn.addEventListener('click', () => {
     if (capturedImageData) {
-      // Redirect to document upload page with scanned image
-      const uploadUrl = `${window.location.origin}/document_uploader.html?scannedImage=${encodeURIComponent(capturedImageData)}&origin=${encodeURIComponent(RETURN_ORIGIN)}`;
-      window.location.href = uploadUrl;
+      sessionStorage.setItem('scannedImage', capturedImageData);
+      window.location.href = `${window.location.origin}/document_uploader.html`;
     } else {
       alert('Please capture an image first');
     }
