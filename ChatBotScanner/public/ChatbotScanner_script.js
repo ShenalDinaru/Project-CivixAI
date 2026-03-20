@@ -142,7 +142,7 @@ function startFlightAnimation() {
                 
                 if (documentsLoaded === 'true') {
                     // Show welcome message about documents
-                    addMessage("I understood your document/s, how may I help you now?", 'assistant');
+                    addMessage("Your document has been analysed. What would you like to know?", 'assistant');
                     // Clean URL
                     window.history.replaceState({}, document.title, window.location.pathname);
                 } else {
@@ -163,7 +163,7 @@ function startFlightAnimation() {
         const documentsLoaded = urlParams.get('documentsLoaded');
         
         if (documentsLoaded === 'true') {
-            addMessage("I understood your document/s, how may I help you now?", 'assistant');
+            addMessage("Your document has been analysed. What would you like to know?", 'assistant');
             window.history.replaceState({}, document.title, window.location.pathname);
         } else {
             addMessage("Hey! I'm Kandula, and I'm here to help you with your tax related issues.", 'assistant');
