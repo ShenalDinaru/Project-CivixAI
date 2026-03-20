@@ -17,6 +17,20 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const isVercel = process.env.VERCEL === '1';
+let ragInitPromise;
+
+function ensureRAGInitialized() {
+  if (!ragInitPromise) {
+    console.log('Initializing RAG system...');
+    ragInitPromise = initializeRAG().catch((error) => {
+      console.error('RAG initialization failed:', error.message);
+      return false;
+    });
+  }
+
+  return ragInitPromise;
+}
 
 // Middleware
 app.use(cors());
@@ -33,23 +47,34 @@ app.get('/ChatbotScanner.html', (req, res) => {
   res.sendFile(path.join(__dirname, '../../public/ChatbotScanner.html'));
 });
 
+<<<<<<< HEAD
 app.use('/api/chat', chatRoutes);
 app.use('/api/history', historyRoutes);
 app.use('/api/documents', documentRoutes);
+=======
+app.use('/api/chat', async (req, res, next) => {
+  await ensureRAGInitialized();
+  next();
+}, chatRoutes);
+
+app.use('/api/documents', async (req, res, next) => {
+  await ensureRAGInitialized();
+  next();
+}, documentRoutes);
+>>>>>>> ffd1e19 (vercel functions complete)
 
 
 
 // Error handling middleware
 app.use(errorHandler);
 
-// Initialize RAG system and start server
-async function startServer() {
-  console.log('Initializing RAG system...');
-  await initializeRAG();
-  
-  app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+// Local runtime: initialize and listen on a port
+if (!isVercel) {
+  ensureRAGInitialized().finally(() => {
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+    });
   });
 }
 
-startServer();
+export default app;

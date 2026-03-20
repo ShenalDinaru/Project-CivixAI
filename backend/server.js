@@ -8,6 +8,7 @@ const authRoutes = require('./routes/auth');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const isVercel = process.env.VERCEL === '1';
 
 app.use(express.static(path.join(__dirname, '../public')));
 app.use('/Resources', express.static(path.join(__dirname, '../Resources')));
@@ -19,10 +20,19 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Config endpoint for frontend
 app.get('/config.js', (req, res) => {
+    const forwardedProto = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+    const forwardedHost = req.headers['x-forwarded-host'] || req.get('host');
+    const defaultScannerBase = forwardedHost ? `${forwardedProto}://${forwardedHost}` : 'http://localhost:3000';
+    const envScannerBase = process.env.CHATBOT_SCANNER_URL;
+    const envLooksLocal = envScannerBase && /localhost|127\.0\.0\.1/i.test(envScannerBase);
+    const scannerBaseUrl = (isVercel && envLooksLocal)
+        ? defaultScannerBase
+        : (envScannerBase || defaultScannerBase);
+
     res.type('application/javascript');
     res.send(`window.APP_CONFIG = {
-        chatbotUrl: '${process.env.CHATBOT_SCANNER_URL || "http://localhost:3000"}/ChatbotScanner.html',
-        scannerUrl: '${process.env.CHATBOT_SCANNER_URL || "http://localhost:3000"}/document_uploader.html'
+        chatbotUrl: '${scannerBaseUrl}/ChatbotScanner.html',
+        scannerUrl: '${scannerBaseUrl}/document_uploader.html'
     };`);
 });
 
@@ -49,6 +59,10 @@ app.use((err, req, res, next) => {
     });
 });
 
-app.listen(PORT, () => {
-    console.log(`✓ Server running on http://localhost:${PORT}`);
-});
+if (!isVercel) {
+    app.listen(PORT, () => {
+        console.log(`✓ Server running on http://localhost:${PORT}`);
+    });
+}
+
+module.exports = app;

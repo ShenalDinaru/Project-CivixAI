@@ -233,7 +233,7 @@
     
         // If autoload, call /load API in background
         if (autoload === 'true') {
-            fetch('http://localhost:3000/api/documents/load', {
+            fetch(`${window.location.origin}/api/documents/load`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' }
             })

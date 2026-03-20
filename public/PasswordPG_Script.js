@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Icon symbols
     const viewIcon = '👁️';
     const hideIcon = '🙈'; 
-    const API_BASE_URL = 'http://localhost:5000/api';
+    const API_BASE_URL = `${window.location.origin}/api`;
 
     // 1. Smooth Entry Animation
     requestAnimationFrame(() => {
