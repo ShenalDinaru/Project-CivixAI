@@ -16,6 +16,7 @@ const conversationsList = document.getElementById('conversationsList');
 const newConversationBtn = document.getElementById('newConversationBtn');
 const currentChatTitle = document.getElementById('currentChatTitle');
 const deleteConversationLink = document.getElementById('deleteConversationLink');
+const clearAllLink = document.getElementById('clearAllLink');
 
 // --- CONSTANTS ---
 const BOT_AVATAR = 'Resources/Chatbot icon - Elephant/elephant.png';
@@ -23,6 +24,7 @@ const API_URL = `${window.location.origin}/api/chat/message`;
 const HISTORY_API_URL = `${window.location.origin}/api/history`;
 const STORAGE_KEY = 'civixai_chat_history';
 const TABS_STORAGE_KEY = 'civixai_open_tabs';
+const DELETED_KEY = 'civixai_deleted_conversations'; // Track deleted conversations
 
 // --- TAB MANAGEMENT ---
 class ChatTab {
@@ -31,12 +33,14 @@ class ChatTab {
         this.title = title || `Chat ${new Date().toLocaleTimeString()}`;
         this.messages = [];
         this.createdAt = new Date();
+        this.lastActivityAt = new Date();  // Track last activity for sorting
         this.isActive = false;
         this.isNamed = false;
     }
 
     addMessage(role, content) {
         this.messages.push({ role, content });
+        this.lastActivityAt = new Date();  // Update activity time on new message
     }
 
     clearMessages() {
@@ -97,6 +101,9 @@ window.onload = function() {
     // Initialize chat container scrolling
     initializeChatScrolling();
     
+    // Clean up deleted list to prevent it from growing too large
+    cleanupDeletedList();
+    
     // Restore open tabs or create first tab
     const savedTabs = localStorage.getItem(TABS_STORAGE_KEY);
     if (savedTabs && savedTabs.length > 2) {
@@ -141,6 +148,15 @@ function initializeChatScrolling() {
     });
     
     observer.observe(chatContainer, { childList: true, subtree: true });
+}
+
+/**
+ * Clean up old deleted conversation IDs - keeps them indefinitely
+ * This ensures deleted conversations never reappear even if backend returns them
+ */
+function cleanupDeletedList() {
+    // Deleted list should persist indefinitely to prevent resurrection
+    // No cleanup needed - we want to remember deletes forever
 }
 
 // --- 1. INTRO SEQUENCE (Text -> Flight) ---
@@ -339,6 +355,15 @@ function initializeEventListeners() {
             }
         };
     }
+    
+    if (clearAllLink) {
+        clearAllLink.onclick = (e) => {
+            e.preventDefault();
+            if (confirm('Are you sure you want to delete ALL conversations? This cannot be undone.')) {
+                clearAllConversations();
+            }
+        };
+    }
 }
 
 // --- TAB MANAGEMENT FUNCTIONALITY ---
@@ -413,17 +438,43 @@ async function closeTab(tabId) {
  */
 function updateSidebar() {
     conversationsList.innerHTML = '';
+    
+    // Get list of deleted conversation IDs
+    const deletedIds = JSON.parse(localStorage.getItem(DELETED_KEY)) || [];
 
-    // Show open tabs first
+    // Combine open tabs and closed conversations
+    const allItems = [];
+
+    // Add open tabs (that are not deleted)
     openTabs.forEach(tab => {
-        const item = createConversationItem(tab, true);
-        conversationsList.appendChild(item);
+        if (!deletedIds.includes(tab.id)) {
+            allItems.push({
+                data: tab,
+                isOpen: true,
+                timestamp: new Date(tab.lastActivityAt).getTime()
+            });
+        }
     });
 
-    // Show closed conversations
+    // Add closed conversations (that are not deleted)
     allConversations.forEach(conv => {
-        const item = createConversationItem(conv, false);
-        conversationsList.appendChild(item);
+        if (!deletedIds.includes(conv.id)) {
+            const timestamp = new Date(conv.closedAt || conv.updatedAt || conv.timestamp || conv.createdAt).getTime();
+            allItems.push({
+                data: conv,
+                isOpen: false,
+                timestamp: timestamp
+            });
+        }
+    });
+
+    // Sort by timestamp - newest first
+    allItems.sort((a, b) => b.timestamp - a.timestamp);
+
+    // Render sorted conversations
+    allItems.forEach(item => {
+        const convItem = createConversationItem(item.data, item.isOpen);
+        conversationsList.appendChild(convItem);
     });
 }
 
@@ -542,6 +593,7 @@ function saveTabsToLocalStorage() {
             title: tab.title,
             messages: tab.messages,
             createdAt: tab.createdAt.toISOString(),
+            lastActivityAt: tab.lastActivityAt.toISOString(),
             isActive: tab.isActive
         }));
         localStorage.setItem(TABS_STORAGE_KEY, JSON.stringify(tabsData));
@@ -555,13 +607,20 @@ function saveTabsToLocalStorage() {
  */
 function restoreOpenTabs() {
     try {
+        // Get list of deleted conversation IDs
+        const deletedIds = JSON.parse(localStorage.getItem(DELETED_KEY)) || [];
+        
         const tabsData = JSON.parse(localStorage.getItem(TABS_STORAGE_KEY)) || [];
         if (Array.isArray(tabsData) && tabsData.length > 0) {
-            openTabs = tabsData.map(data => {
+            // Filter out deleted tabs
+            const validTabsData = tabsData.filter(data => !deletedIds.includes(data.id));
+            
+            openTabs = validTabsData.map(data => {
                 const tab = new ChatTab(data.title);
                 tab.id = data.id;
                 tab.messages = data.messages;
                 tab.createdAt = new Date(data.createdAt);
+                tab.lastActivityAt = new Date(data.lastActivityAt || data.createdAt);
                 tab.isActive = data.isActive;
                 return tab;
             });
@@ -572,6 +631,9 @@ function restoreOpenTabs() {
                 switchToTab(activeTab.id);
             } else if (openTabs.length > 0) {
                 switchToTab(openTabs[0].id);
+            } else {
+                // If all open tabs were deleted, create a new one
+                createNewTab();
             }
         }
     } catch (err) {
@@ -663,6 +725,9 @@ function addMessageToUI(text, sender) {
  */
 async function loadAllConversations() {
     try {
+        // Get list of deleted conversation IDs
+        const deletedIds = JSON.parse(localStorage.getItem(DELETED_KEY)) || [];
+        
         let loaded = [];
 
         const localConvs = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
@@ -679,6 +744,9 @@ async function loadAllConversations() {
                 console.warn('Could not load from backend:', err);
             }
         }
+
+        // Filter out deleted conversations
+        loaded = loaded.filter(c => !deletedIds.includes(c.id));
 
         const unique = Array.from(
             new Map(loaded.map(c => [c.id, c])).values()
@@ -714,11 +782,25 @@ function loadConversationFromHistory(conversation) {
  */
 async function deleteConversationFromHistory(conversationId) {
     try {
-        let history = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-        history = history.filter(c => c.id !== conversationId);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+        // Add to deleted list to track it
+        let deletedIds = JSON.parse(localStorage.getItem(DELETED_KEY)) || [];
+        if (!deletedIds.includes(conversationId)) {
+            deletedIds.push(conversationId);
+            localStorage.setItem(DELETED_KEY, JSON.stringify(deletedIds));
+        }
 
-        if (conversationId.startsWith('local-') === false && currentUserId) {
+        // Delete from local storage
+        let history = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        const originalLength = history.length;
+        history = history.filter(c => c.id !== conversationId);
+        
+        // Only update localStorage if something was actually deleted
+        if (history.length !== originalLength) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+        }
+
+        // Delete from backend if not a local conversation
+        if (!conversationId.startsWith('local-') && currentUserId) {
             try {
                 await fetch(`${HISTORY_API_URL}/${currentUserId}/${conversationId}`, {
                     method: 'DELETE'
@@ -728,6 +810,7 @@ async function deleteConversationFromHistory(conversationId) {
             }
         }
 
+        // Remove from all conversations list
         allConversations = allConversations.filter(c => c.id !== conversationId);
         updateSidebar();
     } catch (err) {
@@ -739,13 +822,34 @@ async function deleteConversationFromHistory(conversationId) {
  * Delete current conversation
  */
 async function deleteConversation(tabId) {
-    const tab = openTabs.find(t => t.id === tabId);
-    if (!tab) return;
+    try {
+        // Add to deleted list to track it
+        let deletedIds = JSON.parse(localStorage.getItem(DELETED_KEY)) || [];
+        if (!deletedIds.includes(tabId)) {
+            deletedIds.push(tabId);
+            localStorage.setItem(DELETED_KEY, JSON.stringify(deletedIds));
+        }
 
-    if (tab.messages.length > 0) {
-        await saveTabToHistory(tab);
+        // Delete from local storage
+        let history = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        history = history.filter(c => c.id !== tabId);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+
+        // Delete from backend if not local
+        if (!tabId.startsWith('local-') && currentUserId) {
+            try {
+                await fetch(`${HISTORY_API_URL}/${currentUserId}/${tabId}`, {
+                    method: 'DELETE'
+                });
+            } catch (err) {
+                console.warn('Could not delete from backend:', err);
+            }
+        }
+    } catch (err) {
+        console.error('Error deleting conversation:', err);
     }
 
+    // Remove from open tabs
     openTabs = openTabs.filter(t => t.id !== tabId);
 
     if (openTabs.length === 0) {
@@ -785,4 +889,38 @@ function getUserId() {
         }
     }
     return null;
+}
+
+/**
+ * Clear all conversations (both local storage and backend)
+ */
+async function clearAllConversations() {
+    try {
+        // Clear local storage
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(TABS_STORAGE_KEY);
+        localStorage.removeItem(DELETED_KEY);
+
+        // Clear backend if user is logged in
+        if (currentUserId) {
+            try {
+                await fetch(`${HISTORY_API_URL}/${currentUserId}/all`, {
+                    method: 'DELETE'
+                });
+            } catch (err) {
+                console.warn('Could not clear backend history:', err);
+            }
+        }
+
+        // Reset UI
+        allConversations = [];
+        openTabs = [];
+        currentActiveTab = null;
+        createNewTab();
+        updateSidebar();
+        
+        console.log('All conversations cleared successfully');
+    } catch (err) {
+        console.error('Error clearing all conversations:', err);
+    }
 }
