@@ -51,8 +51,13 @@ class ChatTab {
         this.isNamed = false;
     }
 
-    addMessage(role, content, sources = []) {
-        this.messages.push({ role, content, sources });
+    addMessage(role, content, sources = [], options = {}) {
+        this.messages.push({
+            role,
+            content,
+            sources,
+            excludeFromContext: Boolean(options.excludeFromContext)
+        });
         this.lastActivityAt = new Date();  // Update activity time on new message
     }
 
@@ -183,6 +188,34 @@ function tabHasUserMessages(tab) {
 
 function getConversationMessages(conversation) {
     return conversation?.messages || conversation?.conversation || [];
+}
+
+function isInitialGreetingMessage(message, index, messages = []) {
+    if (!message || message.role !== 'assistant' || index !== 0) {
+        return false;
+    }
+
+    const normalizedContent = typeof message.content === 'string' ? message.content.trim() : '';
+    const isKnownGreeting = normalizedContent === DEFAULT_ASSISTANT_GREETING ||
+        normalizedContent === DOCUMENT_ANALYSIS_GREETING;
+
+    if (!isKnownGreeting) {
+        return false;
+    }
+
+    return !messages.slice(0, index).some((item) => item?.role === 'user');
+}
+
+function buildConversationHistoryForApi(messages = []) {
+    return messages
+        .filter((message, index, allMessages) =>
+            message &&
+            typeof message.content === 'string' &&
+            typeof message.role === 'string' &&
+            !message.excludeFromContext &&
+            !isInitialGreetingMessage(message, index, allMessages)
+        )
+        .map(({ role, content }) => ({ role, content }));
 }
 
 function getEntryContext() {
@@ -347,7 +380,7 @@ async function sendMessage() {
     updateTypingAvatarPopup();
 
     try {
-        const conversationHistory = requestTab.messages.map(({ role, content }) => ({ role, content }));
+        const conversationHistory = buildConversationHistoryForApi(requestTab.messages);
         const res = await fetch(API_URL, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -598,7 +631,7 @@ function createNewTab(title = null, options = {}) {
     if (greeting) {
         setTimeout(() => {
             if (newTab.messages.length === 0) {
-                addMessageToTab(newTab, greeting, 'assistant');
+                addMessageToTab(newTab, greeting, 'assistant', [], { excludeFromContext: true });
 
                 if (isTabActive(newTab)) {
                     addMessageToUI(greeting, 'assistant');
@@ -906,13 +939,13 @@ async function saveTabToBackend(tabHistory) {
 /**
  * Add message to a tab
  */
-function addMessageToTab(tab, text, sender, sources) {
+function addMessageToTab(tab, text, sender, sources, options = {}) {
     if (!tab) return;
 
     const userMessageCount = tab.getUserMessageCount();
     const isFirstUserMessage = sender === 'user' && userMessageCount === 0;
 
-    tab.addMessage(sender === 'assistant' ? 'assistant' : 'user', text, sources || []);
+    tab.addMessage(sender === 'assistant' ? 'assistant' : 'user', text, sources || [], options);
 
     if (isFirstUserMessage) {
         autoRenameTab(tab, text);
@@ -925,10 +958,10 @@ function addMessageToTab(tab, text, sender, sources) {
     }
 }
 
-function addMessageToCurrentTab(text, sender, sources) {
+function addMessageToCurrentTab(text, sender, sources, options = {}) {
     if (!currentActiveTab) return;
 
-    addMessageToTab(currentActiveTab, text, sender, sources);
+    addMessageToTab(currentActiveTab, text, sender, sources, options);
     addMessageToUI(text, sender, sources);
 }
 

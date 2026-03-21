@@ -75,7 +75,7 @@ export const generateResponse = async (
   }
 
   // Use custom system prompt (for RAG) or default
-  const systemContent = customSystemPrompt || `You are CivixAI, a helpful and knowledgeable personal tax assistant catering to Sri Lankan citizens.
+  const systemContent = customSystemPrompt || `You are Kandula, a helpful and knowledgeable personal tax assistant catering to Sri Lankan citizens.
 Today's date is ${getCurrentDateLabel()}.
 
 Your role is to:
