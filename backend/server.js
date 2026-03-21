@@ -23,8 +23,8 @@ app.use('/Resources', express.static(path.join(__dirname, '../Resources')));
 
 // Middleware
 app.use(cors());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json({ limit: '10mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 
 // Config endpoint for frontend
 app.get('/config.js', (req, res) => {

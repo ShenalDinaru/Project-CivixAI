@@ -116,6 +116,11 @@ label {
   font-size: 14px;
 }
 
+small {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 12px;
+}
+
 input, textarea, select {
   width: 100%;
   background: rgba(255, 255, 255, 0.04);
@@ -212,6 +217,20 @@ input:focus, textarea:focus, select:focus {
 .vault-entry-actions {
   display: flex;
   gap: 8px;
+}
+
+.vault-doc-thumbs {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.vault-doc-thumb {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  object-fit: cover;
 }
 
 .mask {

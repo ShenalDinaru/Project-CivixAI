@@ -18,6 +18,28 @@ function requireUserUID(req, res) {
   return userUID.trim();
 }
 
+function parseImagePayload(raw) {
+  if (!raw) return null;
+  if (typeof raw !== 'object') return null;
+
+  const name = typeof raw.name === 'string' ? raw.name.slice(0, 160) : '';
+  const mimeType = typeof raw.mimeType === 'string' ? raw.mimeType : '';
+  const dataUrl = typeof raw.dataUrl === 'string' ? raw.dataUrl : '';
+
+  if (!mimeType.startsWith('image/')) {
+    throw new Error('Invalid image type. Only images are allowed.');
+  }
+  if (!dataUrl.startsWith('data:image/')) {
+    throw new Error('Invalid image content.');
+  }
+  // Keep request size bounded (base64 expands data; this still protects RTDB size growth).
+  if (dataUrl.length > 3_000_000) {
+    throw new Error('Each image must be 2MB or smaller.');
+  }
+
+  return { name, mimeType, dataUrl };
+}
+
 router.post('/entries', async (req, res) => {
   try {
     const userUID = requireUserUID(req, res);
@@ -51,6 +73,9 @@ router.post('/entries', async (req, res) => {
         tin: payload?.tin || '',
         bankName: payload?.bankName || '',
         bankAccountNumber: payload?.bankAccountNumber || '',
+        nicImage: payload?.nicImage || null,
+        passportImage: payload?.passportImage || null,
+        drivingLicenseImage: payload?.drivingLicenseImage || null,
         notes: payload?.notes || '',
         createdAt: record?.createdAt || null,
         updatedAt: record?.updatedAt || null,
@@ -77,10 +102,14 @@ router.post('/entry', async (req, res) => {
     const tin = typeof req.body?.tin === 'string' ? req.body.tin.trim() : '';
     const bankName = typeof req.body?.bankName === 'string' ? req.body.bankName.trim() : '';
     const bankAccountNumber = typeof req.body?.bankAccountNumber === 'string' ? req.body.bankAccountNumber.trim() : '';
+    const nicImage = parseImagePayload(req.body?.nicImage);
+    const passportImage = parseImagePayload(req.body?.passportImage);
+    const drivingLicenseImage = parseImagePayload(req.body?.drivingLicenseImage);
     const notes = typeof req.body?.notes === 'string' ? req.body.notes.trim() : '';
 
     if (!name) return res.status(400).json({ success: false, message: 'Entry name is required' });
-    if (!nic && !password && !tin && !bankName && !bankAccountNumber && !notes) {
+    if (!nic && !password && !tin && !bankName && !bankAccountNumber && !notes
+      && !nicImage && !passportImage && !drivingLicenseImage) {
       return res.status(400).json({ success: false, message: 'At least one confidential field is required' });
     }
 
@@ -98,6 +127,9 @@ router.post('/entry', async (req, res) => {
       tin: tin || '',
       bankName: bankName || '',
       bankAccountNumber: bankAccountNumber || '',
+      nicImage: nicImage || null,
+      passportImage: passportImage || null,
+      drivingLicenseImage: drivingLicenseImage || null,
       notes: notes || '',
     });
 

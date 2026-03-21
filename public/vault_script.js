@@ -81,9 +81,20 @@ const vaultPasswordInput = document.getElementById('vaultPassword');
 const tinInput = document.getElementById('tin');
 const bankNameInput = document.getElementById('bankName');
 const bankAccountNumberInput = document.getElementById('bankAccountNumber');
+const nicImageInput = document.getElementById('nicImage');
+const passportImageInput = document.getElementById('passportImage');
+const drivingLicenseImageInput = document.getElementById('drivingLicenseImage');
+const nicImageStatus = document.getElementById('nicImageStatus');
+const passportImageStatus = document.getElementById('passportImageStatus');
+const drivingLicenseImageStatus = document.getElementById('drivingLicenseImageStatus');
 const notesInput = document.getElementById('notes');
 
 let entriesCache = [];
+let nicImageState = null;
+let passportImageState = null;
+let drivingLicenseImageState = null;
+
+const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
 
 function clearForm() {
   editingEntryIdInput.value = '';
@@ -94,6 +105,13 @@ function clearForm() {
   tinInput.value = '';
   bankNameInput.value = '';
   bankAccountNumberInput.value = '';
+  if (nicImageInput) nicImageInput.value = '';
+  if (passportImageInput) passportImageInput.value = '';
+  if (drivingLicenseImageInput) drivingLicenseImageInput.value = '';
+  nicImageState = null;
+  passportImageState = null;
+  drivingLicenseImageState = null;
+  updateImageStatusLabels();
   notesInput.value = '';
 }
 
@@ -106,7 +124,66 @@ function setFormFromEntry(entry) {
   tinInput.value = entry.tin || '';
   bankNameInput.value = entry.bankName || '';
   bankAccountNumberInput.value = entry.bankAccountNumber || '';
+  nicImageState = entry.nicImage || null;
+  passportImageState = entry.passportImage || null;
+  drivingLicenseImageState = entry.drivingLicenseImage || null;
+  if (nicImageInput) nicImageInput.value = '';
+  if (passportImageInput) passportImageInput.value = '';
+  if (drivingLicenseImageInput) drivingLicenseImageInput.value = '';
+  updateImageStatusLabels();
   notesInput.value = entry.notes || '';
+}
+
+function updateImageStatusLabels() {
+  if (nicImageStatus) {
+    nicImageStatus.textContent = nicImageState?.name ? `Selected: ${nicImageState.name}` : 'No image selected';
+  }
+  if (passportImageStatus) {
+    passportImageStatus.textContent = passportImageState?.name ? `Selected: ${passportImageState.name}` : 'No image selected';
+  }
+  if (drivingLicenseImageStatus) {
+    drivingLicenseImageStatus.textContent = drivingLicenseImageState?.name ? `Selected: ${drivingLicenseImageState.name}` : 'No image selected';
+  }
+}
+
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('Unable to read selected image'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function handleImageInputChange(fileInput, assignState) {
+  const file = fileInput?.files?.[0];
+  if (!file) return;
+
+  if (!file.type || !file.type.startsWith('image/')) {
+    showToast('Please select a valid image file.', 'warning');
+    fileInput.value = '';
+    return;
+  }
+
+  if (file.size > MAX_IMAGE_BYTES) {
+    showToast('Each image must be 2MB or smaller.', 'warning');
+    fileInput.value = '';
+    return;
+  }
+
+  try {
+    const dataUrl = await fileToDataUrl(file);
+    assignState({
+      name: file.name,
+      mimeType: file.type,
+      dataUrl,
+    });
+    updateImageStatusLabels();
+  } catch (err) {
+    console.error(err);
+    showToast('Failed to process selected image.', 'error');
+    fileInput.value = '';
+  }
 }
 
 async function apiPost(path, body) {
@@ -209,6 +286,26 @@ function renderEntries(entries) {
     fields.appendChild(notesLine);
     left.appendChild(fields);
 
+    const docsWrap = document.createElement('div');
+    docsWrap.className = 'vault-doc-thumbs';
+    const docs = [
+      { key: 'nicImage', label: 'NIC', data: entry.nicImage },
+      { key: 'passportImage', label: 'Passport', data: entry.passportImage },
+      { key: 'drivingLicenseImage', label: 'License', data: entry.drivingLicenseImage },
+    ];
+    docs.forEach((doc) => {
+      if (!doc.data?.dataUrl) return;
+      const img = document.createElement('img');
+      img.className = 'vault-doc-thumb';
+      img.src = doc.data.dataUrl;
+      img.alt = `${doc.label} image`;
+      img.title = `${doc.label} image`;
+      docsWrap.appendChild(img);
+    });
+    if (docsWrap.children.length > 0) {
+      left.appendChild(docsWrap);
+    }
+
     const actions = document.createElement('div');
     actions.className = 'vault-entry-actions';
 
@@ -275,7 +372,8 @@ async function saveEntry() {
   }
 
   // Require at least one confidential field
-  if (!nic && !password && !tin && !bankName && !bankAccountNumber && !notes) {
+  if (!nic && !password && !tin && !bankName && !bankAccountNumber && !notes
+    && !nicImageState && !passportImageState && !drivingLicenseImageState) {
     showToast('Add at least one confidential field.', 'warning');
     return;
   }
@@ -296,6 +394,9 @@ async function saveEntry() {
       tin,
       bankName,
       bankAccountNumber,
+      nicImage: nicImageState,
+      passportImage: passportImageState,
+      drivingLicenseImage: drivingLicenseImageState,
       notes,
     });
 
@@ -351,6 +452,21 @@ if (logoutBtn) {
 if (saveEntryBtn) saveEntryBtn.addEventListener('click', saveEntry);
 if (clearFormBtn) clearFormBtn.addEventListener('click', clearForm);
 if (refreshEntriesBtn) refreshEntriesBtn.addEventListener('click', loadEntries);
+if (nicImageInput) {
+  nicImageInput.addEventListener('change', () =>
+    handleImageInputChange(nicImageInput, (img) => { nicImageState = img; })
+  );
+}
+if (passportImageInput) {
+  passportImageInput.addEventListener('change', () =>
+    handleImageInputChange(passportImageInput, (img) => { passportImageState = img; })
+  );
+}
+if (drivingLicenseImageInput) {
+  drivingLicenseImageInput.addEventListener('change', () =>
+    handleImageInputChange(drivingLicenseImageInput, (img) => { drivingLicenseImageState = img; })
+  );
+}
 
 if (entriesList) {
   entriesList.addEventListener('click', async (e) => {
@@ -381,6 +497,7 @@ if (entriesList) {
 
 // Initial load
 if (authenticatedUser && userUID) {
+  updateImageStatusLabels();
   loadEntries();
 }
 
