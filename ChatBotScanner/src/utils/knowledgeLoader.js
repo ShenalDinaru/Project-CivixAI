@@ -1,7 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 
-const DEFAULT_CHUNKS_FILENAME = 'ird_sri_lanka_tax_chart_2025_2026_chunks.jsonl';
+const CHUNK_FILE_PATTERN = /_chunks\.(jsonl|json)$/i;
 
 const extractAssessmentYear = (value = '') => {
   const match = String(value).match(/\b(20\d{2}[/-]20\d{2}|20\d{2}[/-]\d{2})\b/);
@@ -46,37 +46,73 @@ const parseJsonl = (rawText) => rawText
     }
   });
 
-export const resolveKnowledgeChunksPath = (baseDir) => {
-  const configuredFile = process.env.KNOWLEDGE_CHUNKS_FILE || DEFAULT_CHUNKS_FILENAME;
-  return path.isAbsolute(configuredFile)
-    ? configuredFile
-    : path.join(baseDir, '../data', configuredFile);
+const parseConfiguredPaths = (configuredValue, dataDir) => configuredValue
+  .split(',')
+  .map((entry) => entry.trim())
+  .filter(Boolean)
+  .map((entry) => (path.isAbsolute(entry) ? entry : path.join(dataDir, entry)));
+
+const loadChunkFile = async (filePath) => {
+  const rawText = await fs.readFile(filePath, 'utf-8');
+  const extension = path.extname(filePath).toLowerCase();
+
+  if (extension === '.jsonl') {
+    return parseJsonl(rawText);
+  }
+
+  if (extension === '.json') {
+    return JSON.parse(rawText);
+  }
+
+  throw new Error(`Unsupported chunk file format: ${extension || 'unknown'}`);
+};
+
+export const resolveKnowledgeChunkPaths = async (baseDir) => {
+  const dataDir = path.join(baseDir, '../data');
+  const configuredFiles = process.env.KNOWLEDGE_CHUNKS_FILE;
+
+  if (configuredFiles) {
+    return parseConfiguredPaths(configuredFiles, dataDir);
+  }
+
+  const directoryEntries = await fs.readdir(dataDir);
+
+  return directoryEntries
+    .filter((entry) => CHUNK_FILE_PATTERN.test(entry))
+    .sort((a, b) => a.localeCompare(b))
+    .map((entry) => path.join(dataDir, entry));
 };
 
 export const loadKnowledgeChunks = async (baseDir) => {
-  const chunksPath = resolveKnowledgeChunksPath(baseDir);
-  const rawText = await fs.readFile(chunksPath, 'utf-8');
-  const extension = path.extname(chunksPath).toLowerCase();
+  const chunkPaths = await resolveKnowledgeChunkPaths(baseDir);
 
-  let parsedChunks;
-  if (extension === '.jsonl') {
-    parsedChunks = parseJsonl(rawText);
-  } else if (extension === '.json') {
-    parsedChunks = JSON.parse(rawText);
-  } else {
-    throw new Error(`Unsupported chunk file format: ${extension || 'unknown'}`);
+  if (chunkPaths.length === 0) {
+    throw new Error('No knowledge chunk files were found in src/data');
   }
 
-  if (!Array.isArray(parsedChunks)) {
-    throw new Error('Knowledge chunk file must contain an array or JSONL records');
-  }
+  const normalizedChunks = [];
+  let globalIndex = 0;
 
-  const normalizedChunks = parsedChunks
-    .map((chunk, index) => normalizeChunk(chunk, index, chunksPath))
-    .filter((chunk) => typeof chunk.text === 'string' && chunk.text.trim().length > 0);
+  for (const chunkPath of chunkPaths) {
+    const parsedChunks = await loadChunkFile(chunkPath);
+
+    if (!Array.isArray(parsedChunks)) {
+      throw new Error(`Knowledge chunk file must contain an array or JSONL records: ${path.basename(chunkPath)}`);
+    }
+
+    const fileChunks = parsedChunks
+      .map((chunk) => {
+        const normalizedChunk = normalizeChunk(chunk, globalIndex, chunkPath);
+        globalIndex += 1;
+        return normalizedChunk;
+      })
+      .filter((chunk) => typeof chunk.text === 'string' && chunk.text.trim().length > 0);
+
+    normalizedChunks.push(...fileChunks);
+  }
 
   return {
-    chunksPath,
+    chunkPaths,
     chunks: normalizedChunks
   };
 };
