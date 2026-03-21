@@ -25,6 +25,7 @@ const HISTORY_API_URL = `${window.location.origin}/api/history`;
 const STORAGE_KEY = 'civixai_chat_history';
 const TABS_STORAGE_KEY = 'civixai_open_tabs';
 const DELETED_KEY = 'civixai_deleted_conversations'; // Track deleted conversations
+const MIN_TYPING_INDICATOR_MS = 700;
 
 // --- MARKDOWN CONFIGURATION ---
 if (typeof marked !== 'undefined') {
@@ -74,6 +75,7 @@ let openTabs = [];
 let currentActiveTab = null;
 let currentUserId = null;
 let allConversations = [];
+const pendingResponses = new Map();
 
 function getSafeReturnOrigin() {
     const params = new URLSearchParams(window.location.search);
@@ -268,11 +270,11 @@ if (backBtn) backBtn.onclick = () => {
 };
 
 // --- 4. CHAT & POPUP LOGIC ---
-messageInput.addEventListener('input', () => {
-    if (messageInput.value.trim().length > 0) typingAvatarPopup.classList.add('show');
-    else typingAvatarPopup.classList.remove('show');
+messageInput.addEventListener('input', updateTypingAvatarPopup);
+messageInput.addEventListener('focus', updateTypingAvatarPopup);
+messageInput.addEventListener('blur', () => {
+    requestAnimationFrame(updateTypingAvatarPopup);
 });
-messageInput.addEventListener('blur', () => typingAvatarPopup.classList.remove('show'));
 
 sendButton.onclick = sendMessage;
 messageInput.onkeydown = (e) => {
@@ -284,55 +286,207 @@ messageInput.onkeydown = (e) => {
 
 async function sendMessage() {
     const txt = messageInput.value.trim();
-    if (!txt || !currentActiveTab) return;
+    const requestTab = currentActiveTab;
+    if (!txt || !requestTab || messageInput.disabled) return;
 
-    addMessageToCurrentTab(txt, 'user');
+    addMessageToTab(requestTab, txt, 'user');
+    if (isTabActive(requestTab)) {
+        addMessageToUI(txt, 'user');
+    }
     messageInput.value = '';
-    typingAvatarPopup.classList.remove('show'); 
-    
+    updateTypingAvatarPopup();
+
     messageInput.disabled = true;
-    const thinkingId = showThinking();
+    sendButton.disabled = true;
+    pendingResponses.set(requestTab.id, { startedAt: performance.now() });
+
+    if (isTabActive(requestTab)) {
+        showAssistantTypingIndicator(requestTab.id);
+    }
+
+    updateTypingAvatarPopup();
 
     try {
-        const conversationHistory = currentActiveTab.messages.map(({ role, content }) => ({ role, content }));
+        const conversationHistory = requestTab.messages.map(({ role, content }) => ({ role, content }));
         const res = await fetch(API_URL, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ message: txt, conversationHistory })
         });
-        const data = await res.json();
-        document.getElementById(thinkingId)?.remove();
+        const data = await res.json().catch(() => ({}));
+        const startedAt = pendingResponses.get(requestTab.id)?.startedAt || performance.now();
+        await wait(Math.max(0, MIN_TYPING_INDICATOR_MS - (performance.now() - startedAt)));
 
-        if (data.success) {
-            addMessageToCurrentTab(data.response, 'assistant', data.sources || data.rag?.sources);
-            typingAvatarPopup.classList.add('show');
-            setTimeout(() => typingAvatarPopup.classList.remove('show'), 2000);
-            
-            saveTabsToLocalStorage();
+        if (!res.ok || !data.success || !data.response) {
+            throw new Error(data.error || 'Unable to get a response right now.');
         }
-    } catch (err) {
-        document.getElementById(thinkingId)?.remove();
-        addMessageToCurrentTab("Connection error. Please try again.", 'assistant');
-    }
-    
-    messageInput.disabled = false;
-    messageInput.focus();
-}
 
-function showThinking() {
-    const id = 'think-' + Date.now();
-    chatContainer.insertAdjacentHTML('beforeend', `<div id="${id}" class="thinking-bubble"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`);
-    scrollToBottom();
-    return id;
+        await finalizeAssistantResponse(requestTab, data.response, data.sources || data.rag?.sources || []);
+    } catch (err) {
+        const startedAt = pendingResponses.get(requestTab.id)?.startedAt || performance.now();
+        await wait(Math.max(0, MIN_TYPING_INDICATOR_MS - (performance.now() - startedAt)));
+        await finalizeAssistantResponse(requestTab, 'Connection error. Please try again.', []);
+    }
+
+    saveTabsToLocalStorage();
+
+    messageInput.disabled = false;
+    sendButton.disabled = false;
+    messageInput.focus();
+    updateTypingAvatarPopup();
 }
 
 function addMessage(text, sender) {
+    return addMessageToUI(text, sender);
+}
+
+function wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function isTabActive(tab) {
+    return Boolean(tab && currentActiveTab && tab.id === currentActiveTab.id);
+}
+
+function updateTypingAvatarPopup() {
+    const hasDraftText = document.activeElement === messageInput && messageInput.value.trim().length > 0;
+    const assistantIsThinking = Boolean(currentActiveTab && pendingResponses.has(currentActiveTab.id));
+
+    typingAvatarPopup.classList.toggle('show', hasDraftText || assistantIsThinking);
+}
+
+function getTypingIndicatorElement(tabId) {
+    return chatContainer.querySelector(`[data-typing-indicator-for="${tabId}"]`);
+}
+
+function buildSourcesHtml(sources, sender) {
+    if (!sources || !Array.isArray(sources) || sources.length === 0 || sender !== 'assistant') {
+        return '';
+    }
+
+    return '<div class="message-sources"><span class="sources-label">Sources</span><ul class="sources-list">' +
+        sources.map((s, i) => {
+            const name = s.title || s.source || 'Source ' + (i + 1);
+            const linkedName = s.url
+                ? `<a href="${escapeHtml(s.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(name)}</a>`
+                : escapeHtml(name);
+            const parts = [linkedName];
+            if (s.section) parts.push(escapeHtml(s.section));
+            if (s.year) parts.push(String(s.year));
+            return '<li class="source-item">' + parts.join(' · ') + '</li>';
+        }).join('') +
+        '</ul></div>';
+}
+
+function formatMessageContent(text, sender) {
+    const safeText = typeof text === 'string' ? text : '';
+
+    if (sender === 'assistant' && typeof marked !== 'undefined') {
+        return marked.parse(safeText);
+    }
+
+    return escapeHtml(safeText).replace(/\n/g, '<br>');
+}
+
+function buildMessageBubbleHtml(text, sender, sources = []) {
     const time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}).toLowerCase();
-    let avatar = sender === 'assistant' ? `<div class="avatar"><img src="${BOT_AVATAR}"></div>` : '';
-    const html = `<div class="message-wrapper ${sender}">${avatar}<div class="message-bubble">${text.replace(/\n/g, '<br>')}<div style="font-size:10px; opacity:0.5; margin-top:5px;">${time}</div></div></div>`;
-    chatContainer.insertAdjacentHTML('beforeend', html);
-    
+    const formattedContent = formatMessageContent(text, sender);
+    const sourcesHtml = buildSourcesHtml(sources, sender);
+
+    return `<div class="message-content">${formattedContent}</div><div class="message-meta">${time}</div>${sourcesHtml}`;
+}
+
+function createMessageElement(text, sender, sources = [], options = {}) {
+    const wrapper = document.createElement('div');
+    wrapper.className = `message-wrapper ${sender}`;
+
+    if (options.animateIn) {
+        wrapper.classList.add('is-entering');
+    }
+
+    if (sender === 'assistant') {
+        wrapper.insertAdjacentHTML('beforeend', `<div class="avatar"><img src="${BOT_AVATAR}" alt="Kandula"></div>`);
+    }
+
+    const bubble = document.createElement('div');
+    bubble.className = 'message-bubble';
+    bubble.innerHTML = buildMessageBubbleHtml(text, sender, sources);
+    wrapper.appendChild(bubble);
+
+    return wrapper;
+}
+
+function showAssistantTypingIndicator(tabId) {
+    if (!tabId || !currentActiveTab || currentActiveTab.id !== tabId) {
+        return null;
+    }
+
+    const existingIndicator = getTypingIndicatorElement(tabId);
+    if (existingIndicator) {
+        return existingIndicator;
+    }
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'message-wrapper assistant is-typing';
+    wrapper.dataset.typingIndicatorFor = tabId;
+    wrapper.innerHTML = `
+        <div class="avatar"><img src="${BOT_AVATAR}" alt="Kandula"></div>
+        <div class="message-bubble typing-indicator-bubble">
+            <div class="typing-indicator-shell">
+                <div class="typing-indicator-row">
+                    <div class="typing-indicator-badge">Kandula is typing</div>
+                    <div class="typing-indicator-dots" aria-hidden="true">
+                        <span class="typing-indicator-dot"></span>
+                        <span class="typing-indicator-dot"></span>
+                        <span class="typing-indicator-dot"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    chatContainer.appendChild(wrapper);
     scrollToBottom();
+
+    requestAnimationFrame(() => {
+        wrapper.classList.add('is-visible');
+    });
+
+    return wrapper;
+}
+
+async function morphTypingIndicatorIntoMessage(indicator, text, sources = []) {
+    if (!indicator) {
+        return null;
+    }
+
+    const bubble = indicator.querySelector('.message-bubble');
+    indicator.classList.add('is-resolving');
+    await wait(180);
+
+    indicator.classList.remove('is-typing', 'is-resolving');
+    indicator.removeAttribute('data-typing-indicator-for');
+    bubble.className = 'message-bubble response-ready';
+    bubble.innerHTML = buildMessageBubbleHtml(text, 'assistant', sources);
+    scrollToBottom();
+
+    return indicator;
+}
+
+async function finalizeAssistantResponse(tab, text, sources = []) {
+    if (!tab) return;
+
+    addMessageToTab(tab, text, 'assistant', sources);
+    const shouldRenderInView = isTabActive(tab);
+    const indicator = shouldRenderInView ? getTypingIndicatorElement(tab.id) : null;
+
+    pendingResponses.delete(tab.id);
+
+    if (indicator) {
+        await morphTypingIndicatorIntoMessage(indicator, text, sources);
+    } else if (shouldRenderInView) {
+        addMessageToUI(text, 'assistant', sources, { animateIn: true });
+    }
 }
 
 function scrollToBottom() {
@@ -416,10 +570,14 @@ function switchToTab(tabId) {
     tab.messages.forEach(msg => {
         addMessageToUI(msg.content, msg.role, msg.sources);
     });
+    if (pendingResponses.has(tab.id)) {
+        showAssistantTypingIndicator(tab.id);
+    }
 
     updateSidebar();
     updateHeaderTitle();
     messageInput.focus();
+    updateTypingAvatarPopup();
 }
 
 /**
@@ -676,30 +834,39 @@ async function saveTabToBackend(tabHistory) {
 }
 
 /**
- * Add message to current tab
+ * Add message to a tab
  */
-function addMessageToCurrentTab(text, sender, sources) {
-    if (currentActiveTab) {
-        const userMessageCount = currentActiveTab.getUserMessageCount();  
-        const isFirstUserMessage = sender === 'user' && userMessageCount === 0;
-        
-        currentActiveTab.addMessage(sender === 'assistant' ? 'assistant' : 'user', text, sources || []);
-        
-        if (isFirstUserMessage) {
-            autoRenameTab(text);
-        }
-        
-        addMessageToUI(text, sender, sources);
+function addMessageToTab(tab, text, sender, sources) {
+    if (!tab) return;
+
+    const userMessageCount = tab.getUserMessageCount();
+    const isFirstUserMessage = sender === 'user' && userMessageCount === 0;
+
+    tab.addMessage(sender === 'assistant' ? 'assistant' : 'user', text, sources || []);
+
+    if (isFirstUserMessage) {
+        autoRenameTab(tab, text);
     }
+
+    updateSidebar();
+
+    if (isTabActive(tab)) {
+        updateHeaderTitle();
+    }
+}
+
+function addMessageToCurrentTab(text, sender, sources) {
+    if (!currentActiveTab) return;
+
+    addMessageToTab(currentActiveTab, text, sender, sources);
+    addMessageToUI(text, sender, sources);
 }
 
 /**
  * Auto-rename tab based on first user message
  */
-function autoRenameTab(firstMessage) {
-    if (!currentActiveTab) return;
-    
-    if (currentActiveTab.isNamed) return;
+function autoRenameTab(tab, firstMessage) {
+    if (!tab || tab.isNamed) return;
     
     let title = firstMessage.trim();
     
@@ -712,49 +879,32 @@ function autoRenameTab(firstMessage) {
     
     title = title.trim();
     
-    if (currentActiveTab.title.startsWith('Chat ')) {
-        currentActiveTab.title = title;
-        currentActiveTab.isNamed = true;
+    if (tab.title.startsWith('Chat ')) {
+        tab.title = title;
+        tab.isNamed = true;
         updateSidebar();
-        updateHeaderTitle();
+
+        if (isTabActive(tab)) {
+            updateHeaderTitle();
+        }
     }
 }
 
 /**
  * Add message to UI only (without saving to tab)
  */
-function addMessageToUI(text, sender, sources) {
-    const time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}).toLowerCase();
-    let avatar = sender === 'assistant' ? `<div class="avatar"><img src="${BOT_AVATAR}"></div>` : '';
-    
-    // Sources HTML
-    let sourcesHtml = '';
-    if (sources && Array.isArray(sources) && sources.length > 0 && sender === 'assistant') {
-        sourcesHtml = '<div class="message-sources"><span class="sources-label">Sources</span><ul class="sources-list">' +
-            sources.map((s, i) => {
-                const name = s.title || s.source || 'Source ' + (i + 1);
-                const linkedName = s.url
-                    ? `<a href="${escapeHtml(s.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(name)}</a>`
-                    : escapeHtml(name);
-                const parts = [linkedName];
-                if (s.section) parts.push(escapeHtml(s.section));
-                if (s.year) parts.push(String(s.year));
-                return '<li class="source-item">' + parts.join(' · ') + '</li>';
-            }).join('') +
-            '</ul></div>';
+function addMessageToUI(text, sender, sources, options = {}) {
+    const messageElement = createMessageElement(text, sender, sources, options);
+    chatContainer.appendChild(messageElement);
+
+    if (options.animateIn) {
+        requestAnimationFrame(() => {
+            messageElement.classList.add('is-visible');
+        });
     }
 
-    // Format with markdown for assistant
-    let formattedContent;
-    if (sender === 'assistant' && typeof marked !== 'undefined') {
-        formattedContent = marked.parse(text);
-    } else {
-        formattedContent = escapeHtml(text).replace(/\n/g, '<br>');
-    }
-
-    const html = `<div class="message-wrapper ${sender}">${avatar}<div class="message-bubble"><div class="message-content">${formattedContent}</div><div style="font-size:10px; opacity:0.5; margin-top:5px;">${time}</div>${sourcesHtml}</div></div>`;
-    chatContainer.insertAdjacentHTML('beforeend', html);
     scrollToBottom();
+    return messageElement;
 }
 
 /**
