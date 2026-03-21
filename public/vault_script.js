@@ -84,6 +84,11 @@ const cameraPreview = document.getElementById('cameraPreview');
 const cameraCanvas = document.getElementById('cameraCanvas');
 const cameraCancelBtn = document.getElementById('cameraCancelBtn');
 const cameraCaptureBtn = document.getElementById('cameraCaptureBtn');
+const imageViewerModal = document.getElementById('imageViewerModal');
+const imageViewerTitle = document.getElementById('imageViewerTitle');
+const imageViewerPreview = document.getElementById('imageViewerPreview');
+const imageViewerCloseBtn = document.getElementById('imageViewerCloseBtn');
+const imageViewerEditBtn = document.getElementById('imageViewerEditBtn');
 const notesInput = document.getElementById('notes');
 
 let entriesCache = [];
@@ -94,6 +99,7 @@ let drivingLicenseImageState = null;
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
 let cameraStream = null;
 let activeCaptureTarget = null;
+let activeImageViewerEntryId = null;
 
 function clearForm() {
   editingEntryIdInput.value = '';
@@ -249,6 +255,23 @@ async function capturePhotoFromCamera() {
   await closeCameraModal();
 }
 
+function openImageViewer(entryId, label, dataUrl) {
+  if (!imageViewerModal || !imageViewerPreview || !imageViewerTitle) return;
+  activeImageViewerEntryId = entryId || null;
+  imageViewerTitle.textContent = label ? `${label} Image` : 'Document Image';
+  imageViewerPreview.src = dataUrl || '';
+  imageViewerModal.classList.add('open');
+  imageViewerModal.setAttribute('aria-hidden', 'false');
+}
+
+function closeImageViewer() {
+  if (!imageViewerModal) return;
+  imageViewerModal.classList.remove('open');
+  imageViewerModal.setAttribute('aria-hidden', 'true');
+  if (imageViewerPreview) imageViewerPreview.src = '';
+  activeImageViewerEntryId = null;
+}
+
 async function handleImageInputChange(fileInput, assignState) {
   const file = fileInput?.files?.[0];
   if (!file) return;
@@ -387,6 +410,10 @@ function renderEntries(entries) {
       img.src = doc.data.dataUrl;
       img.alt = `${doc.label} image`;
       img.title = `${doc.label} image`;
+      img.dataset.action = 'view-image';
+      img.dataset.entryId = entry.id;
+      img.dataset.docLabel = doc.label;
+      img.dataset.docSrc = doc.data.dataUrl;
       docsWrap.appendChild(img);
     });
     if (docsWrap.children.length > 0) {
@@ -567,12 +594,46 @@ if (cameraModal) {
     }
   });
 }
+if (imageViewerCloseBtn) {
+  imageViewerCloseBtn.addEventListener('click', closeImageViewer);
+}
+if (imageViewerEditBtn) {
+  imageViewerEditBtn.addEventListener('click', () => {
+    if (!activeImageViewerEntryId) {
+      closeImageViewer();
+      return;
+    }
+    const entry = entriesCache.find((x) => x.id === activeImageViewerEntryId);
+    if (!entry) {
+      showToast('Entry not found.', 'error');
+      closeImageViewer();
+      return;
+    }
+    setFormFromEntry(entry);
+    closeImageViewer();
+    showToast('Loaded entry for editing.', 'info');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+}
+if (imageViewerModal) {
+  imageViewerModal.addEventListener('click', (event) => {
+    if (event.target === imageViewerModal) {
+      closeImageViewer();
+    }
+  });
+}
 window.addEventListener('beforeunload', () => {
   stopCameraStream();
 });
 
 if (entriesList) {
   entriesList.addEventListener('click', async (e) => {
+    const imageEl = e.target && e.target.closest ? e.target.closest('img[data-action="view-image"]') : null;
+    if (imageEl) {
+      openImageViewer(imageEl.dataset.entryId, imageEl.dataset.docLabel, imageEl.dataset.docSrc);
+      return;
+    }
+
     const btn = e.target && e.target.closest ? e.target.closest('button[data-action]') : null;
     if (!btn) return;
 

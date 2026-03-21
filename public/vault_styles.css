@@ -283,6 +283,14 @@ input:focus, textarea:focus, select:focus {
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.18);
   object-fit: cover;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.vault-doc-thumb:hover {
+  transform: scale(1.04);
+  border-color: rgba(255, 78, 2, 0.55);
+  box-shadow: 0 8px 18px rgba(255, 78, 2, 0.25);
 }
 
 .camera-modal {
@@ -321,6 +329,49 @@ input:focus, textarea:focus, select:focus {
 }
 
 .camera-modal-actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.image-viewer-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.78);
+  padding: 16px;
+}
+
+.image-viewer-modal.open {
+  display: flex;
+}
+
+.image-viewer-card {
+  width: min(820px, 100%);
+  background: rgba(10, 14, 24, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.image-viewer-header h3 {
+  margin: 0 0 10px;
+}
+
+#imageViewerPreview {
+  width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: #050505;
+}
+
+.image-viewer-actions {
   margin-top: 12px;
   display: flex;
   gap: 10px;
