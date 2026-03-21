@@ -84,9 +84,16 @@ const bankAccountNumberInput = document.getElementById('bankAccountNumber');
 const nicImageInput = document.getElementById('nicImage');
 const passportImageInput = document.getElementById('passportImage');
 const drivingLicenseImageInput = document.getElementById('drivingLicenseImage');
+const takePhotoButtons = document.querySelectorAll('.take-photo-btn');
 const nicImageStatus = document.getElementById('nicImageStatus');
 const passportImageStatus = document.getElementById('passportImageStatus');
 const drivingLicenseImageStatus = document.getElementById('drivingLicenseImageStatus');
+const cameraModal = document.getElementById('cameraModal');
+const cameraModalTitle = document.getElementById('cameraModalTitle');
+const cameraPreview = document.getElementById('cameraPreview');
+const cameraCanvas = document.getElementById('cameraCanvas');
+const cameraCancelBtn = document.getElementById('cameraCancelBtn');
+const cameraCaptureBtn = document.getElementById('cameraCaptureBtn');
 const notesInput = document.getElementById('notes');
 
 let entriesCache = [];
@@ -95,6 +102,8 @@ let passportImageState = null;
 let drivingLicenseImageState = null;
 
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
+let cameraStream = null;
+let activeCaptureTarget = null;
 
 function clearForm() {
   editingEntryIdInput.value = '';
@@ -153,6 +162,105 @@ function fileToDataUrl(file) {
     reader.onerror = () => reject(new Error('Unable to read selected image'));
     reader.readAsDataURL(file);
   });
+}
+
+function dataUrlToApproxBytes(dataUrl) {
+  if (!dataUrl || typeof dataUrl !== 'string') return 0;
+  const base64 = dataUrl.split(',')[1] || '';
+  return Math.floor((base64.length * 3) / 4);
+}
+
+function assignImageStateByTarget(target, imageObj) {
+  if (target === 'nicImage') nicImageState = imageObj;
+  if (target === 'passportImage') passportImageState = imageObj;
+  if (target === 'drivingLicenseImage') drivingLicenseImageState = imageObj;
+}
+
+async function stopCameraStream() {
+  if (!cameraStream) return;
+  cameraStream.getTracks().forEach((track) => track.stop());
+  cameraStream = null;
+  if (cameraPreview) cameraPreview.srcObject = null;
+}
+
+async function closeCameraModal() {
+  if (cameraModal) {
+    cameraModal.classList.remove('open');
+    cameraModal.setAttribute('aria-hidden', 'true');
+  }
+  await stopCameraStream();
+  activeCaptureTarget = null;
+}
+
+async function openCameraModal(target) {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    showToast('Camera access is not supported on this browser.', 'error');
+    return;
+  }
+
+  try {
+    activeCaptureTarget = target;
+    const label = target === 'nicImage'
+      ? 'NIC'
+      : target === 'passportImage'
+        ? 'Passport'
+        : 'Driving License';
+    if (cameraModalTitle) cameraModalTitle.textContent = `Take ${label} Photo`;
+
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment' },
+      audio: false,
+    });
+
+    if (cameraPreview) {
+      cameraPreview.srcObject = cameraStream;
+      await cameraPreview.play();
+    }
+    if (cameraModal) {
+      cameraModal.classList.add('open');
+      cameraModal.setAttribute('aria-hidden', 'false');
+    }
+  } catch (error) {
+    console.error('Camera open failed:', error);
+    showToast('Unable to access camera. Check browser permissions.', 'error');
+    await closeCameraModal();
+  }
+}
+
+async function capturePhotoFromCamera() {
+  if (!cameraPreview || !cameraCanvas || !activeCaptureTarget) return;
+
+  const width = cameraPreview.videoWidth || 1280;
+  const height = cameraPreview.videoHeight || 720;
+
+  cameraCanvas.width = width;
+  cameraCanvas.height = height;
+
+  const ctx = cameraCanvas.getContext('2d');
+  if (!ctx) {
+    showToast('Unable to capture image.', 'error');
+    return;
+  }
+
+  ctx.drawImage(cameraPreview, 0, 0, width, height);
+  const dataUrl = cameraCanvas.toDataURL('image/jpeg', 0.9);
+
+  const approxBytes = dataUrlToApproxBytes(dataUrl);
+  if (approxBytes > MAX_IMAGE_BYTES) {
+    showToast('Captured image is too large. Move closer and retry.', 'warning');
+    return;
+  }
+
+  const imageObj = {
+    name: `${activeCaptureTarget}_${Date.now()}.jpg`,
+    mimeType: 'image/jpeg',
+    dataUrl,
+  };
+
+  assignImageStateByTarget(activeCaptureTarget, imageObj);
+  updateImageStatusLabels();
+  showToast('Photo captured successfully.', 'success');
+  await closeCameraModal();
 }
 
 async function handleImageInputChange(fileInput, assignState) {
@@ -467,6 +575,35 @@ if (drivingLicenseImageInput) {
     handleImageInputChange(drivingLicenseImageInput, (img) => { drivingLicenseImageState = img; })
   );
 }
+if (takePhotoButtons && takePhotoButtons.length > 0) {
+  takePhotoButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.docTarget;
+      if (!target) return;
+      openCameraModal(target);
+    });
+  });
+}
+if (cameraCancelBtn) {
+  cameraCancelBtn.addEventListener('click', () => {
+    closeCameraModal();
+  });
+}
+if (cameraCaptureBtn) {
+  cameraCaptureBtn.addEventListener('click', () => {
+    capturePhotoFromCamera();
+  });
+}
+if (cameraModal) {
+  cameraModal.addEventListener('click', (event) => {
+    if (event.target === cameraModal) {
+      closeCameraModal();
+    }
+  });
+}
+window.addEventListener('beforeunload', () => {
+  stopCameraStream();
+});
 
 if (entriesList) {
   entriesList.addEventListener('click', async (e) => {
