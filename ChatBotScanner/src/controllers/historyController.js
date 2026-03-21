@@ -5,7 +5,7 @@ import { db } from '../config/firebase.js';
  */
 export const saveConversation = async (req, res, next) => {
   try {
-    const { userId, title, conversation } = req.body;
+    const { userId, title, conversation, id } = req.body;
 
     if (!userId || !conversation || !Array.isArray(conversation)) {
       return res.status(400).json({ 
@@ -13,12 +13,22 @@ export const saveConversation = async (req, res, next) => {
       });
     }
 
-    const conversationRef = db.collection('chat_history').doc(userId).collection('conversations').doc();
-    
+    const conversationsRef = db.collection('chat_history').doc(userId).collection('conversations');
+    const conversationRef = id ? conversationsRef.doc(id) : conversationsRef.doc();
+    let createdAt = new Date();
+
+    if (id) {
+      const existingConversation = await conversationRef.get();
+      if (existingConversation.exists) {
+        const existingData = existingConversation.data() || {};
+        createdAt = existingData.createdAt?.toDate?.() || existingData.createdAt || createdAt;
+      }
+    }
+
     await conversationRef.set({
       title: title || `Chat ${new Date().toLocaleString()}`,
       conversation: conversation,
-      createdAt: new Date(),
+      createdAt,
       updatedAt: new Date(),
       messageCount: conversation.length
     });

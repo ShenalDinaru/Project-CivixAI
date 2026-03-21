@@ -19,6 +19,27 @@
     z-index: 9999; display: flex; justify-content: center; align-items: center;
     pointer-events: none;
     flex-direction: column;
+    overflow: hidden;
+}
+
+.intro-overlay::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 1;
+    background: rgba(7, 10, 18, 0.34);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    transition: opacity 0.55s ease;
+}
+
+.intro-overlay.is-clearing::before {
+    opacity: 0;
+}
+
+.intro-overlay > * {
+    position: relative;
+    z-index: 1;
 }
 
 /* LOADING SCREEN */

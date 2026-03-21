@@ -19,7 +19,7 @@ const deleteConversationLink = document.getElementById('deleteConversationLink')
 const clearAllLink = document.getElementById('clearAllLink');
 
 // --- CONSTANTS ---
-const BOT_AVATAR = 'Resources/Chatbot icon - Elephant/elephant.png';
+const BOT_AVATAR = '/Resources/Chatbot icon - Elephant/elephant.png';
 const API_URL = `${window.location.origin}/api/chat/message`;
 const HISTORY_API_URL = `${window.location.origin}/api/history`;
 const STORAGE_KEY = 'civixai_chat_history';
@@ -190,6 +190,61 @@ function getConversationMessages(conversation) {
     return conversation?.messages || conversation?.conversation || [];
 }
 
+function getStoredConversationHistory() {
+    const history = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    return Array.isArray(history) ? history : [];
+}
+
+function getConversationSignature(conversation) {
+    const normalizedMessages = getConversationMessages(conversation)
+        .filter((message) =>
+            message &&
+            typeof message.role === 'string' &&
+            typeof message.content === 'string'
+        )
+        .map((message) => ({
+            role: message.role,
+            content: message.content.trim()
+        }));
+
+    if (normalizedMessages.length === 0) {
+        return null;
+    }
+
+    return JSON.stringify(normalizedMessages);
+}
+
+function findConversationById(conversationId) {
+    return openTabs.find((tab) => tab.id === conversationId) ||
+        allConversations.find((conversation) => conversation.id === conversationId) ||
+        getStoredConversationHistory().find((conversation) => conversation.id === conversationId) ||
+        null;
+}
+
+function getMatchingConversationIds(conversationId) {
+    const targetConversation = findConversationById(conversationId);
+    const matchingIds = new Set([conversationId]);
+    const targetSignature = getConversationSignature(targetConversation);
+
+    if (!targetSignature) {
+        return Array.from(matchingIds);
+    }
+
+    const candidates = [
+        ...openTabs,
+        ...allConversations,
+        ...getStoredConversationHistory()
+    ];
+
+    candidates.forEach((candidate) => {
+        if (candidate?.id && getConversationSignature(candidate) === targetSignature) {
+            matchingIds.add(candidate.id);
+        }
+    });
+
+    return Array.from(matchingIds);
+}
+
 function isInitialGreetingMessage(message, index, messages = []) {
     if (!message || message.role !== 'assistant' || index !== 0) {
         return false;
@@ -290,6 +345,7 @@ function startFlightAnimation() {
         const scale = 0.25; 
 
         uiCard.classList.add('visible');
+        introOverlay.classList.add('is-clearing');
 
         bigElephant.style.transform = `translate(${moveX}px, ${moveY}px) scale(${scale})`;
 
@@ -698,6 +754,7 @@ function updateSidebar() {
     
     // Get list of deleted conversation IDs
     const deletedIds = JSON.parse(localStorage.getItem(DELETED_KEY)) || [];
+    const openTabIds = new Set(openTabs.map(tab => tab.id));
 
     // Combine open tabs and closed conversations
     const allItems = [];
@@ -715,7 +772,7 @@ function updateSidebar() {
 
     // Add closed conversations (that are not deleted)
     allConversations.forEach(conv => {
-        if (!deletedIds.includes(conv.id)) {
+        if (!deletedIds.includes(conv.id) && !openTabIds.has(conv.id)) {
             const timestamp = new Date(conv.closedAt || conv.updatedAt || conv.timestamp || conv.createdAt).getTime();
             allItems.push({
                 data: conv,
@@ -768,7 +825,7 @@ function createConversationItem(conversation, isOpen) {
         e.stopPropagation();
         if (confirm('Delete this conversation?')) {
             if (isOpen) {
-                closeTab(conversation.id);
+                deleteConversation(conversation.id);
             } else {
                 deleteConversationFromHistory(conversation.id);
             }
@@ -827,8 +884,7 @@ async function saveTabToHistory(tab) {
  */
 function saveConversationToLocal(tabHistory) {
     try {
-        let history = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-        if (!Array.isArray(history)) history = [];
+        let history = getStoredConversationHistory();
 
         if (!conversationHasUserMessages(getConversationMessages(tabHistory))) {
             history = history.filter(h => h.id !== tabHistory.id);
@@ -922,6 +978,7 @@ async function saveTabToBackend(tabHistory) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
+                id: tabHistory.id,
                 userId: currentUserId,
                 title: tabHistory.title,
                 conversation: tabHistory.messages
@@ -1020,7 +1077,7 @@ async function loadAllConversations() {
         
         let loaded = [];
 
-        const localConvs = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        const localConvs = getStoredConversationHistory();
         loaded = [...localConvs];
 
         if (currentUserId) {
@@ -1062,12 +1119,22 @@ async function loadAllConversations() {
  * Load conversation from history
  */
 function loadConversationFromHistory(conversation) {
+    const existingTab = openTabs.find(tab => tab.id === conversation.id);
+    if (existingTab) {
+        switchToTab(existingTab.id);
+        return;
+    }
+
     const newTab = new ChatTab(conversation.title);
     newTab.messages = conversation.messages || conversation.conversation || [];
-    newTab.id = 'restored-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+    newTab.id = conversation.id;
+    newTab.isNamed = true;
+    newTab.createdAt = new Date(conversation.createdAt || conversation.timestamp || Date.now());
+    newTab.lastActivityAt = new Date(conversation.updatedAt || conversation.closedAt || conversation.timestamp || conversation.createdAt || Date.now());
     
     openTabs.push(newTab);
     switchToTab(newTab.id);
+    saveTabsToLocalStorage();
 }
 
 /**
@@ -1075,40 +1142,60 @@ function loadConversationFromHistory(conversation) {
  */
 async function deleteConversationFromHistory(conversationId) {
     try {
-        // Add to deleted list to track it
-        let deletedIds = JSON.parse(localStorage.getItem(DELETED_KEY)) || [];
-        if (!deletedIds.includes(conversationId)) {
-            deletedIds.push(conversationId);
-            localStorage.setItem(DELETED_KEY, JSON.stringify(deletedIds));
-        }
+        const deletedActiveTab = await deleteConversationRecords(conversationId);
 
-        // Delete from local storage
-        let history = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-        const originalLength = history.length;
-        history = history.filter(c => c.id !== conversationId);
-        
-        // Only update localStorage if something was actually deleted
-        if (history.length !== originalLength) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
-        }
-
-        // Delete from backend if not a local conversation
-        if (!conversationId.startsWith('local-') && currentUserId) {
-            try {
-                await fetch(`${HISTORY_API_URL}/${currentUserId}/${conversationId}`, {
-                    method: 'DELETE'
-                });
-            } catch (err) {
-                console.warn('Could not delete from backend:', err);
+        if (deletedActiveTab) {
+            if (openTabs.length === 0) {
+                createNewTab();
+            } else {
+                switchToTab(openTabs[openTabs.length - 1].id);
             }
         }
 
-        // Remove from all conversations list
-        allConversations = allConversations.filter(c => c.id !== conversationId);
         updateSidebar();
     } catch (err) {
         console.error('Error deleting conversation:', err);
     }
+}
+
+async function deleteConversationRecords(conversationId) {
+    const conversationIds = getMatchingConversationIds(conversationId);
+    const deletedActiveTab = Boolean(currentActiveTab && conversationIds.includes(currentActiveTab.id));
+
+    let deletedIds = JSON.parse(localStorage.getItem(DELETED_KEY)) || [];
+    conversationIds.forEach((id) => {
+        if (!deletedIds.includes(id)) {
+            deletedIds.push(id);
+        }
+    });
+    localStorage.setItem(DELETED_KEY, JSON.stringify(deletedIds));
+
+    const history = getStoredConversationHistory().filter((conversation) => !conversationIds.includes(conversation.id));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+
+    if (currentUserId) {
+        await Promise.all(conversationIds
+            .filter((id) => !id.startsWith('local-'))
+            .map(async (id) => {
+                try {
+                    await fetch(`${HISTORY_API_URL}/${currentUserId}/${id}`, {
+                        method: 'DELETE'
+                    });
+                } catch (err) {
+                    console.warn('Could not delete from backend:', err);
+                }
+            }));
+    }
+
+    allConversations = allConversations.filter((conversation) => !conversationIds.includes(conversation.id));
+    openTabs = openTabs.filter((tab) => !conversationIds.includes(tab.id));
+
+    if (deletedActiveTab) {
+        currentActiveTab = null;
+    }
+
+    saveTabsToLocalStorage();
+    return deletedActiveTab;
 }
 
 /**
@@ -1116,39 +1203,19 @@ async function deleteConversationFromHistory(conversationId) {
  */
 async function deleteConversation(tabId) {
     try {
-        // Add to deleted list to track it
-        let deletedIds = JSON.parse(localStorage.getItem(DELETED_KEY)) || [];
-        if (!deletedIds.includes(tabId)) {
-            deletedIds.push(tabId);
-            localStorage.setItem(DELETED_KEY, JSON.stringify(deletedIds));
-        }
+        const deletedActiveTab = await deleteConversationRecords(tabId);
 
-        // Delete from local storage
-        let history = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-        history = history.filter(c => c.id !== tabId);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
-
-        // Delete from backend if not local
-        if (!tabId.startsWith('local-') && currentUserId) {
-            try {
-                await fetch(`${HISTORY_API_URL}/${currentUserId}/${tabId}`, {
-                    method: 'DELETE'
-                });
-            } catch (err) {
-                console.warn('Could not delete from backend:', err);
+        if (deletedActiveTab || !currentActiveTab) {
+            if (openTabs.length === 0) {
+                createNewTab();
+            } else {
+                switchToTab(openTabs[openTabs.length - 1].id);
             }
+        } else {
+            updateSidebar();
         }
     } catch (err) {
         console.error('Error deleting conversation:', err);
-    }
-
-    // Remove from open tabs
-    openTabs = openTabs.filter(t => t.id !== tabId);
-
-    if (openTabs.length === 0) {
-        createNewTab();
-    } else {
-        switchToTab(openTabs[openTabs.length - 1].id);
     }
     
     await loadAllConversations();
