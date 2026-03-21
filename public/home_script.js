@@ -123,8 +123,10 @@ if (askBtn) {
   askBtn.addEventListener('click', () => {
     console.log('Start conversation clicked - navigate to chatbot');
     const chatbotUrl = window.APP_CONFIG?.chatbotUrl || 'http://localhost:3000/ChatbotScanner.html';
-    const separator = chatbotUrl.includes('?') ? '&' : '?';
-    window.location.href = `${chatbotUrl}${separator}origin=${encodeURIComponent(window.location.origin)}`;
+    const targetUrl = new URL(chatbotUrl, window.location.origin);
+    targetUrl.searchParams.set('origin', window.location.origin);
+    targetUrl.searchParams.set('newChat', 'true');
+    window.location.href = targetUrl.toString();
   });
 }
 

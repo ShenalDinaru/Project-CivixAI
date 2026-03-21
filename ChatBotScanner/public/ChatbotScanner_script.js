@@ -26,6 +26,8 @@ const STORAGE_KEY = 'civixai_chat_history';
 const TABS_STORAGE_KEY = 'civixai_open_tabs';
 const DELETED_KEY = 'civixai_deleted_conversations'; // Track deleted conversations
 const MIN_TYPING_INDICATOR_MS = 700;
+const DEFAULT_ASSISTANT_GREETING = "Hey! I'm Kandula, and I'm here to help you with your everyday civic tasks";
+const DOCUMENT_ANALYSIS_GREETING = 'Your document has been analysed. What would you like to know?';
 
 // --- MARKDOWN CONFIGURATION ---
 if (typeof marked !== 'undefined') {
@@ -95,6 +97,7 @@ function getSafeReturnOrigin() {
 }
 
 const returnOrigin = getSafeReturnOrigin();
+const entryContext = getEntryContext();
 
 if (homeLink) {
     homeLink.href = `${returnOrigin}/home.html`;
@@ -115,14 +118,8 @@ window.onload = function() {
     
     // Clean up deleted list to prevent it from growing too large
     cleanupDeletedList();
-    
-    // Restore open tabs or create first tab
-    const savedTabs = localStorage.getItem(TABS_STORAGE_KEY);
-    if (savedTabs && savedTabs.length > 2) {
-        restoreOpenTabs();
-    } else {
-        createNewTab();
-    }
+
+    initializeChatSession();
     
     // Load all conversations for sidebar
     loadAllConversations();
@@ -171,6 +168,68 @@ function cleanupDeletedList() {
     // No cleanup needed - we want to remember deletes forever
 }
 
+function conversationHasUserMessages(messages = []) {
+    return Array.isArray(messages) && messages.some((message) =>
+        message &&
+        message.role === 'user' &&
+        typeof message.content === 'string' &&
+        message.content.trim().length > 0
+    );
+}
+
+function tabHasUserMessages(tab) {
+    return Boolean(tab) && conversationHasUserMessages(tab.messages);
+}
+
+function getConversationMessages(conversation) {
+    return conversation?.messages || conversation?.conversation || [];
+}
+
+function getEntryContext() {
+    const params = new URLSearchParams(window.location.search);
+
+    return {
+        documentsLoaded: params.get('documentsLoaded') === 'true',
+        forceNewChat: params.get('newChat') === 'true' || params.get('documentsLoaded') === 'true'
+    };
+}
+
+function getEntryGreeting() {
+    return entryContext.documentsLoaded ? DOCUMENT_ANALYSIS_GREETING : DEFAULT_ASSISTANT_GREETING;
+}
+
+function cleanupEntryParams() {
+    const url = new URL(window.location.href);
+    let changed = false;
+
+    ['newChat', 'documentsLoaded'].forEach((param) => {
+        if (url.searchParams.has(param)) {
+            url.searchParams.delete(param);
+            changed = true;
+        }
+    });
+
+    if (changed) {
+        window.history.replaceState({}, document.title, `${url.pathname}${url.search}${url.hash}`);
+    }
+}
+
+function initializeChatSession() {
+    const savedTabs = localStorage.getItem(TABS_STORAGE_KEY);
+    if (savedTabs && savedTabs.length > 2) {
+        restoreOpenTabs();
+    }
+
+    if (entryContext.forceNewChat) {
+        createNewTab(null, { greeting: getEntryGreeting() });
+    } else if (!currentActiveTab) {
+        createNewTab();
+    }
+
+    cleanupEntryParams();
+    saveTabsToLocalStorage();
+}
+
 // --- 1. INTRO SEQUENCE (Text -> Flight) ---
 function runIntroSequence() {
     setTimeout(() => {
@@ -212,16 +271,6 @@ function startFlightAnimation() {
                 setTimeout(() => {
                     typingAvatarPopup.classList.remove('show');
                 }, 1000);
-                
-                const urlParams = new URLSearchParams(window.location.search);
-                const documentsLoaded = urlParams.get('documentsLoaded');
-                
-                if (documentsLoaded === 'true') {
-                    addMessage("Your document has been analysed. What would you like to know?", 'assistant');
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                } else {
-                    addMessage("Hey! I'm Kandula, and I'm here to help you with your tax and driving license related issues.", 'assistant');
-                }
             }, 200);
 
         }, 1200);
@@ -230,16 +279,6 @@ function startFlightAnimation() {
         console.error("Animation Fallback", e);
         uiCard.classList.add('visible');
         introOverlay.style.display = 'none';
-        
-        const urlParams = new URLSearchParams(window.location.search);
-        const documentsLoaded = urlParams.get('documentsLoaded');
-        
-        if (documentsLoaded === 'true') {
-            addMessage("Your document has been analysed. What would you like to know?", 'assistant');
-            window.history.replaceState({}, document.title, window.location.pathname);
-        } else {
-            addMessage("Hey! I'm Kandula, and I'm here to help you with your tax and driving license related issues.", 'assistant');
-        }
     }
 }
 
@@ -261,8 +300,9 @@ window.onclick = (e) => {
 };
 
 if (backBtn) backBtn.onclick = () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('documentsLoaded') === 'true' || document.referrer.includes('document_uploader')) {
+    saveTabsToLocalStorage();
+
+    if (entryContext.documentsLoaded || document.referrer.includes('document_uploader')) {
         window.location.href = `${returnOrigin}/document_uploader.html`;
     } else {
         window.location.href = `${returnOrigin}/home.html`;
@@ -511,6 +551,12 @@ function initializeEventListeners() {
     if (newConversationBtn) {
         newConversationBtn.onclick = () => createNewTab();
     }
+
+    if (homeLink) {
+        homeLink.addEventListener('click', () => {
+            saveTabsToLocalStorage();
+        });
+    }
     
     if (deleteConversationLink) {
         deleteConversationLink.onclick = (e) => {
@@ -536,7 +582,7 @@ function initializeEventListeners() {
 /**
  * Create a new chat tab
  */
-function createNewTab(title = null) {
+function createNewTab(title = null, options = {}) {
     if (currentActiveTab && currentActiveTab.messages.length > 0) {
         saveTabsToLocalStorage();
     }
@@ -548,9 +594,18 @@ function createNewTab(title = null) {
     updateSidebar();
     switchToTab(newTab.id);
     
-    setTimeout(() => {
-        addMessageToCurrentTab("Hey! I'm Kandula, and I'm here to help you with your tax related issues.", 'assistant');
-    }, 100);
+    const greeting = options.greeting || DEFAULT_ASSISTANT_GREETING;
+    if (greeting) {
+        setTimeout(() => {
+            if (newTab.messages.length === 0) {
+                addMessageToTab(newTab, greeting, 'assistant');
+
+                if (isTabActive(newTab)) {
+                    addMessageToUI(greeting, 'assistant');
+                }
+            }
+        }, 100);
+    }
     
     saveTabsToLocalStorage();
 }
@@ -587,7 +642,7 @@ async function closeTab(tabId) {
     const tab = openTabs.find(t => t.id === tabId);
     if (!tab) return;
 
-    if (tab.messages.length > 0) {
+    if (tabHasUserMessages(tab)) {
         await saveTabToHistory(tab);
     }
 
@@ -616,7 +671,7 @@ function updateSidebar() {
 
     // Add open tabs (that are not deleted)
     openTabs.forEach(tab => {
-        if (!deletedIds.includes(tab.id)) {
+        if (!deletedIds.includes(tab.id) && tabHasUserMessages(tab)) {
             allItems.push({
                 data: tab,
                 isOpen: true,
@@ -705,6 +760,10 @@ function updateHeaderTitle() {
  * Save tab to history
  */
 async function saveTabToHistory(tab) {
+    if (!tabHasUserMessages(tab)) {
+        return;
+    }
+
     try {
         let finalTitle = tab.title;
         if (tab.messages.length > 0 && finalTitle.startsWith('Chat ')) {
@@ -737,6 +796,12 @@ function saveConversationToLocal(tabHistory) {
     try {
         let history = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
         if (!Array.isArray(history)) history = [];
+
+        if (!conversationHasUserMessages(getConversationMessages(tabHistory))) {
+            history = history.filter(h => h.id !== tabHistory.id);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+            return;
+        }
         
         const existingIdx = history.findIndex(h => h.id === tabHistory.id);
         if (existingIdx >= 0) {
@@ -757,7 +822,7 @@ function saveConversationToLocal(tabHistory) {
  */
 function saveTabsToLocalStorage() {
     try {
-        const tabsData = openTabs.map(tab => ({
+        const tabsData = openTabs.filter(tabHasUserMessages).map(tab => ({
             id: tab.id,
             title: tab.title,
             messages: tab.messages,
@@ -765,7 +830,12 @@ function saveTabsToLocalStorage() {
             lastActivityAt: tab.lastActivityAt.toISOString(),
             isActive: tab.isActive
         }));
-        localStorage.setItem(TABS_STORAGE_KEY, JSON.stringify(tabsData));
+
+        if (tabsData.length > 0) {
+            localStorage.setItem(TABS_STORAGE_KEY, JSON.stringify(tabsData));
+        } else {
+            localStorage.removeItem(TABS_STORAGE_KEY);
+        }
     } catch (err) {
         console.error('Error saving open tabs:', err);
     }
@@ -782,7 +852,10 @@ function restoreOpenTabs() {
         const tabsData = JSON.parse(localStorage.getItem(TABS_STORAGE_KEY)) || [];
         if (Array.isArray(tabsData) && tabsData.length > 0) {
             // Filter out deleted tabs
-            const validTabsData = tabsData.filter(data => !deletedIds.includes(data.id));
+            const validTabsData = tabsData.filter(data =>
+                !deletedIds.includes(data.id) &&
+                conversationHasUserMessages(data.messages)
+            );
             
             openTabs = validTabsData.map(data => {
                 const tab = new ChatTab(data.title);
@@ -800,9 +873,6 @@ function restoreOpenTabs() {
                 switchToTab(activeTab.id);
             } else if (openTabs.length > 0) {
                 switchToTab(openTabs[0].id);
-            } else {
-                // If all open tabs were deleted, create a new one
-                createNewTab();
             }
         }
     } catch (err) {
@@ -932,8 +1002,11 @@ async function loadAllConversations() {
             }
         }
 
-        // Filter out deleted conversations
-        loaded = loaded.filter(c => !deletedIds.includes(c.id));
+        // Filter out deleted or empty conversations
+        loaded = loaded.filter(c =>
+            !deletedIds.includes(c.id) &&
+            conversationHasUserMessages(getConversationMessages(c))
+        );
 
         const unique = Array.from(
             new Map(loaded.map(c => [c.id, c])).values()
