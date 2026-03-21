@@ -270,7 +270,7 @@
   }
   
   .greeting-title {
-    font-size: 48px;
+    font-size: 250px;
     font-weight: 700;
     letter-spacing: -0.5px;
     margin-bottom: 8px;
@@ -281,7 +281,7 @@
   }
   
   .greeting-subtitle {
-    font-size: 18px;
+    font-size: 25px;
     opacity: 0.7;
     font-weight: 400;
     color: #ffffff;
