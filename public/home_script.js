@@ -336,3 +336,22 @@ if (notifBtn && notifPanel) {
     notifPanel.classList.remove('open');
   });
 }
+
+// Greeting section - populate with user's name
+function initializeGreeting() {
+  const greetingTitle = document.getElementById('greetingTitle');
+  if (!greetingTitle) return;
+
+  try {
+    const currentUser = sessionStorage.getItem('currentUser');
+    if (currentUser) {
+      const user = JSON.parse(currentUser);
+      const displayName = user.fullName || user.name || user.username || user.displayName || 'Welcome';
+      greetingTitle.textContent = `Hi, ${displayName}!`;
+    }
+  } catch (e) {
+    console.warn('Unable to load user information for greeting', e);
+  }
+}
+
+initializeGreeting();

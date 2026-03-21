@@ -261,6 +261,32 @@
     opacity: 0.75;
   }
   
+  /* Greeting Section */
+  .greeting-section {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 32px 24px;
+    animation: fadeInUp 0.6s ease 0.1s both;
+  }
+  
+  .greeting-title {
+    font-size: 48px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #60A5FA 0%, #A78BFA 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .greeting-subtitle {
+    font-size: 18px;
+    opacity: 0.7;
+    font-weight: 400;
+    color: #ffffff;
+  }
+  
   /* Neon Notification Bar */
   .neon-outline-container {
     position: relative;
