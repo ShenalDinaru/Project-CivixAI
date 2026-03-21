@@ -74,26 +74,38 @@ const entriesEmptyState = document.getElementById('entriesEmptyState');
 
 const editingEntryIdInput = document.getElementById('editingEntryId');
 
+const categoryInput = document.getElementById('category');
 const entryNameInput = document.getElementById('entryName');
 const nicInput = document.getElementById('nic');
 const vaultPasswordInput = document.getElementById('vaultPassword');
+const tinInput = document.getElementById('tin');
+const bankNameInput = document.getElementById('bankName');
+const bankAccountNumberInput = document.getElementById('bankAccountNumber');
 const notesInput = document.getElementById('notes');
 
 let entriesCache = [];
 
 function clearForm() {
   editingEntryIdInput.value = '';
+  categoryInput.value = 'general';
   entryNameInput.value = '';
   nicInput.value = '';
   vaultPasswordInput.value = '';
+  tinInput.value = '';
+  bankNameInput.value = '';
+  bankAccountNumberInput.value = '';
   notesInput.value = '';
 }
 
 function setFormFromEntry(entry) {
   editingEntryIdInput.value = entry.id || '';
+  categoryInput.value = entry.category || 'general';
   entryNameInput.value = entry.name || '';
   nicInput.value = entry.nic || '';
   vaultPasswordInput.value = entry.password || '';
+  tinInput.value = entry.tin || '';
+  bankNameInput.value = entry.bankName || '';
+  bankAccountNumberInput.value = entry.bankAccountNumber || '';
   notesInput.value = entry.notes || '';
 }
 
@@ -137,6 +149,11 @@ function renderEntries(entries) {
     name.className = 'vault-entry-name';
     name.textContent = entry.name || 'Untitled entry';
     left.appendChild(name);
+    const categoryLine = document.createElement('div');
+    categoryLine.style.color = 'rgba(255,255,255,0.72)';
+    categoryLine.style.marginTop = '4px';
+    categoryLine.textContent = `Category: ${entry.category || 'general'}`;
+    left.appendChild(categoryLine);
 
     const fields = document.createElement('div');
     fields.className = 'vault-entry-fields';
@@ -148,6 +165,24 @@ function renderEntries(entries) {
     const passwordLine = document.createElement('div');
     passwordLine.innerHTML = `<span class="mask">Password:</span> <span class="mask"></span>`;
     passwordLine.querySelector('span.mask:last-child').textContent = maskValue(entry.password);
+
+    const tinLine = document.createElement('div');
+    tinLine.innerHTML = `<span class="mask">TIN:</span> <span class="mask"></span>`;
+    tinLine.querySelector('span.mask:last-child').textContent = maskValue(entry.tin);
+
+    const bankNameLine = document.createElement('div');
+    const bankNameLabel = document.createElement('span');
+    bankNameLabel.className = 'mask';
+    bankNameLabel.textContent = 'Bank Name:';
+    bankNameLine.appendChild(bankNameLabel);
+    const bankNameText = document.createElement('span');
+    bankNameText.textContent = entry.bankName ? ` ${String(entry.bankName).slice(0, 60)}` : ' None';
+    if (!entry.bankName) bankNameText.style.color = 'rgba(255,255,255,0.55)';
+    bankNameLine.appendChild(bankNameText);
+
+    const bankAccountLine = document.createElement('div');
+    bankAccountLine.innerHTML = `<span class="mask">Bank A/C:</span> <span class="mask"></span>`;
+    bankAccountLine.querySelector('span.mask:last-child').textContent = maskValue(entry.bankAccountNumber);
 
     const notesLine = document.createElement('div');
     const notesLabel = document.createElement('span');
@@ -168,6 +203,9 @@ function renderEntries(entries) {
 
     fields.appendChild(nicLine);
     fields.appendChild(passwordLine);
+    fields.appendChild(tinLine);
+    fields.appendChild(bankNameLine);
+    fields.appendChild(bankAccountLine);
     fields.appendChild(notesLine);
     left.appendChild(fields);
 
@@ -223,8 +261,12 @@ async function saveEntry() {
   if (!userUID) return;
 
   const name = entryNameInput.value.trim();
+  const category = categoryInput.value || 'general';
   const nic = nicInput.value.trim();
   const password = vaultPasswordInput.value;
+  const tin = tinInput.value.trim();
+  const bankName = bankNameInput.value.trim();
+  const bankAccountNumber = bankAccountNumberInput.value.trim();
   const notes = notesInput.value.trim();
 
   if (!name) {
@@ -233,8 +275,8 @@ async function saveEntry() {
   }
 
   // Require at least one confidential field
-  if (!nic && !password && !notes) {
-    showToast('Add at least NIC, password, or notes.', 'warning');
+  if (!nic && !password && !tin && !bankName && !bankAccountNumber && !notes) {
+    showToast('Add at least one confidential field.', 'warning');
     return;
   }
 
@@ -247,9 +289,13 @@ async function saveEntry() {
     const data = await apiPost('/vault/entry', {
       userUID,
       id: editingId,
+      category,
       name,
       nic,
       password,
+      tin,
+      bankName,
+      bankAccountNumber,
       notes,
     });
 

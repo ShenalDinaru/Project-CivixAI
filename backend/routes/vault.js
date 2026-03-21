@@ -44,9 +44,13 @@ router.post('/entries', async (req, res) => {
       }
       return {
         id,
+        category: payload?.category || 'general',
         name: payload?.name || '',
         nic: payload?.nic || '',
         password: payload?.password || '',
+        tin: payload?.tin || '',
+        bankName: payload?.bankName || '',
+        bankAccountNumber: payload?.bankAccountNumber || '',
         notes: payload?.notes || '',
         createdAt: record?.createdAt || null,
         updatedAt: record?.updatedAt || null,
@@ -66,14 +70,18 @@ router.post('/entry', async (req, res) => {
     if (!userUID) return;
 
     const idFromClient = req.body?.id;
+    const category = requireString(req.body?.category) || 'general';
     const name = requireString(req.body?.name);
     const nic = typeof req.body?.nic === 'string' ? req.body.nic.trim() : '';
     const password = typeof req.body?.password === 'string' ? req.body.password : '';
+    const tin = typeof req.body?.tin === 'string' ? req.body.tin.trim() : '';
+    const bankName = typeof req.body?.bankName === 'string' ? req.body.bankName.trim() : '';
+    const bankAccountNumber = typeof req.body?.bankAccountNumber === 'string' ? req.body.bankAccountNumber.trim() : '';
     const notes = typeof req.body?.notes === 'string' ? req.body.notes.trim() : '';
 
     if (!name) return res.status(400).json({ success: false, message: 'Entry name is required' });
-    if (!nic && !password && !notes) {
-      return res.status(400).json({ success: false, message: 'At least NIC, password, or notes is required' });
+    if (!nic && !password && !tin && !bankName && !bankAccountNumber && !notes) {
+      return res.status(400).json({ success: false, message: 'At least one confidential field is required' });
     }
 
     const entryId = typeof idFromClient === 'string' && idFromClient.trim() ? idFromClient.trim() : crypto.randomBytes(16).toString('hex');
@@ -83,9 +91,13 @@ router.post('/entry', async (req, res) => {
     const existing = existingSnap.val();
 
     const encryptedData = encryptJson({
+      category,
       name,
       nic: nic || '',
       password: password || '',
+      tin: tin || '',
+      bankName: bankName || '',
+      bankAccountNumber: bankAccountNumber || '',
       notes: notes || '',
     });
 
