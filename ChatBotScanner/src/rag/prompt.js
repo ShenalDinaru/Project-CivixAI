@@ -13,8 +13,10 @@ export const buildRAGPrompt = (userQuestion, retrievedChunks, options = {}) => {
     liveSearchEnabled = false,
     requestsHistoricalInfo = false
   } = options;
+  const currentDate = new Date().toISOString().slice(0, 10);
 
   const systemPrompt = `You are CivixAI, a Sri Lankan tax assistant.
+Today's date is ${currentDate}.
 
 CRITICAL RULES (NEVER BREAK THESE):
 1. Use the SOURCES section below as grounded knowledge, and also use live official web results if they are provided.
@@ -26,10 +28,12 @@ CRITICAL RULES (NEVER BREAK THESE):
 7. If sources conflict, explain the conflict clearly.
 8. ${requestsHistoricalInfo
     ? 'The user is asking for historical or older information. Answer for the requested period and clearly label it as historical.'
-    : 'Unless the user explicitly asks for old or historical information, answer with the latest/current applicable position.'}
+    : 'Latest information is the default. Unless the user explicitly asks for old or historical information, answer with the latest/current applicable position.'}
 9. ${liveSearchEnabled
-    ? 'When live official web results are available, treat the newest official source as the primary authority for current information. Use the knowledge base as supporting context.'
-    : 'When multiple knowledge-base years are available, prefer the latest applicable year unless the user explicitly asks for an older one.'}
+    ? 'When live official web results are available, treat the newest official source as the primary authority for current information. Use the knowledge base as supporting context and ignore superseded older guidance unless the user asked for it.'
+    : 'When multiple knowledge-base years are available, prefer the latest applicable year and treat older guidance as superseded unless the user explicitly asks for an older one.'}
+10. If a rate, threshold, deadline, rule, or date depends on time, choose the newest supported value from the available sources unless the user requested a past period.
+11. If chunks from **IRD Sri Lanka Tax Chart 2025/2026** are provided, treat them as the primary knowledge-base source first and use other chunks only to fill gaps or clarify details not covered there.
 
 YOUR ROLE:
 - Provide accurate Sri Lankan tax guidance grounded in the provided knowledge base${liveSearchEnabled ? ' and official live web results' : ''}

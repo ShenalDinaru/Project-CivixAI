@@ -79,7 +79,11 @@ class VectorStore {
    * @returns {Array<Object>} Most relevant chunks with similarity scores
    */
   async search(queryEmbedding, topK = 5, minScore = 0.7, options = {}) {
-    const { preferLatest = true } = options;
+    const {
+      preferLatest = true,
+      documentIds = null,
+      excludeDocumentIds = []
+    } = options;
 
     if (this.chunks.length === 0) {
       console.warn('Vector store is empty');
@@ -91,10 +95,27 @@ class VectorStore {
     console.log(`Sample chunk embedding length: ${this.chunks[0].embedding?.length || 'N/A'}`);
 
     // Calculate similarity for each chunk
-    const results = this.chunks.map(chunk => ({
+    const allowedDocumentIds = Array.isArray(documentIds) && documentIds.length > 0
+      ? new Set(documentIds)
+      : null;
+    const excludedDocumentIds = new Set(Array.isArray(excludeDocumentIds) ? excludeDocumentIds : []);
+
+    const results = this.chunks
+      .filter((chunk) => {
+        if (allowedDocumentIds && !allowedDocumentIds.has(chunk.document_id)) {
+          return false;
+        }
+
+        if (excludedDocumentIds.has(chunk.document_id)) {
+          return false;
+        }
+
+        return true;
+      })
+      .map(chunk => ({
       ...chunk,
       score: this.cosineSimilarity(queryEmbedding, chunk.embedding)
-    }));
+      }));
 
     console.log(`Sample scores from first 5 chunks: ${results.slice(0, 5).map(r => r.score.toFixed(3)).join(', ')}`);
 

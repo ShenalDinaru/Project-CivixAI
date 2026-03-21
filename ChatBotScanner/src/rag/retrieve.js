@@ -1,6 +1,9 @@
 import { generateEmbedding } from './embed.js';
 import vectorStore from './vectorStore.js';
 
+const DEFAULT_MIN_SCORE = 0.25;
+const PRIMARY_TAX_CHART_MIN_SCORE = 0.35;
+
 /**
  * Retrieve relevant tax knowledge for a user's question
  * This is the "R" in RAG (Retrieval-Augmented Generation)
@@ -12,15 +15,54 @@ import vectorStore from './vectorStore.js';
  */
 export const retrieveRelevantChunks = async (query, topK = 5, options = {}) => {
   try {
+    const {
+      minScore = DEFAULT_MIN_SCORE,
+      primaryDocumentId = null,
+      primaryDocumentMinScore = PRIMARY_TAX_CHART_MIN_SCORE,
+      ...searchOptions
+    } = options;
+
     // Step 1: Convert question to embedding (semantic fingerprint)
     console.log('Embedding user query...');
     const queryEmbedding = await generateEmbedding(query);
 
     // Step 2: Search vector store for similar chunks
     console.log('Searching for relevant tax knowledge...');
-    const relevantChunks = await vectorStore.search(queryEmbedding, topK, 0.25, options);
+    if (!primaryDocumentId) {
+      return await vectorStore.search(queryEmbedding, topK, minScore, searchOptions);
+    }
 
-    return relevantChunks;
+    const primaryChunks = await vectorStore.search(
+      queryEmbedding,
+      topK,
+      Math.max(minScore, primaryDocumentMinScore),
+      {
+        ...searchOptions,
+        documentIds: [primaryDocumentId]
+      }
+    );
+
+    if (primaryChunks.length >= topK) {
+      return primaryChunks;
+    }
+
+    const fallbackChunks = await vectorStore.search(
+      queryEmbedding,
+      topK * 2,
+      minScore,
+      {
+        ...searchOptions,
+        excludeDocumentIds: [primaryDocumentId]
+      }
+    );
+
+    const seenChunkIds = new Set(primaryChunks.map((chunk) => chunk.chunk_id || chunk.id));
+    const combinedChunks = [
+      ...primaryChunks,
+      ...fallbackChunks.filter((chunk) => !seenChunkIds.has(chunk.chunk_id || chunk.id))
+    ].slice(0, topK);
+
+    return combinedChunks;
   } catch (error) {
     console.error('Retrieval error:', error);
     throw new Error(`Failed to retrieve relevant knowledge: ${error.message}`);

@@ -1,8 +1,10 @@
 import axios from 'axios';
 
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+const getCurrentDateLabel = () => new Date().toISOString().slice(0, 10);
 
 const DEFAULT_WEB_SEARCH_PROMPT = `A web search was conducted to verify the most current answer.
+Today's date is ${getCurrentDateLabel()}.
 Use the official search results to keep the response up to date.
 Prefer the newest applicable official guidance when multiple versions exist.
 Cite web-derived claims using short markdown links.`;
@@ -73,7 +75,10 @@ export const generateResponse = async (
   }
 
   // Use custom system prompt (for RAG) or default
-  const systemContent = customSystemPrompt || `You are CivixAI, a helpful and knowledgeable personal tax assistant catering to Sri Lankan citizens. Your role is to:
+  const systemContent = customSystemPrompt || `You are CivixAI, a helpful and knowledgeable personal tax assistant catering to Sri Lankan citizens.
+Today's date is ${getCurrentDateLabel()}.
+
+Your role is to:
 
 - Provide clear, accurate information about tax laws, deductions, and credits
 - Help users understand their tax obligations and opportunities
@@ -83,6 +88,9 @@ export const generateResponse = async (
 - Stay current with tax regulations and changes
 
 IMPORTANT GUIDELINES:
+- Unless the user explicitly asks for older or historical information, answer using the latest/current information available to you
+- If the user asks for historical information, clearly label the answer as historical and do not mix it with current guidance
+- If multiple dates, rates, thresholds, or rules could apply, prefer the newest applicable one unless the user asked for a past period
 - Always remind users that while you provide helpful information, you are not a substitute for a licensed tax professional or CPA
 - Recommend consulting with a tax professional for complex situations or before making major financial decisions
 - Be honest when you don't have enough information to provide specific advice

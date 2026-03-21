@@ -4,6 +4,9 @@ import { generateResponse } from './openRouterService.js';
 import vectorStore from '../rag/vectorStore.js';
 import { analyzeQueryIntent, OFFICIAL_TAX_SOURCE_DOMAINS } from '../utils/queryIntent.js';
 
+const getCurrentDateLabel = () => new Date().toISOString().slice(0, 10);
+const PRIMARY_TAX_CHART_DOCUMENT_ID = 'ird_tax_chart_2025_2026';
+
 const buildKnowledgeBaseSources = (relevantChunks = []) => relevantChunks.map((chunk) => ({
   title: chunk.title,
   section: chunk.section,
@@ -14,9 +17,10 @@ const buildKnowledgeBaseSources = (relevantChunks = []) => relevantChunks.map((c
 }));
 
 const buildWebSearchPrompt = (requestsHistoricalInfo) => `A web search was conducted to verify the answer with official Sri Lankan tax sources.
+Today's date is ${getCurrentDateLabel()}.
 ${requestsHistoricalInfo
   ? 'The user explicitly asked for historical information. Prefer official sources that match the requested period.'
-  : 'Unless the user explicitly asked for old information, prefer the newest currently applicable official guidance.'}
+  : 'Unless the user explicitly asked for old information, prefer the newest currently applicable official guidance and ignore superseded older guidance.'}
 Cite web-derived claims using short markdown links.`;
 
 const buildResponsePayload = (response, relevantChunks = [], intent = {}) => {
@@ -34,7 +38,7 @@ const buildResponsePayload = (response, relevantChunks = [], intent = {}) => {
     live: response.webSearch || { used: false, sources: [] },
     intent: {
       historical: intent.requestsHistoricalInfo || false,
-      latestByDefault: intent.wantsLatestInfo || false
+      latestByDefault: !intent.requestsHistoricalInfo
     }
   };
 };
@@ -84,9 +88,10 @@ export const generateRAGResponse = async (userMessage, conversationHistory = [])
   const hasKnowledgeBase = stats.totalChunks > 0;
   const hasUserDocuments = vectorStore.hasUserDocuments();
   const taxQuestion = needsRAG(userMessage);
-  const intent = analyzeQueryIntent(userMessage);
+  const intent = analyzeQueryIntent(userMessage, conversationHistory);
   const shouldUseKnowledgeBase = hasKnowledgeBase && (hasUserDocuments || taxQuestion);
-  const shouldUseLiveSearch = taxQuestion && intent.wantsLatestInfo;
+  const shouldUseLiveSearch = taxQuestion && !intent.requestsHistoricalInfo;
+  const shouldPreferTaxChartFirst = taxQuestion && !intent.referencesUploadedDocuments;
 
   try {
     if (!shouldUseKnowledgeBase && !shouldUseLiveSearch) {
@@ -104,13 +109,16 @@ export const generateRAGResponse = async (userMessage, conversationHistory = [])
     console.log('\n=== RAG Pipeline ===');
     console.log('User question:', userMessage.substring(0, 100) + '...');
     console.log('Historical query:', intent.requestsHistoricalInfo);
+    console.log('Latest-by-default:', !intent.requestsHistoricalInfo);
     console.log('Live search enabled:', shouldUseLiveSearch);
+    console.log('Tax chart prioritized:', shouldPreferTaxChartFirst);
 
     let relevantChunks = [];
 
     if (shouldUseKnowledgeBase) {
       relevantChunks = await retrieveRelevantChunks(userMessage, 5, {
-        preferLatest: intent.wantsLatestInfo
+        preferLatest: intent.wantsLatestInfo,
+        primaryDocumentId: shouldPreferTaxChartFirst ? PRIMARY_TAX_CHART_DOCUMENT_ID : null
       });
       console.log(`Retrieved ${relevantChunks.length} relevant chunks`);
     }
@@ -139,7 +147,8 @@ export const generateRAGResponse = async (userMessage, conversationHistory = [])
         console.log('Falling back to knowledge base only');
 
         const fallbackChunks = await retrieveRelevantChunks(userMessage, 5, {
-          preferLatest: intent.wantsLatestInfo
+          preferLatest: intent.wantsLatestInfo,
+          primaryDocumentId: shouldPreferTaxChartFirst ? PRIMARY_TAX_CHART_DOCUMENT_ID : null
         });
 
         const fallbackPrompt = buildRAGPrompt(userMessage, fallbackChunks, {
