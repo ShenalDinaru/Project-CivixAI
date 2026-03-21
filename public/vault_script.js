@@ -68,7 +68,6 @@ const editingEntryIdInput = document.getElementById('editingEntryId');
 
 const entryNameInput = document.getElementById('entryName');
 const nicInput = document.getElementById('nic');
-const vaultPasswordInput = document.getElementById('vaultPassword');
 const tinInput = document.getElementById('tin');
 const bankNameInput = document.getElementById('bankName');
 const bankAccountNumberInput = document.getElementById('bankAccountNumber');
@@ -100,7 +99,6 @@ function clearForm() {
   editingEntryIdInput.value = '';
   entryNameInput.value = '';
   nicInput.value = '';
-  vaultPasswordInput.value = '';
   tinInput.value = '';
   bankNameInput.value = '';
   bankAccountNumberInput.value = '';
@@ -118,7 +116,6 @@ function setFormFromEntry(entry) {
   editingEntryIdInput.value = entry.id || '';
   entryNameInput.value = entry.name || '';
   nicInput.value = entry.nic || '';
-  vaultPasswordInput.value = entry.password || '';
   tinInput.value = entry.tin || '';
   bankNameInput.value = entry.bankName || '';
   bankAccountNumberInput.value = entry.bankAccountNumber || '';
@@ -332,11 +329,6 @@ function renderEntries(entries) {
     nicLine.querySelector('span:last-child').textContent = entry.nic || ' None';
     if (!entry.nic) nicLine.querySelector('span:last-child').style.color = 'rgba(255,255,255,0.55)';
 
-    const passwordLine = document.createElement('div');
-    passwordLine.innerHTML = `<span class="mask">Password:</span> <span></span>`;
-    passwordLine.querySelector('span:last-child').textContent = entry.password || ' None';
-    if (!entry.password) passwordLine.querySelector('span:last-child').style.color = 'rgba(255,255,255,0.55)';
-
     const tinLine = document.createElement('div');
     tinLine.innerHTML = `<span class="mask">TIN:</span> <span></span>`;
     tinLine.querySelector('span:last-child').textContent = entry.tin || ' None';
@@ -375,7 +367,6 @@ function renderEntries(entries) {
     }
 
     fields.appendChild(nicLine);
-    fields.appendChild(passwordLine);
     fields.appendChild(tinLine);
     fields.appendChild(bankNameLine);
     fields.appendChild(bankAccountLine);
@@ -455,7 +446,6 @@ async function saveEntry() {
 
   const name = entryNameInput.value.trim();
   const nic = nicInput.value.trim();
-  const password = vaultPasswordInput.value;
   const tin = tinInput.value.trim();
   const bankName = bankNameInput.value.trim();
   const bankAccountNumber = bankAccountNumberInput.value.trim();
@@ -467,7 +457,7 @@ async function saveEntry() {
   }
 
   // Require at least one confidential field
-  if (!nic && !password && !tin && !bankName && !bankAccountNumber && !notes
+  if (!nic && !tin && !bankName && !bankAccountNumber && !notes
     && !nicImageState && !passportImageState && !drivingLicenseImageState) {
     showToast('Add at least one confidential field.', 'warning');
     return;
@@ -484,7 +474,6 @@ async function saveEntry() {
       id: editingId,
       name,
       nic,
-      password,
       tin,
       bankName,
       bankAccountNumber,
