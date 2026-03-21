@@ -144,8 +144,7 @@ const vaultCard = document.getElementById('vaultCard');
 if (vaultCard) {
   vaultCard.addEventListener('click', () => {
     console.log("Vault clicked - navigate to vault page");
-    // TODO: Navigate to vault page
-    alert('Opening vault page...');
+    window.location.href = 'vault.html';
   });
 }
 

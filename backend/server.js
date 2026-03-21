@@ -5,6 +5,7 @@ const path = require('path'); // ✅ move here
 require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
+const vaultRoutes = require('./routes/vault');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -43,6 +44,7 @@ app.get('/', (req, res) => {
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/vault', vaultRoutes);
 
 // Health Check
 app.get('/api/health', (req, res) => {

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CivixAI | Vault</title>
+  <link rel="stylesheet" href="vault_styles.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-left">
+        <button class="back-btn" id="backBtn" type="button" aria-label="Back">
+          <img src="/Resources/Icons/Back Icon.svg" alt="Back">
+        </button>
+      </div>
+      <div class="nav-right">
+        <button class="logout-btn" id="logoutBtn" type="button" aria-label="Logout">
+          <img src="/Resources/Icons/Exit Icon.svg" alt="Logout">
+          <span>Logout</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="main-content">
+    <div class="content-wrapper">
+      <main class="settings-panel">
+        <div class="panel-header">
+          <h1 class="panel-title">Vault</h1>
+          <p class="panel-subtitle">Store confidential information privately (encrypted at rest)</p>
+        </div>
+
+        <div class="settings-card">
+          <h2 class="card-title">Add / Edit Entry</h2>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="entryName">Entry Name</label>
+              <input type="text" id="entryName" placeholder="e.g. Bank Login" maxlength="60">
+            </div>
+
+            <div class="form-group">
+              <label for="nic">NIC</label>
+              <input type="text" id="nic" placeholder="e.g. 123456789V" maxlength="30">
+            </div>
+
+            <div class="form-group">
+              <label for="vaultPassword">Password</label>
+              <input type="password" id="vaultPassword" placeholder="Confidential password" maxlength="200">
+            </div>
+
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label for="notes">Notes (optional)</label>
+              <textarea id="notes" rows="4" placeholder="Any extra context..."></textarea>
+            </div>
+          </div>
+
+          <input type="hidden" id="editingEntryId" value="">
+
+          <div class="form-actions">
+            <button type="button" class="btn-primary" id="saveEntryBtn">
+              Save Entry
+            </button>
+            <button type="button" class="btn-secondary" id="clearFormBtn">
+              Clear
+            </button>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="list-header">
+            <h2 class="card-title">Saved Entries</h2>
+            <button type="button" class="btn-secondary small" id="refreshEntriesBtn">Refresh</button>
+          </div>
+          <div id="entriesList" class="entries-list">
+            <div class="empty-state" id="entriesEmptyState">
+              No vault entries yet.
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="vault_script.js"></script>
+</body>
+</html>
+
