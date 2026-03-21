@@ -347,7 +347,7 @@ function initializeGreeting() {
     if (currentUser) {
       const user = JSON.parse(currentUser);
       const displayName = user.fullName || user.name || user.username || user.displayName || 'Welcome';
-      greetingTitle.textContent = `Hi, ${displayName}!`;
+      greetingTitle.textContent = `Hi ${displayName}!`;
     }
   } catch (e) {
     console.warn('Unable to load user information for greeting', e);
