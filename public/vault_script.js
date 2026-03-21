@@ -54,16 +54,8 @@ function showToast(message, type = 'info') {
   setTimeout(() => el.remove(), 3200);
 }
 
-function maskValue(value) {
-  if (!value) return '';
-  const str = String(value);
-  const count = Math.min(10, Math.max(4, str.length));
-  return '•'.repeat(count);
-}
-
 // Elements
 const backBtn = document.getElementById('backBtn');
-const logoutBtn = document.getElementById('logoutBtn');
 
 const saveEntryBtn = document.getElementById('saveEntryBtn');
 const clearFormBtn = document.getElementById('clearFormBtn');
@@ -74,7 +66,6 @@ const entriesEmptyState = document.getElementById('entriesEmptyState');
 
 const editingEntryIdInput = document.getElementById('editingEntryId');
 
-const categoryInput = document.getElementById('category');
 const entryNameInput = document.getElementById('entryName');
 const nicInput = document.getElementById('nic');
 const vaultPasswordInput = document.getElementById('vaultPassword');
@@ -107,7 +98,6 @@ let activeCaptureTarget = null;
 
 function clearForm() {
   editingEntryIdInput.value = '';
-  categoryInput.value = 'general';
   entryNameInput.value = '';
   nicInput.value = '';
   vaultPasswordInput.value = '';
@@ -126,7 +116,6 @@ function clearForm() {
 
 function setFormFromEntry(entry) {
   editingEntryIdInput.value = entry.id || '';
-  categoryInput.value = entry.category || 'general';
   entryNameInput.value = entry.name || '';
   nicInput.value = entry.nic || '';
   vaultPasswordInput.value = entry.password || '';
@@ -334,26 +323,24 @@ function renderEntries(entries) {
     name.className = 'vault-entry-name';
     name.textContent = entry.name || 'Untitled entry';
     left.appendChild(name);
-    const categoryLine = document.createElement('div');
-    categoryLine.style.color = 'rgba(255,255,255,0.72)';
-    categoryLine.style.marginTop = '4px';
-    categoryLine.textContent = `Category: ${entry.category || 'general'}`;
-    left.appendChild(categoryLine);
 
     const fields = document.createElement('div');
     fields.className = 'vault-entry-fields';
 
     const nicLine = document.createElement('div');
-    nicLine.innerHTML = `<span class="mask">NIC:</span> <span class="mask"></span>`;
-    nicLine.querySelector('span.mask:last-child').textContent = maskValue(entry.nic);
+    nicLine.innerHTML = `<span class="mask">NIC:</span> <span></span>`;
+    nicLine.querySelector('span:last-child').textContent = entry.nic || ' None';
+    if (!entry.nic) nicLine.querySelector('span:last-child').style.color = 'rgba(255,255,255,0.55)';
 
     const passwordLine = document.createElement('div');
-    passwordLine.innerHTML = `<span class="mask">Password:</span> <span class="mask"></span>`;
-    passwordLine.querySelector('span.mask:last-child').textContent = maskValue(entry.password);
+    passwordLine.innerHTML = `<span class="mask">Password:</span> <span></span>`;
+    passwordLine.querySelector('span:last-child').textContent = entry.password || ' None';
+    if (!entry.password) passwordLine.querySelector('span:last-child').style.color = 'rgba(255,255,255,0.55)';
 
     const tinLine = document.createElement('div');
-    tinLine.innerHTML = `<span class="mask">TIN:</span> <span class="mask"></span>`;
-    tinLine.querySelector('span.mask:last-child').textContent = maskValue(entry.tin);
+    tinLine.innerHTML = `<span class="mask">TIN:</span> <span></span>`;
+    tinLine.querySelector('span:last-child').textContent = entry.tin || ' None';
+    if (!entry.tin) tinLine.querySelector('span:last-child').style.color = 'rgba(255,255,255,0.55)';
 
     const bankNameLine = document.createElement('div');
     const bankNameLabel = document.createElement('span');
@@ -366,8 +353,9 @@ function renderEntries(entries) {
     bankNameLine.appendChild(bankNameText);
 
     const bankAccountLine = document.createElement('div');
-    bankAccountLine.innerHTML = `<span class="mask">Bank A/C:</span> <span class="mask"></span>`;
-    bankAccountLine.querySelector('span.mask:last-child').textContent = maskValue(entry.bankAccountNumber);
+    bankAccountLine.innerHTML = `<span class="mask">Bank A/C:</span> <span></span>`;
+    bankAccountLine.querySelector('span:last-child').textContent = entry.bankAccountNumber || ' None';
+    if (!entry.bankAccountNumber) bankAccountLine.querySelector('span:last-child').style.color = 'rgba(255,255,255,0.55)';
 
     const notesLine = document.createElement('div');
     const notesLabel = document.createElement('span');
@@ -466,7 +454,6 @@ async function saveEntry() {
   if (!userUID) return;
 
   const name = entryNameInput.value.trim();
-  const category = categoryInput.value || 'general';
   const nic = nicInput.value.trim();
   const password = vaultPasswordInput.value;
   const tin = tinInput.value.trim();
@@ -495,7 +482,6 @@ async function saveEntry() {
     const data = await apiPost('/vault/entry', {
       userUID,
       id: editingId,
-      category,
       name,
       nic,
       password,
@@ -546,15 +532,6 @@ async function deleteEntry(entryId) {
 // Events
 if (backBtn) {
   backBtn.addEventListener('click', () => window.location.href = 'home.html');
-}
-
-if (logoutBtn) {
-  logoutBtn.addEventListener('click', () => {
-    if (!confirm('Are you sure you want to logout?')) return;
-    sessionStorage.removeItem('currentUser');
-    sessionStorage.removeItem('userUID');
-    window.location.replace('LoginPG.html');
-  });
 }
 
 if (saveEntryBtn) saveEntryBtn.addEventListener('click', saveEntry);
