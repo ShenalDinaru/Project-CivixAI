@@ -28,6 +28,10 @@
       "dest": "/backend/server.js"
     },
     {
+      "src": "/api/vault/(.*)",
+      "dest": "/backend/server.js"
+    },
+    {
       "src": "/api/health",
       "dest": "/backend/server.js"
     },

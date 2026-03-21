@@ -5,10 +5,18 @@ const path = require('path'); // ✅ move here
 require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
+const vaultRoutes = require('./routes/vault');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 const isVercel = process.env.VERCEL === '1';
+
+// Startup check for vault encryption configuration
+if (!process.env.VAULT_ENCRYPTION_KEY || !process.env.VAULT_ENCRYPTION_KEY.trim()) {
+    console.warn('⚠️  VAULT_ENCRYPTION_KEY is missing. Vault save/load endpoints will fail until it is set.');
+} else {
+    console.log('✅ VAULT_ENCRYPTION_KEY is configured.');
+}
 
 app.use(express.static(path.join(__dirname, '../public')));
 app.use('/Resources', express.static(path.join(__dirname, '../Resources')));
@@ -43,6 +51,7 @@ app.get('/', (req, res) => {
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/vault', vaultRoutes);
 
 // Health Check
 app.get('/api/health', (req, res) => {
