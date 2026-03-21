@@ -7,9 +7,10 @@ import vectorStore from './vectorStore.js';
  * 
  * @param {string} query - User's question
  * @param {number} topK - Number of chunks to retrieve
+ * @param {Object} options - Retrieval options
  * @returns {Promise<Array<Object>>} Relevant chunks with sources
  */
-export const retrieveRelevantChunks = async (query, topK = 5) => {
+export const retrieveRelevantChunks = async (query, topK = 5, options = {}) => {
   try {
     // Step 1: Convert question to embedding (semantic fingerprint)
     console.log('Embedding user query...');
@@ -17,7 +18,7 @@ export const retrieveRelevantChunks = async (query, topK = 5) => {
 
     // Step 2: Search vector store for similar chunks
     console.log('Searching for relevant tax knowledge...');
-    const relevantChunks = await vectorStore.search(queryEmbedding, topK, 0.25);
+    const relevantChunks = await vectorStore.search(queryEmbedding, topK, 0.25, options);
 
     return relevantChunks;
   } catch (error) {
