@@ -48,8 +48,8 @@ class ChatTab {
         this.isNamed = false;
     }
 
-    addMessage(role, content) {
-        this.messages.push({ role, content });
+    addMessage(role, content, sources = []) {
+        this.messages.push({ role, content, sources });
         this.lastActivityAt = new Date();  // Update activity time on new message
     }
 
@@ -294,16 +294,17 @@ async function sendMessage() {
     const thinkingId = showThinking();
 
     try {
+        const conversationHistory = currentActiveTab.messages.map(({ role, content }) => ({ role, content }));
         const res = await fetch(API_URL, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ message: txt, conversationHistory: currentActiveTab.messages })
+            body: JSON.stringify({ message: txt, conversationHistory })
         });
         const data = await res.json();
         document.getElementById(thinkingId)?.remove();
 
         if (data.success) {
-            addMessageToCurrentTab(data.response, 'assistant', data.rag?.sources);
+            addMessageToCurrentTab(data.response, 'assistant', data.sources || data.rag?.sources);
             typingAvatarPopup.classList.add('show');
             setTimeout(() => typingAvatarPopup.classList.remove('show'), 2000);
             
@@ -413,7 +414,7 @@ function switchToTab(tabId) {
 
     chatContainer.innerHTML = '';
     tab.messages.forEach(msg => {
-        addMessageToUI(msg.content, msg.role);
+        addMessageToUI(msg.content, msg.role, msg.sources);
     });
 
     updateSidebar();
@@ -682,7 +683,7 @@ function addMessageToCurrentTab(text, sender, sources) {
         const userMessageCount = currentActiveTab.getUserMessageCount();  
         const isFirstUserMessage = sender === 'user' && userMessageCount === 0;
         
-        currentActiveTab.addMessage(sender === 'assistant' ? 'assistant' : 'user', text);
+        currentActiveTab.addMessage(sender === 'assistant' ? 'assistant' : 'user', text, sources || []);
         
         if (isFirstUserMessage) {
             autoRenameTab(text);
@@ -732,7 +733,10 @@ function addMessageToUI(text, sender, sources) {
         sourcesHtml = '<div class="message-sources"><span class="sources-label">Sources</span><ul class="sources-list">' +
             sources.map((s, i) => {
                 const name = s.title || s.source || 'Source ' + (i + 1);
-                const parts = [escapeHtml(name)];
+                const linkedName = s.url
+                    ? `<a href="${escapeHtml(s.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(name)}</a>`
+                    : escapeHtml(name);
+                const parts = [linkedName];
                 if (s.section) parts.push(escapeHtml(s.section));
                 if (s.year) parts.push(String(s.year));
                 return '<li class="source-item">' + parts.join(' · ') + '</li>';

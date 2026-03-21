@@ -64,7 +64,7 @@ export const generateBatchEmbeddings = async (chunks) => {
           embedding
         };
       } catch (error) {
-        console.error(`Failed to embed chunk ${chunk.id}:`, error.message);
+        console.error(`Failed to embed chunk ${chunk.id || chunk.chunk_id || 'unknown'}:`, error.message);
         return null;
       }
     });

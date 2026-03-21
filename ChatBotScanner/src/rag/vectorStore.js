@@ -75,9 +75,12 @@ class VectorStore {
    * @param {number[]} queryEmbedding - Embedding of the user's question
    * @param {number} topK - Number of results to return
    * @param {number} minScore - Minimum similarity score (0-1)
+   * @param {Object} options - Search options
    * @returns {Array<Object>} Most relevant chunks with similarity scores
    */
-  async search(queryEmbedding, topK = 5, minScore = 0.7) {
+  async search(queryEmbedding, topK = 5, minScore = 0.7, options = {}) {
+    const { preferLatest = true } = options;
+
     if (this.chunks.length === 0) {
       console.warn('Vector store is empty');
       return [];
@@ -95,19 +98,20 @@ class VectorStore {
 
     console.log(`Sample scores from first 5 chunks: ${results.slice(0, 5).map(r => r.score.toFixed(3)).join(', ')}`);
 
-    // Sort by similarity (highest first) and filter by minimum score
-    // When scores are close (within 0.05), prioritize latest year
+    // Sort by similarity (highest first) and filter by minimum score.
+    // For current queries, use a wider tie-break window to favor newer guidance.
+    const recencyTieBreakWindow = preferLatest ? 0.12 : 0.05;
+
     const topResults = results
       .filter(r => r.score >= minScore)
       .sort((a, b) => {
         const scoreDiff = b.score - a.score;
         
-        // If scores are similar (within 5%), prefer latest year
-        if (Math.abs(scoreDiff) < 0.05) {
+        if (Math.abs(scoreDiff) < recencyTieBreakWindow) {
           const yearA = this.extractYear(a.year);
           const yearB = this.extractYear(b.year);
           
-          if (yearA && yearB) {
+          if (preferLatest && yearA && yearB) {
             return yearB - yearA; // Latest year first
           }
         }
