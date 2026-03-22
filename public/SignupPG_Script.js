@@ -88,12 +88,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Phone Validation 
         const phoneValue = phone.value.trim();
-        if (phoneValue !== "") {
+        if (!phoneValue) {
+            phone.parentElement.classList.add('input-error');
+            alert('Phone number is required');
+            isValid = false;
+        } else {
             const phonePattern = /^(?:\+94|0)?[7][0-9]{8}$/; 
             if (!phonePattern.test(phoneValue)) {
                 phone.parentElement.classList.add('input-error');
                 isValid = false;
-                alert("Please enter a valid phone number.");
+                alert("Please enter a valid Sri Lankan phone number (e.g., +94771234567 or 0771234567).");
             }
         }
 
