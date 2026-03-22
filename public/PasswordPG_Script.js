@@ -123,6 +123,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Store email for verification page
                 sessionStorage.setItem('registeredEmail', result.user.email);
                 sessionStorage.removeItem('pendingRegistration');
+
+                if (result.emailSent === false) {
+                    alert(result.message || 'Your account was created, but we could not send the verification email. Please use the resend option on the next page.');
+                }
                 
                 // Redirect to email verification
                 setTimeout(() => {

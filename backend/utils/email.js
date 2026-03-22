@@ -1,31 +1,38 @@
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
-// Configure email transporter
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD
-    }
-});
+function getEmailAuth() {
+    const user = process.env.EMAIL_USER?.trim();
+    const pass = process.env.EMAIL_PASSWORD;
 
-// Verify transporter connection
-transporter.verify((error, success) => {
-    if (error) {
-        console.error(' Email transporter error:', error);
-    } else {
-        console.log(' Email service is ready to send emails');
+    if (!user || !pass) {
+        throw new Error('Email service is not configured. Set EMAIL_USER and EMAIL_PASSWORD.');
     }
-});
+
+    return { user, pass };
+}
+
+function createTransporter() {
+    const { user, pass } = getEmailAuth();
+
+    return nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user,
+            pass
+        }
+    });
+}
 
 /**
  * Send verification email
  */
 const sendVerificationEmail = async (email, verificationLink, firstName) => {
     try {
+        const { user } = getEmailAuth();
+        const transporter = createTransporter();
         const mailOptions = {
-            from: process.env.EMAIL_USER,
+            from: user,
             to: email,
             subject: 'Verify Your CivixAI Email',
             html: `
@@ -144,8 +151,10 @@ const sendVerificationEmail = async (email, verificationLink, firstName) => {
  */
 const sendPasswordResetEmail = async (email, resetLink, firstName) => {
     try {
+        const { user } = getEmailAuth();
+        const transporter = createTransporter();
         const mailOptions = {
-            from: process.env.EMAIL_USER,
+            from: user,
             to: email,
             subject: 'Reset Your CivixAI Password',
             html: `

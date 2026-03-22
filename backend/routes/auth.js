@@ -102,17 +102,25 @@ router.post('/signup', async (req, res) => {
         // Log the verification link for debugging
         console.log('📧 Verification Link:', verificationLink);
         
-        // Send verification email (non-blocking - don't await)
+        let verificationEmailSent = false;
+
+        // Vercel functions can stop background SMTP work after the response,
+        // so we await delivery here and report any failure explicitly.
         console.log(' Sending verification email...');
-        sendVerificationEmail(email, verificationLink, firstName).catch(emailError => {
-            console.error('  Email sending failed but signup succeeded:', emailError.message);
-            // Email failed but user signup is complete - user can request resend later
-        });
+        try {
+            await sendVerificationEmail(email, verificationLink, firstName);
+            verificationEmailSent = true;
+        } catch (emailError) {
+            console.error('  Email sending failed after signup:', emailError.message);
+        }
 
         console.log(' Signup completed successfully!');
         return res.status(201).json({
             success: true,
-            message: 'Registration successful! Please check your email to verify your account.',
+            message: verificationEmailSent
+                ? 'Registration successful! Please check your email to verify your account.'
+                : 'Registration successful, but we could not send the verification email right now. Please use the resend option on the verification page.',
+            emailSent: verificationEmailSent,
             user: {
                 uid: userRecord.uid,
                 firstName: userData.firstName,
@@ -371,10 +379,8 @@ router.post('/resend-verification-email', async (req, res) => {
         // Log the verification link for debugging
         console.log('📧 Resend - Verification Link:', verificationLink);
 
-        // Send verification email 
-        sendVerificationEmail(email, verificationLink, userData.firstName).catch(error => {
-            console.error('  Error resending email:', error.message);
-        });
+        // Await SMTP delivery so Vercel does not pause the work after the response.
+        await sendVerificationEmail(email, verificationLink, userData.firstName);
 
         console.log(' Verification email request processed for:', email);
         return res.status(200).json({
@@ -386,7 +392,7 @@ router.post('/resend-verification-email', async (req, res) => {
         console.error('Resend verification email error:', error);
         res.status(500).json({
             success: false,
-            message: 'Error resending verification email'
+            message: 'Error resending verification email. Please verify your email settings and try again.'
         });
     }
 });
