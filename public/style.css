@@ -281,18 +281,22 @@ font-size: 0.95rem;
 
 /* --- HERO --- */
 .hero {
-padding-top: 50px;
+padding-top: 20px;
 padding-bottom: 36px;
 display: grid;
-grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
-gap: 32px;
+grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.48fr);
+gap: 48px;
 align-items: center;
+}
+
+.hero-content {
+max-width: 470px;
 }
 
 @media (max-width: 900px) {
 .hero {
 grid-template-columns: minmax(0, 1fr);
-padding-top: 24px;
+padding-top: 16px;
 padding-bottom: 24px;
 gap: 24px;
 }
@@ -300,7 +304,7 @@ gap: 24px;
 
 @media (max-width: 768px) {
 .hero {
-padding-top: 20px;
+padding-top: 12px;
 gap: 20px;
 }
 .hero-tag {
@@ -438,36 +442,24 @@ border-radius: 999px;
 background: var(--sl-yellow);
 }
 
-/* --- Simple container for full mockup image (no placeholder/frame) --- */
-.hero-mockup {
-display: flex;
-justify-content: center;
-align-items: center;
-padding-left: 6px;
-padding-right: 6px;
-}
-
-/* Image slot — set the src attribute to your full mockup image file.
-The image will scale responsively while preserving aspect ratio. */
 .hero-mockup-img {
-width: 100%;
-max-width: 420px; /* adjust to taste */
+width: min(118%, 900px);
 height: auto;
 display: block;
+justify-self: center;
+align-self: center;
 object-fit: contain;
-border-radius: 14px; /* optional; remove if your mockup already includes bezel */
 /* Transition animation effects */
 opacity: 0;
 transform: translateY(30px) scale(0.95);
 animation: mockupFadeIn 1s ease-out 0.3s forwards;
-transition: transform 0.3s ease, box-shadow 0.3s ease;
+transition: transform 0.3s ease;
 }
 
-/* Hover effect for mockup */
+/* Keep hover motion without adding a card-like highlight box */
 @media (hover: hover) {
 .hero-mockup-img:hover {
 transform: translateY(-5px) scale(1.02);
-box-shadow: 0 20px 60px rgba(210, 35, 42, 0.3);
 }
 }
 
@@ -486,26 +478,20 @@ transform: translateY(0) scale(1);
 /* Make the image larger on wide screens for a more dramatic layout */
 @media (min-width: 1300px) {
 .hero-mockup-img {
-max-width: 520px;
+width: min(122%, 1040px);
 }
 }
 
 @media (max-width: 900px) {
-.hero {
-grid-template-columns: minmax(0, 1fr);
-}
 .hero-mockup-img {
-max-width: 86%;
+width: min(108%, 720px);
 }
 }
 
 @media (max-width: 768px) {
-.hero-mockup {
-order: -1;
-padding: 0;
-}
 .hero-mockup-img {
-max-width: 75%;
+order: -1;
+width: min(98vw, 620px);
 margin: 0 auto;
 }
 }
