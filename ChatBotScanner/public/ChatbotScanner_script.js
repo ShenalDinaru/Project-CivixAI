@@ -86,6 +86,8 @@ let currentActiveTab = null;
 let currentUserId = null;
 let allConversations = [];
 const pendingResponses = new Map();
+const pageParams = new URLSearchParams(window.location.search);
+const guestMode = pageParams.get('guest') === 'true';
 
 function getSafeReturnOrigin() {
     const params = new URLSearchParams(window.location.search);
@@ -108,10 +110,15 @@ const returnOrigin = getSafeReturnOrigin();
 const entryContext = getEntryContext();
 
 if (homeLink) {
-    homeLink.href = `${returnOrigin}/home.html`;
+    homeLink.href = guestMode ? `${returnOrigin}/LandingPG.html` : `${returnOrigin}/home.html`;
 }
 if (userProfileLink) {
-    userProfileLink.href = `${returnOrigin}/user_profile.html`;
+    if (guestMode) {
+        userProfileLink.href = `${returnOrigin}/LoginPG.html`;
+        userProfileLink.textContent = 'Login / Sign Up';
+    } else {
+        userProfileLink.href = `${returnOrigin}/user_profile.html`;
+    }
 }
 
 // --- INITIALIZATION ---
@@ -172,6 +179,10 @@ function initializeChatScrolling() {
  * This ensures deleted conversations never reappear even if backend returns them
  */
 function cleanupDeletedList() {
+    if (guestMode) {
+        return;
+    }
+
     // Deleted list should persist indefinitely to prevent resurrection
     // No cleanup needed - we want to remember deletes forever
 }
@@ -194,8 +205,26 @@ function getConversationMessages(conversation) {
 }
 
 function getStoredConversationHistory() {
+    if (guestMode) {
+        return [];
+    }
+
     const history = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
     return Array.isArray(history) ? history : [];
+}
+
+function getDeletedConversationIds() {
+    if (guestMode) {
+        return [];
+    }
+
+    try {
+        const deletedIds = JSON.parse(localStorage.getItem(DELETED_KEY)) || [];
+        return Array.isArray(deletedIds) ? deletedIds : [];
+    } catch (error) {
+        console.warn('Unable to read deleted conversation ids.', error);
+        return [];
+    }
 }
 
 function getConversationSignature(conversation) {
@@ -429,6 +458,8 @@ if (backBtn) backBtn.onclick = () => {
 
     if (entryContext.documentsLoaded || document.referrer.includes('document_uploader')) {
         window.location.href = `${returnOrigin}/document_uploader.html`;
+    } else if (guestMode) {
+        window.location.href = `${returnOrigin}/LandingPG.html`;
     } else {
         window.location.href = `${returnOrigin}/home.html`;
     }
@@ -791,7 +822,7 @@ function updateSidebar() {
     conversationsList.innerHTML = '';
     
     // Get list of deleted conversation IDs
-    const deletedIds = JSON.parse(localStorage.getItem(DELETED_KEY)) || [];
+    const deletedIds = getDeletedConversationIds();
     const openTabIds = new Set(openTabs.map(tab => tab.id));
 
     // Combine open tabs and closed conversations
@@ -922,6 +953,10 @@ async function saveTabToHistory(tab) {
  * Save conversation to local storage
  */
 function saveConversationToLocal(tabHistory) {
+    if (guestMode) {
+        return;
+    }
+
     try {
         let history = getStoredConversationHistory();
 
@@ -949,6 +984,10 @@ function saveConversationToLocal(tabHistory) {
  * Save all open tabs to local storage
  */
 function saveTabsToLocalStorage() {
+    if (guestMode) {
+        return;
+    }
+
     try {
         const tabsData = openTabs.filter(tabHasUserMessages).map(tab => ({
             id: tab.id,
@@ -974,9 +1013,13 @@ function saveTabsToLocalStorage() {
  * Restore open tabs from local storage
  */
 function restoreOpenTabs() {
+    if (guestMode) {
+        return;
+    }
+
     try {
         // Get list of deleted conversation IDs
-        const deletedIds = JSON.parse(localStorage.getItem(DELETED_KEY)) || [];
+        const deletedIds = getDeletedConversationIds();
         
         const tabsData = JSON.parse(localStorage.getItem(TABS_STORAGE_KEY)) || [];
         if (Array.isArray(tabsData) && tabsData.length > 0) {
@@ -1112,9 +1155,15 @@ function addMessageToUI(text, sender, sources, options = {}) {
  * Load all conversations for sidebar
  */
 async function loadAllConversations() {
+    if (guestMode) {
+        allConversations = [];
+        updateSidebar();
+        return;
+    }
+
     try {
         // Get list of deleted conversation IDs
-        const deletedIds = JSON.parse(localStorage.getItem(DELETED_KEY)) || [];
+        const deletedIds = getDeletedConversationIds();
         
         let loaded = [];
 
@@ -1204,16 +1253,18 @@ async function deleteConversationRecords(conversationId) {
     const conversationIds = getMatchingConversationIds(conversationId);
     const deletedActiveTab = Boolean(currentActiveTab && conversationIds.includes(currentActiveTab.id));
 
-    let deletedIds = JSON.parse(localStorage.getItem(DELETED_KEY)) || [];
-    conversationIds.forEach((id) => {
-        if (!deletedIds.includes(id)) {
-            deletedIds.push(id);
-        }
-    });
-    localStorage.setItem(DELETED_KEY, JSON.stringify(deletedIds));
+    if (!guestMode) {
+        let deletedIds = getDeletedConversationIds();
+        conversationIds.forEach((id) => {
+            if (!deletedIds.includes(id)) {
+                deletedIds.push(id);
+            }
+        });
+        localStorage.setItem(DELETED_KEY, JSON.stringify(deletedIds));
 
-    const history = getStoredConversationHistory().filter((conversation) => !conversationIds.includes(conversation.id));
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+        const history = getStoredConversationHistory().filter((conversation) => !conversationIds.includes(conversation.id));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+    }
 
     if (currentUserId) {
         await Promise.all(conversationIds
@@ -1281,6 +1332,10 @@ function escapeHtml(text) {
  * Get user ID
  */
 function getUserId() {
+    if (guestMode) {
+        return null;
+    }
+
     const userString = localStorage.getItem('currentUser');
     if (userString) {
         try {
@@ -1298,10 +1353,12 @@ function getUserId() {
  */
 async function clearAllConversations() {
     try {
-        // Clear local storage
-        localStorage.removeItem(STORAGE_KEY);
-        localStorage.removeItem(TABS_STORAGE_KEY);
-        localStorage.removeItem(DELETED_KEY);
+        if (!guestMode) {
+            // Clear local storage
+            localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem(TABS_STORAGE_KEY);
+            localStorage.removeItem(DELETED_KEY);
+        }
 
         // Clear backend if user is logged in
         if (currentUserId) {

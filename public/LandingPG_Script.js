@@ -122,5 +122,10 @@ signupBtn.onclick = () => {
 };
 
 askNowBtn.onclick = () => {
-    window.location.href = 'Chatbot.html';
+    const chatbotUrl = window.APP_CONFIG?.chatbotUrl || `${window.location.origin}/ChatbotScanner.html`;
+    const targetUrl = new URL(chatbotUrl, window.location.origin);
+    targetUrl.searchParams.set('origin', window.location.origin);
+    targetUrl.searchParams.set('guest', 'true');
+    targetUrl.searchParams.set('newChat', 'true');
+    window.location.href = targetUrl.toString();
 };
