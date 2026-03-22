@@ -340,6 +340,29 @@ if (notifBtn && notifPanel) {
 }
 
 // Greeting section - populate with user's name
+function fitGreetingTitleToSingleLine() {
+  const greetingTitle = document.getElementById('greetingTitle');
+  if (!greetingTitle) return;
+
+  greetingTitle.style.fontSize = '';
+
+  const viewportWidth = window.innerWidth;
+  let minFontSize = 40;
+
+  if (viewportWidth <= 380) {
+    minFontSize = 24;
+  } else if (viewportWidth <= 640) {
+    minFontSize = 30;
+  }
+
+  let currentFontSize = parseFloat(window.getComputedStyle(greetingTitle).fontSize);
+
+  while (greetingTitle.scrollWidth > greetingTitle.clientWidth && currentFontSize > minFontSize) {
+    currentFontSize -= 2;
+    greetingTitle.style.fontSize = `${currentFontSize}px`;
+  }
+}
+
 function initializeGreeting() {
   const greetingTitle = document.getElementById('greetingTitle');
   if (!greetingTitle) return;
@@ -350,10 +373,14 @@ function initializeGreeting() {
       const user = JSON.parse(currentUser);
       const displayName = user.fullName || user.name || user.username || user.displayName || 'Welcome';
       greetingTitle.textContent = `Hi ${displayName}!`;
+      greetingTitle.title = `Hi ${displayName}!`;
     }
   } catch (e) {
     console.warn('Unable to load user information for greeting', e);
   }
+
+  fitGreetingTitleToSingleLine();
 }
 
 initializeGreeting();
+window.addEventListener('resize', fitGreetingTitleToSingleLine);

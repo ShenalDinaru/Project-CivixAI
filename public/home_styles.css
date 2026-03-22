@@ -280,6 +280,9 @@
     letter-spacing: -0.5px;
     margin-bottom: 8px;
     padding-bottom: 0.08em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     background: linear-gradient(135deg, orange 0%, #A78BFA 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
