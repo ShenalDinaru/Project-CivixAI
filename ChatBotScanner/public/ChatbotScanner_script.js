@@ -28,6 +28,8 @@ const DELETED_KEY = 'civixai_deleted_conversations'; // Track deleted conversati
 const MIN_TYPING_INDICATOR_MS = 700;
 const DEFAULT_ASSISTANT_GREETING = "Hey! I'm Kandula, and I'm here to help you with your everyday civic tasks";
 const DOCUMENT_ANALYSIS_GREETING = 'Your document has been analysed. What would you like to know?';
+const UPLOADED_DOCUMENTS_SESSION_KEY = 'civixai_uploaded_documents';
+const MAX_UPLOADED_DOCUMENTS = 3;
 
 // --- MARKDOWN CONFIGURATION ---
 if (typeof marked !== 'undefined') {
@@ -45,6 +47,7 @@ class ChatTab {
         this.id = 'tab-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
         this.title = title || `Chat ${new Date().toLocaleTimeString()}`;
         this.messages = [];
+        this.uploadedDocuments = [];
         this.createdAt = new Date();
         this.lastActivityAt = new Date();  // Track last activity for sorting
         this.isActive = false;
@@ -286,6 +289,35 @@ function getEntryGreeting() {
     return entryContext.documentsLoaded ? DOCUMENT_ANALYSIS_GREETING : DEFAULT_ASSISTANT_GREETING;
 }
 
+function getUploadedDocumentsForApi() {
+    try {
+        const raw = sessionStorage.getItem(UPLOADED_DOCUMENTS_SESSION_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+
+        if (!Array.isArray(parsed)) {
+            return [];
+        }
+
+        return parsed
+            .filter((document) =>
+                document &&
+                typeof document.filename === 'string' &&
+                typeof document.text === 'string' &&
+                document.text.trim().length > 0
+            )
+            .slice(0, MAX_UPLOADED_DOCUMENTS)
+            .map((document) => ({
+                filename: document.filename,
+                processedAt: document.processedAt || null,
+                text: document.text,
+                metadata: document.metadata || {}
+            }));
+    } catch (error) {
+        console.warn('Unable to read uploaded document context from sessionStorage.', error);
+        return [];
+    }
+}
+
 function cleanupEntryParams() {
     const url = new URL(window.location.href);
     let changed = false;
@@ -309,7 +341,11 @@ function initializeChatSession() {
     }
 
     if (entryContext.forceNewChat) {
-        createNewTab(null, { greeting: getEntryGreeting() });
+        const uploadedDocuments = getUploadedDocumentsForApi();
+        createNewTab(null, { greeting: getEntryGreeting(), uploadedDocuments });
+        if (uploadedDocuments.length > 0) {
+            sessionStorage.removeItem(UPLOADED_DOCUMENTS_SESSION_KEY);
+        }
     } else if (!currentActiveTab) {
         createNewTab();
     }
@@ -437,10 +473,11 @@ async function sendMessage() {
 
     try {
         const conversationHistory = buildConversationHistoryForApi(requestTab.messages);
+        const uploadedDocuments = Array.isArray(requestTab.uploadedDocuments) ? requestTab.uploadedDocuments : [];
         const res = await fetch(API_URL, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ message: txt, conversationHistory })
+            body: JSON.stringify({ message: txt, conversationHistory, uploadedDocuments })
         });
         const data = await res.json().catch(() => ({}));
         const startedAt = pendingResponses.get(requestTab.id)?.startedAt || performance.now();
@@ -677,6 +714,7 @@ function createNewTab(title = null, options = {}) {
     }
 
     const newTab = new ChatTab(title);
+    newTab.uploadedDocuments = Array.isArray(options.uploadedDocuments) ? options.uploadedDocuments : [];
     openTabs.push(newTab);
     currentActiveTab = newTab;
 
@@ -864,6 +902,7 @@ async function saveTabToHistory(tab) {
             id: tab.id,
             title: finalTitle,
             messages: tab.messages,
+            uploadedDocuments: Array.isArray(tab.uploadedDocuments) ? tab.uploadedDocuments : [],
             messageCount: tab.messages.length,
             createdAt: tab.createdAt.toISOString(),
             closedAt: new Date().toISOString()
@@ -915,6 +954,7 @@ function saveTabsToLocalStorage() {
             id: tab.id,
             title: tab.title,
             messages: tab.messages,
+            uploadedDocuments: Array.isArray(tab.uploadedDocuments) ? tab.uploadedDocuments : [],
             createdAt: tab.createdAt.toISOString(),
             lastActivityAt: tab.lastActivityAt.toISOString(),
             isActive: tab.isActive
@@ -950,6 +990,7 @@ function restoreOpenTabs() {
                 const tab = new ChatTab(data.title);
                 tab.id = data.id;
                 tab.messages = data.messages;
+                tab.uploadedDocuments = Array.isArray(data.uploadedDocuments) ? data.uploadedDocuments : [];
                 tab.createdAt = new Date(data.createdAt);
                 tab.lastActivityAt = new Date(data.lastActivityAt || data.createdAt);
                 tab.isActive = data.isActive;
@@ -1127,6 +1168,7 @@ function loadConversationFromHistory(conversation) {
 
     const newTab = new ChatTab(conversation.title);
     newTab.messages = conversation.messages || conversation.conversation || [];
+    newTab.uploadedDocuments = Array.isArray(conversation.uploadedDocuments) ? conversation.uploadedDocuments : [];
     newTab.id = conversation.id;
     newTab.isNamed = true;
     newTab.createdAt = new Date(conversation.createdAt || conversation.timestamp || Date.now());

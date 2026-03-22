@@ -143,7 +143,7 @@ if (proceedBtn) {
   proceedBtn.addEventListener('click', () => {
     if (capturedImageData) {
       sessionStorage.setItem('scannedImage', capturedImageData);
-      window.location.href = `${window.location.origin}/document_uploader.html`;
+      window.location.href = `${window.location.origin}/document_uploader.html?origin=${encodeURIComponent(RETURN_ORIGIN)}`;
     } else {
       alert('Please capture an image first');
     }

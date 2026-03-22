@@ -30,8 +30,38 @@ const BASE_URL = window.location.origin;
 const API_BASE_URL = `${BASE_URL}/api`;
 const CHATBOT_URL = `${BASE_URL}/ChatbotScanner.html`;
 const RETURN_ORIGIN = getSafeReturnOrigin();
+const UPLOADED_DOCUMENTS_SESSION_KEY = 'civixai_uploaded_documents';
+const MAX_SESSION_DOCUMENT_CHARS = 30000;
 
 let files = [];
+
+function normalizeDocumentForSession(document) {
+  if (!document || typeof document.text !== 'string' || !document.text.trim()) {
+    return null;
+  }
+
+  const trimmedText = document.text.trim();
+  const truncated = trimmedText.length > MAX_SESSION_DOCUMENT_CHARS;
+
+  return {
+    filename: document.filename || document.metadata?.originalName || 'Uploaded document',
+    processedAt: document.processedAt || new Date().toISOString(),
+    text: truncated ? `${trimmedText.slice(0, MAX_SESSION_DOCUMENT_CHARS)}\n\n[Document truncated for chat context]` : trimmedText,
+    metadata: {
+      ...document.metadata,
+      truncatedForSession: truncated,
+      originalTextLength: document.metadata?.textLength || trimmedText.length
+    }
+  };
+}
+
+function storeUploadedDocumentsForChat(documents) {
+  try {
+    sessionStorage.setItem(UPLOADED_DOCUMENTS_SESSION_KEY, JSON.stringify(documents));
+  } catch (error) {
+    console.error('Failed to store uploaded documents for chat:', error);
+  }
+}
 
 // Inject styles for extraction status and upload options
 const style = document.createElement('style');
@@ -377,11 +407,13 @@ function simulateUpload() {
 function showStatus(type, message) {
   statusMessage.className = `status-message ${type}`;
   statusMessage.textContent = message;
+  statusMessage.style.display = 'block';
 }
 
 function hideStatus() {
   statusMessage.className = 'status-message';
   statusMessage.style.display = 'none';
+  statusMessage.textContent = '';
 }
 
 function updateButtons() {
@@ -542,10 +574,20 @@ async function processAndRedirectToChatbot() {
       throw new Error('No documents could be processed successfully');
     }
 
-    // Step 2: Redirect to loading page immediately
-    // Loading page will call /load itself and redirect to chatbot when done
-    const nextUrl = encodeURIComponent(`${CHATBOT_URL}?documentsLoaded=true`);
-    window.location.href = `/LoadinnganimationPG.html?next=${nextUrl}&autoload=true`;
+    const uploadedDocuments = successful
+      .map(result => normalizeDocumentForSession(result.document))
+      .filter(Boolean);
+
+    if (uploadedDocuments.length === 0) {
+      throw new Error('No document text was available for chat analysis');
+    }
+
+    storeUploadedDocumentsForChat(uploadedDocuments);
+
+    const chatbotUrl = new URL(CHATBOT_URL);
+    chatbotUrl.searchParams.set('documentsLoaded', 'true');
+    chatbotUrl.searchParams.set('origin', RETURN_ORIGIN);
+    window.location.href = chatbotUrl.toString();
 
   } catch (error) {
     console.error('Error processing documents:', error);

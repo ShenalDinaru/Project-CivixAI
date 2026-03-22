@@ -11,9 +11,12 @@ const PDFParser = require('pdf2json');
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const isVercel = process.env.VERCEL === '1';
 
 // Path to processed folder
-const PROCESSED_DIR = path.join(__dirname, '../../processed');
+const PROCESSED_DIR = isVercel
+  ? path.join('/tmp', 'civixai-processed')
+  : path.join(__dirname, '../../processed');
 
 /**
  * Ensure processed directory exists
@@ -138,9 +141,10 @@ async function extractTextFromTXT(buffer) {
 /**
  * Process a single document and extract text
  */
-export async function processDocument(file) {
+export async function processDocument(file, options = {}) {
   const { originalname, buffer, mimetype } = file;
   const fileExtension = path.extname(originalname).toLowerCase();
+  const { persistToDisk = !isVercel } = options;
   
   let extractedText = '';
 
@@ -187,7 +191,6 @@ export async function processDocument(file) {
 
     // Create JSON structure
     const fileName = path.parse(originalname).name;
-    console.log(`Saving processed document as JSON: ${fileName}.json`);
     const jsonData = {
       filename: originalname,
       processedAt: new Date().toISOString(),
@@ -200,13 +203,17 @@ export async function processDocument(file) {
       }
     };
 
-    // Ensure processed directory exists
-    await ensureProcessedDir();
-
-    // Save as JSON file
     const jsonFileName = `${fileName}.json`;
-    const jsonFilePath = path.join(PROCESSED_DIR, jsonFileName);
-    await fs.writeFile(jsonFilePath, JSON.stringify(jsonData, null, 2), 'utf-8');
+    let jsonFilePath = null;
+
+    if (persistToDisk) {
+      console.log(`Saving processed document as JSON: ${jsonFileName}`);
+      await ensureProcessedDir();
+      jsonFilePath = path.join(PROCESSED_DIR, jsonFileName);
+      await fs.writeFile(jsonFilePath, JSON.stringify(jsonData, null, 2), 'utf-8');
+    } else {
+      console.log(`Skipping processed document disk write for ${jsonFileName} in serverless mode`);
+    }
 
     return {
       success: true,
@@ -214,7 +221,8 @@ export async function processDocument(file) {
       jsonFileName,
       jsonFilePath,
       textLength: extractedText.length,
-      wordCount: jsonData.metadata.wordCount
+      wordCount: jsonData.metadata.wordCount,
+      document: jsonData
     };
 
   } catch (error) {
@@ -229,11 +237,11 @@ export async function processDocument(file) {
 /**
  * Process multiple documents
  */
-export async function processDocuments(files) {
+export async function processDocuments(files, options = {}) {
   const results = [];
   
   for (const file of files) {
-    const result = await processDocument(file);
+    const result = await processDocument(file, options);
     results.push(result);
   }
 

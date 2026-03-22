@@ -2,11 +2,25 @@ import { generateRAGResponse, getRAGStatus } from '../services/ragService.js';
 
 export const sendMessage = async (req, res, next) => {
   try {
-    const { message, conversationHistory = [] } = req.body;
+    const { message, conversationHistory = [], uploadedDocuments = [] } = req.body;
     const sanitizedConversationHistory = Array.isArray(conversationHistory)
       ? conversationHistory
           .filter((item) => item && typeof item.content === 'string' && typeof item.role === 'string')
           .map(({ role, content }) => ({ role, content }))
+      : [];
+    const normalizedUploadedDocuments = Array.isArray(uploadedDocuments)
+      ? uploadedDocuments
+          .filter((document) =>
+            document &&
+            typeof document.filename === 'string' &&
+            typeof document.text === 'string'
+          )
+          .map(({ filename, text, metadata, processedAt }) => ({
+            processedAt: typeof processedAt === 'string' ? processedAt : null,
+            filename: filename.trim(),
+            text,
+            metadata: metadata && typeof metadata === 'object' ? metadata : {}
+          }))
       : [];
 
     if (!message) {
@@ -14,7 +28,7 @@ export const sendMessage = async (req, res, next) => {
     }
 
     // Use RAG service (automatically decides whether to use RAG or not)
-    const response = await generateRAGResponse(message, sanitizedConversationHistory);
+    const response = await generateRAGResponse(message, sanitizedConversationHistory, normalizedUploadedDocuments);
 
     res.json({
       success: true,
