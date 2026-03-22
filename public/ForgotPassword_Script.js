@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const result = await response.json();
 
-            if (!response.ok || !result.success) {
+            if (!response.ok || !result.success || result.emailSent === false) {
                 submitBtn.innerHTML = "SEND RESET LINK";
                 submitBtn.disabled = false;
                 submitBtn.style.opacity = "1";
@@ -137,7 +137,7 @@ async function resendResetLink(email) {
 
         const result = await response.json();
 
-        if (!response.ok || !result.success) {
+        if (!response.ok || !result.success || result.emailSent === false) {
             resendBtn.innerHTML = "REQUEST NEW LINK";
             resendBtn.disabled = false;
             errorMessage.textContent = result.message || 'Failed to resend email';

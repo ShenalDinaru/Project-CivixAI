@@ -153,7 +153,7 @@ function toggleEdit(fieldId) {
         
         const data = await response.json();
         
-        if (response.ok) {
+        if (response.ok && data.success && data.emailSent !== false) {
           showNotification('Password reset link sent to your email. Please check your inbox.', 'success');
           console.log('Password reset email sent to:', email);
         } else {

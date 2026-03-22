@@ -7,6 +7,21 @@ const { sendVerificationEmail, sendPasswordResetEmail } = require('../utils/emai
 const { validateEmail, isDisposableEmail } = require('../utils/disposableEmailChecker');
 const { createVerificationToken, verifyToken, createPasswordResetToken, verifyPasswordResetToken, markPasswordResetTokenAsUsed } = require('../utils/tokenManager');
 
+const isVercel = process.env.VERCEL === '1';
+
+function getFrontendBaseUrl(req) {
+    const forwardedProto = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+    const forwardedHost = req.headers['x-forwarded-host'] || req.get('host');
+    const requestBaseUrl = forwardedHost ? `${forwardedProto}://${forwardedHost}` : null;
+    const envBaseUrl = process.env.FRONTEND_URL?.trim();
+
+    if (isVercel && requestBaseUrl) {
+        return requestBaseUrl;
+    }
+
+    return envBaseUrl || requestBaseUrl || 'http://localhost:5000';
+}
+
 
  
  // Register a new user and send verification email
@@ -96,7 +111,7 @@ router.post('/signup', async (req, res) => {
         const verificationToken = await createVerificationToken(email, firstName);
         
         // Build verification link
-        const verificationLink = `${process.env.FRONTEND_URL}/verify_email.html?token=${verificationToken}`;
+        const verificationLink = `${getFrontendBaseUrl(req)}/verify_email.html?token=${verificationToken}`;
 
         
         // Log the verification link for debugging
@@ -374,7 +389,7 @@ router.post('/resend-verification-email', async (req, res) => {
 
         // Create new verification token
         const verificationToken = await createVerificationToken(email, userData.firstName);
-        const verificationLink = `${process.env.FRONTEND_URL}/verify_email.html?token=${verificationToken}`;
+        const verificationLink = `${getFrontendBaseUrl(req)}/verify_email.html?token=${verificationToken}`;
         
         // Log the verification link for debugging
         console.log('📧 Resend - Verification Link:', verificationLink);
@@ -603,24 +618,32 @@ router.post('/forgot-password', async (req, res) => {
         const resetToken = await createPasswordResetToken(email, userData.firstName);
         
         // Build reset link
-        const resetLink = `${process.env.FRONTEND_URL}/reset_password.html?token=${resetToken}`;
+        const resetLink = `${getFrontendBaseUrl(req)}/reset_password.html?token=${resetToken}`;
         
         // Log the reset link for debugging
         console.log('📧 Reset Link:', resetLink);
         
-        // Send password reset email
+        let resetEmailSent = false;
+
+        // Vercel functions can stop background SMTP work after the response,
+        // so we await delivery here and report any failure explicitly.
         console.log(' Sending password reset email...');
-        sendPasswordResetEmail(email, resetLink, userData.firstName).then(() => {
+        try {
+            await sendPasswordResetEmail(email, resetLink, userData.firstName);
+            resetEmailSent = true;
             console.log(' Email sent successfully');
-        }).catch(emailError => {
+        } catch (emailError) {
             console.error('❌ Email sending failed:', emailError.message);
             console.error('❌ Full error:', emailError);
-        });
+        }
 
-        console.log(' Password reset email sent');
+        console.log(' Password reset request processed');
         return res.status(200).json({
             success: true,
-            message: 'If email exists, a password reset link has been sent.'
+            message: resetEmailSent
+                ? 'If email exists, a password reset link has been sent.'
+                : 'We could not send the password reset email right now. Please try again shortly.',
+            emailSent: resetEmailSent
         });
 
     } catch (error) {
@@ -779,7 +802,7 @@ router.get('/debug/latest-reset-token/:email', async (req, res) => {
         }
 
         const latestToken = tokensForEmail[0];
-        const resetLink = `${process.env.FRONTEND_URL}/reset_password.html?token=${latestToken[0]}`;
+        const resetLink = `${getFrontendBaseUrl(req)}/reset_password.html?token=${latestToken[0]}`;
 
 
         console.log(' DEBUG: Latest reset token for', email);
