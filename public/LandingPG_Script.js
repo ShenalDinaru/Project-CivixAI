@@ -5,6 +5,7 @@ const askNowBtn = document.getElementById('askNowBtn');
 const loadingOverlay = document.getElementById('loadingOverlay');
 const progressBar = document.querySelector('.progress');
 const progressText = document.getElementById('progress-percent');
+const LANDING_LOADER_KEY = 'landingLoaderShown';
 
 
 // Loading Animation Functions
@@ -21,51 +22,71 @@ function updateProgress() {
     }
 }
 
-function showLoadingOverlay(destination) {
+function hasSeenLandingLoader() {
+    try {
+        return sessionStorage.getItem(LANDING_LOADER_KEY) === 'true';
+    } catch (error) {
+        console.warn('Unable to read landing loader state:', error);
+        return false;
+    }
+}
+
+function markLandingLoaderSeen() {
+    try {
+        sessionStorage.setItem(LANDING_LOADER_KEY, 'true');
+    } catch (error) {
+        console.warn('Unable to save landing loader state:', error);
+    }
+}
+
+function resetLoadingProgress() {
     progress = 0;
     if (progressBar) progressBar.style.width = '0%';
     if (progressText) progressText.textContent = '0';
-    
-    loadingOverlay.classList.remove('hidden');
-    
-    loadingInterval = setInterval(updateProgress, 300);
-    
-    // Complete loading after 1 second and redirect
-    setTimeout(() => {
-        clearInterval(loadingInterval);
-        progress = 100;
-        if (progressBar) progressBar.style.width = '100%';
-        if (progressText) progressText.textContent = '100';
-        
-        setTimeout(() => {
-            window.location.href = destination;
-        }, 500);
-    }, 1000);
 }
 
-// Show loading overlay on page load
-window.addEventListener('load', () => {
-    if (loadingOverlay.classList.contains('hidden') === false) {
-        setTimeout(() => {
-            loadingOverlay.classList.add('hidden');
-        }, 1500);
-    }
-});
-
-// Show loading on initial page load
-document.addEventListener('DOMContentLoaded', () => {
-    // Display loading overlay briefly on page load
-    loadingInterval = setInterval(updateProgress, 300);
-    setTimeout(() => {
+function hideLoadingOverlay() {
+    if (loadingInterval) {
         clearInterval(loadingInterval);
+        loadingInterval = null;
+    }
+
+    if (loadingOverlay) {
+        loadingOverlay.classList.add('hidden');
+    }
+}
+
+function playLandingLoaderOnce() {
+    if (!loadingOverlay || hasSeenLandingLoader()) {
+        hideLoadingOverlay();
+        return;
+    }
+
+    resetLoadingProgress();
+    loadingOverlay.classList.remove('hidden');
+
+    loadingInterval = setInterval(updateProgress, 300);
+
+    setTimeout(() => {
+        if (loadingInterval) {
+            clearInterval(loadingInterval);
+            loadingInterval = null;
+        }
+
         progress = 100;
         if (progressBar) progressBar.style.width = '100%';
         if (progressText) progressText.textContent = '100';
-        
+
+        markLandingLoaderSeen();
+
         setTimeout(() => {
-            loadingOverlay.classList.add('hidden');
+            hideLoadingOverlay();
         }, 500);
     }, 1500);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    playLandingLoaderOnce();
 });
 
 
@@ -92,6 +113,14 @@ askNowBtn.addEventListener('mouseleave', () => {
 
 
 // Navigation Redirects with Loading Animation
-loginBtn.onclick = () => showLoadingOverlay('LoginPG.html');
-signupBtn.onclick = () => showLoadingOverlay('SignupPG.html');
-askNowBtn.onclick = () => showLoadingOverlay('Chatbot.html');
+loginBtn.onclick = () => {
+    window.location.href = 'LoginPG.html';
+};
+
+signupBtn.onclick = () => {
+    window.location.href = 'SignupPG.html';
+};
+
+askNowBtn.onclick = () => {
+    window.location.href = 'Chatbot.html';
+};

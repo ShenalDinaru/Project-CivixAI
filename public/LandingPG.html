@@ -156,7 +156,24 @@
             margin-top: 15px;
             font-weight: 300;
         }
+
+        .skip-landing-loader .loading-overlay {
+            opacity: 0;
+            pointer-events: none;
+            visibility: hidden;
+        }
     </style>
+    <script>
+        (() => {
+            try {
+                if (sessionStorage.getItem('landingLoaderShown') === 'true') {
+                    document.documentElement.classList.add('skip-landing-loader');
+                }
+            } catch (error) {
+                console.warn('Unable to read landing loader state:', error);
+            }
+        })();
+    </script>
 </head>
 <body>
     <!-- Loading Overlay -->
