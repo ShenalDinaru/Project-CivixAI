@@ -61,7 +61,7 @@
     },
     {
       "src": "/",
-      "dest": "/public/LoginPG.html"
+      "dest": "/public/index.html"
     },
     {
       "src": "/(.*)",

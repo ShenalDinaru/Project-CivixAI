@@ -46,7 +46,7 @@ app.get('/config.js', (req, res) => {
 
 // Default entry route for deployments where users open the root URL
 app.get('/', (req, res) => {
-    res.redirect('/LoginPG.html');
+    res.redirect('/index.html');
 });
 
 // Routes
