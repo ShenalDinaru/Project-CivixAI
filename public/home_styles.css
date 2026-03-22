@@ -54,6 +54,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 16px;
     margin-bottom: 24px;
     animation: fadeInDown 0.6s ease;
   }
@@ -119,11 +120,14 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    flex: 1;
+    min-width: 0;
     gap: 4px;
   }
   
   .nav-logo-xl {
     height: 48px;
+    max-width: 100%;
     width: auto;
     filter: drop-shadow(0 2px 8px rgba(255, 78, 2, 0.3));
   }
@@ -197,7 +201,7 @@
   .notif-panel {
     position: relative;
     width: 100%;
-    max-width: 600px;
+    max-width: 100%;
     margin: 0 auto 32px;
     background: rgba(6, 4, 13, 0.96);
     border-radius: 20px;
@@ -272,8 +276,10 @@
   .greeting-title {
     font-size: clamp(80px, 12vw, 110px);
     font-weight: 700;
+    line-height: 1.05;
     letter-spacing: -0.5px;
     margin-bottom: 8px;
+    padding-bottom: 0.08em;
     background: linear-gradient(135deg, orange 0%, #A78BFA 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -372,6 +378,11 @@
     align-items: center;
     gap: 16px;
     flex: 1;
+    min-width: 0;
+  }
+
+  .text-box {
+    min-width: 0;
   }
   
   .text-box h3 {
@@ -698,7 +709,8 @@
     }
   
     .top-nav {
-      margin-bottom: 32px;
+      gap: 12px;
+      margin-bottom: 20px;
     }
   
     .profile-circle,
@@ -706,23 +718,95 @@
       width: 44px;
       height: 44px;
     }
-  
+
     .nav-logo-xl {
-      height: 40px;
+      height: 38px;
+    }
+
+    .notif-panel {
+      margin-bottom: 24px;
+      border-radius: 18px;
+    }
+
+    .notif-item {
+      padding: 12px;
     }
 
     .greeting-section {
-      padding: 12px 12px 28px;
+      margin-bottom: 28px;
+      padding: 10px 8px 20px;
+    }
+
+    .greeting-title {
+      font-size: clamp(54px, 13vw, 80px);
+      line-height: 1.05;
+    }
+
+    .greeting-subtitle {
+      max-width: 34ch;
+      margin: 0 auto;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .neon-outline-container {
+      margin-bottom: 24px;
+    }
+
+    .slide {
+      padding: 16px 18px;
+    }
+
+    .slide-content {
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .slide-main {
+      gap: 12px;
+    }
+
+    .text-box h3 {
+      font-size: 15px;
+    }
+
+    .text-box p {
+      font-size: 13px;
+    }
+
+    .icon-circle-bg {
+      width: 48px;
+      height: 48px;
+      flex-shrink: 0;
+    }
+
+    .icon-circle-bg img,
+    .card-svg {
+      width: 22px;
+      height: 22px;
     }
   
     .dashboard-grid {
       grid-template-columns: 1fr;
-      gap: 16px;
+      gap: 14px;
     }
   
     .main-feature {
-      min-height: 240px;
-      padding: 28px;
+      min-height: unset;
+      padding: 24px;
+      gap: 24px;
+    }
+
+    .card-top {
+      gap: 14px;
+    }
+
+    .card-top h2 {
+      font-size: 22px;
+    }
+
+    .btn-ask {
+      width: 100%;
     }
   
     .side-column {
@@ -732,25 +816,84 @@
     }
   
     .utility-card {
-      height: 140px;
+      height: auto;
+      min-height: 126px;
+      padding: 18px 16px;
     }
   }
   
   @media (max-width: 480px) {
     body {
-      padding: 16px;
+      padding: 14px 14px 24px;
     }
-  
+
+    .container {
+      margin: 14px auto 24px;
+    }
+
+    .top-nav {
+      gap: 10px;
+    }
+
+    .profile-circle,
+    .notif-btn {
+      width: 40px;
+      height: 40px;
+    }
+
+    .profile-circle img,
+    .notif-btn img {
+      width: 20px;
+      height: 20px;
+    }
+
+    .nav-logo-xl {
+      height: 32px;
+    }
+
+    .notif-panel {
+      margin-bottom: 18px;
+      padding: 10px 12px;
+    }
+
+    .greeting-section {
+      margin-bottom: 22px;
+      padding: 6px 2px 18px;
+    }
+
+    .greeting-title {
+      font-size: clamp(46px, 14vw, 60px);
+    }
+
+    .greeting-subtitle {
+      font-size: 14px;
+    }
+
     .slide {
-      padding: 16px 18px;
+      padding: 14px;
+    }
+
+    .slide-content {
+      gap: 10px;
+    }
+
+    .slide-main {
+      gap: 10px;
     }
   
     .text-box h3 {
-      font-size: 15px;
+      font-size: 14px;
     }
   
     .text-box p {
-      font-size: 13px;
+      font-size: 12.5px;
+      line-height: 1.45;
+    }
+
+    .slide-next-btn {
+      width: 34px;
+      height: 34px;
+      min-width: 34px;
     }
   
     .card-top h2 {
@@ -761,8 +904,36 @@
       font-size: 13px;
     }
 
-    .greeting-section {
-      padding: 8px 4px 24px;
+    .dashboard-grid {
+      gap: 12px;
+    }
+
+    .main-feature {
+      padding: 20px;
+    }
+
+    .side-column {
+      gap: 12px;
+    }
+
+    .utility-card {
+      min-height: 110px;
+      padding: 16px 12px;
+    }
+
+    .utility-card p {
+      font-size: 14px;
+      text-align: center;
+    }
+  }
+
+  @media (max-width: 380px) {
+    .greeting-title {
+      font-size: clamp(40px, 13vw, 52px);
+    }
+
+    .side-column {
+      grid-template-columns: 1fr;
     }
   }
   
