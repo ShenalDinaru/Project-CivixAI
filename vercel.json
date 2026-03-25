@@ -44,6 +44,10 @@
       "dest": "/ChatBotScanner/src/server.js"
     },
     {
+      "src": "/api/history/(.*)",
+      "dest": "/ChatBotScanner/src/server.js"
+    },
+    {
       "src": "/api/documents/(.*)",
       "dest": "/ChatBotScanner/src/server.js"
     },
