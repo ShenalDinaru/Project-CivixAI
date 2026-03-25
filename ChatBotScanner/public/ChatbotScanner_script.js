@@ -503,7 +503,7 @@ async function sendMessage() {
     updateTypingAvatarPopup();
 
     try {
-        const conversationHistory = buildConversationHistoryForApi(requestTab.messages);
+        const conversationHistory = buildConversationHistoryForApi(requestTab.messages.slice(0, -1));
         const uploadedDocuments = Array.isArray(requestTab.uploadedDocuments) ? requestTab.uploadedDocuments : [];
         const res = await fetch(API_URL, {
             method: 'POST',

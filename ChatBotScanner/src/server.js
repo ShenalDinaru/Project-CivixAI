@@ -7,7 +7,7 @@ import chatRoutes from './routes/chatRoutes.js';
 import documentRoutes from './routes/documentRoutes.js';
 import historyRoutes from './routes/historyRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
-import { initializeRAG } from './services/ragService.js';
+import { ensureRAGInitialized } from './services/ragService.js';
 import './config/firebase.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -18,19 +18,6 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 const isVercel = process.env.VERCEL === '1';
-let ragInitPromise;
-
-function ensureRAGInitialized() {
-  if (!ragInitPromise) {
-    console.log('Initializing RAG system...');
-    ragInitPromise = initializeRAG().catch((error) => {
-      console.error('RAG initialization failed:', error.message);
-      return false;
-    });
-  }
-
-  return ragInitPromise;
-}
 
 // Middleware
 app.use(cors());

@@ -1,4 +1,4 @@
-import { generateRAGResponse, getRAGStatus } from '../services/ragService.js';
+import { ensureRAGInitialized, generateRAGResponse, getRAGStatus } from '../services/ragService.js';
 
 export const sendMessage = async (req, res, next) => {
   try {
@@ -50,6 +50,7 @@ export const sendMessage = async (req, res, next) => {
  */
 export const getStatus = async (req, res, next) => {
   try {
+    await ensureRAGInitialized();
     const status = getRAGStatus();
     res.json({
       success: true,

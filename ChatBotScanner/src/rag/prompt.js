@@ -91,14 +91,64 @@ RESPONSE STRUCTURE:
  * @param {string} query - User's question
  * @returns {boolean} True if query likely needs tax knowledge
  */
-export const needsRAG = (query) => {
-  const taxKeywords = [
-    'tax', 'apit', 'vat', 'paye', 'ird', 'inland revenue',
-    'deduction', 'exemption', 'rate', 'threshold', 'income',
-    'salary', 'withholding', 'refund', 'filing', 'return',
-    'assessment', 'liable', 'taxable', 'sri lanka', 'sri lankan'
-  ];
+const TAX_KEYWORDS = [
+  'tax', 'apit', 'vat', 'paye', 'ird', 'inland revenue',
+  'deduction', 'exemption', 'rate', 'threshold', 'income',
+  'salary', 'withholding', 'refund', 'filing', 'return',
+  'assessment', 'liable', 'taxable', 'sri lanka', 'sri lankan'
+];
 
-  const lowerQuery = query.toLowerCase();
-  return taxKeywords.some(keyword => lowerQuery.includes(keyword));
+const CONTEXTUAL_FOLLOW_UP_PATTERNS = [
+  /\bhow much\b/i,
+  /\bhow many\b/i,
+  /\bwhat about\b/i,
+  /\bif i\b/i,
+  /\bso\b/i,
+  /\bthen\b/i,
+  /\bthat\b/i,
+  /\bthis\b/i,
+  /\bit\b/i,
+  /\bthose\b/i,
+  /\bthem\b/i,
+  /\bcalculate\b/i,
+  /\bowe\b/i,
+  /\bpay\b/i,
+  /\bmonthly\b/i,
+  /\bannually\b/i,
+  /\byearly\b/i,
+  /\bper month\b/i
+];
+
+const includesTaxKeyword = (text = '') => {
+  const lowerText = String(text).toLowerCase();
+  return TAX_KEYWORDS.some((keyword) => lowerText.includes(keyword));
+};
+
+export const needsRAG = (query, conversationHistory = []) => {
+  const normalizedQuery = String(query || '').trim();
+
+  if (!normalizedQuery) {
+    return false;
+  }
+
+  if (includesTaxKeyword(normalizedQuery)) {
+    return true;
+  }
+
+  const recentUserContext = Array.isArray(conversationHistory)
+    ? conversationHistory
+        .filter((item) => item?.role === 'user' && typeof item.content === 'string')
+        .slice(-3)
+        .map((item) => item.content)
+        .join(' ')
+    : '';
+
+  if (!includesTaxKeyword(recentUserContext)) {
+    return false;
+  }
+
+  const looksLikeFollowUp = CONTEXTUAL_FOLLOW_UP_PATTERNS.some((pattern) => pattern.test(normalizedQuery));
+  const looksLikeCalculation = /[\d,.%]/.test(normalizedQuery);
+
+  return looksLikeFollowUp || looksLikeCalculation;
 };

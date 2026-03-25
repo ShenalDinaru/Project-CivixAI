@@ -9,6 +9,7 @@ const PRIMARY_TAX_CHART_DOCUMENT_ID = 'ird_tax_chart_2025_2026';
 const MAX_UPLOADED_DOCUMENTS = 3;
 const MAX_UPLOADED_DOCUMENT_CHARS = 12000;
 const MAX_TOTAL_UPLOADED_DOCUMENT_CHARS = 24000;
+let ragInitializationPromise = null;
 
 const buildKnowledgeBaseSources = (relevantChunks = []) => relevantChunks.map((chunk) => ({
   title: chunk.title,
@@ -194,6 +195,22 @@ export const initializeRAG = async () => {
   }
 };
 
+export const ensureRAGInitialized = async () => {
+  if (vectorStore.getStats().totalChunks > 0) {
+    return true;
+  }
+
+  if (!ragInitializationPromise) {
+    ragInitializationPromise = initializeRAG().finally(() => {
+      if (vectorStore.getStats().totalChunks === 0) {
+        ragInitializationPromise = null;
+      }
+    });
+  }
+
+  return ragInitializationPromise;
+};
+
 /**
  * Generate a response using RAG (Retrieval-Augmented Generation)
  *
@@ -210,12 +227,14 @@ export const initializeRAG = async () => {
  * @returns {Promise<Object>} Response with answer and metadata
  */
 export const generateRAGResponse = async (userMessage, conversationHistory = [], uploadedDocuments = []) => {
+  await ensureRAGInitialized();
+
   const normalizedUploadedDocuments = sanitizeUploadedDocuments(uploadedDocuments);
   const hasUploadedDocuments = normalizedUploadedDocuments.length > 0;
   const stats = vectorStore.getStats();
   const hasKnowledgeBase = stats.totalChunks > 0;
   const hasUserDocuments = vectorStore.hasUserDocuments();
-  const taxQuestion = needsRAG(userMessage);
+  const taxQuestion = needsRAG(userMessage, conversationHistory);
   const intent = analyzeQueryIntent(userMessage, conversationHistory);
   const shouldUseKnowledgeBase = hasKnowledgeBase && (hasUserDocuments || taxQuestion);
   const shouldUseLiveSearch = taxQuestion && !intent.requestsHistoricalInfo;
