@@ -1,8 +1,9 @@
 import { retrieveRelevantChunks } from '../rag/retrieve.js';
-import { buildRAGPrompt, needsRAG } from '../rag/prompt.js';
+import { buildRAGPrompt, needsKnowledgeBase, isTaxQuery } from '../rag/prompt.js';
 import { generateResponse } from './openRouterService.js';
+import { attemptDeterministicTaxCalculation } from './taxCalculationService.js';
 import vectorStore from '../rag/vectorStore.js';
-import { analyzeQueryIntent, OFFICIAL_TAX_SOURCE_DOMAINS } from '../utils/queryIntent.js';
+import { analyzeQueryIntent, OFFICIAL_CIVIC_SOURCE_DOMAINS } from '../utils/queryIntent.js';
 
 const getCurrentDateLabel = () => new Date().toISOString().slice(0, 10);
 const PRIMARY_TAX_CHART_DOCUMENT_ID = 'ird_tax_chart_2025_2026';
@@ -65,7 +66,7 @@ const buildUploadedDocumentSources = (uploadedDocuments = []) => uploadedDocumen
   relevance: 'Direct uploaded context'
 }));
 
-const buildWebSearchPrompt = (requestsHistoricalInfo) => `A web search was conducted to verify the answer with official Sri Lankan tax sources.
+const buildWebSearchPrompt = (requestsHistoricalInfo) => `A web search was conducted to verify the answer with official Sri Lankan government and civic sources.
 Today's date is ${getCurrentDateLabel()}.
 ${requestsHistoricalInfo
   ? 'The user explicitly asked for historical information. Prefer official sources that match the requested period.'
@@ -100,7 +101,7 @@ const buildUploadedDocumentsSection = (uploadedDocuments = []) => {
 const buildUploadedDocumentsPrompt = (uploadedDocuments = [], options = {}) => {
   const { requestsHistoricalInfo = false, liveSearchEnabled = false } = options;
 
-  return `You are CivixAI, a Sri Lankan tax assistant.
+  return `You are CivixAI, a Sri Lankan civic assistant.
 Today's date is ${getCurrentDateLabel()}.
 
 CRITICAL RULES (NEVER BREAK THESE):
@@ -109,9 +110,9 @@ CRITICAL RULES (NEVER BREAK THESE):
 3. If the uploaded documents do not contain enough information, say so clearly.
 4. ${requestsHistoricalInfo
     ? 'If the user asks for a historical period, keep the answer tied to that requested period.'
-    : 'Use the latest/current interpretation only when it is supported by the uploaded document or the user asks a broader tax question.'}
+    : 'Use the latest/current interpretation only when it is supported by the uploaded document or the user asks a broader civic question.'}
 5. ${liveSearchEnabled
-    ? 'If live official tax results are also available, use them only to supplement the uploaded document and clearly separate document-derived points from official current guidance.'
+    ? 'If live official results are also available, use them only to supplement the uploaded document and clearly separate document-derived points from official current guidance.'
     : 'Do not substitute unrelated general guidance for the uploaded document contents.'}
 6. Keep answers clear, practical, and grounded in the uploaded material.
 
@@ -133,7 +134,7 @@ const mergePromptWithUploadedDocuments = (basePrompt, uploadedDocuments = []) =>
 ADDITIONAL RULES FOR USER DOCUMENTS:
 1. When the user refers to "this document", "my upload", "my scan", or similar, treat the USER UPLOADED DOCUMENTS section as the primary evidence.
 2. If the uploaded documents conflict with general guidance, point that out clearly instead of guessing.
-3. If the uploaded documents do not answer the question, say so clearly before providing broader tax guidance.
+3. If the uploaded documents do not answer the question, say so clearly before providing broader civic guidance.
 
 ${buildUploadedDocumentsSection(uploadedDocuments)}`;
 
@@ -234,15 +235,16 @@ export const generateRAGResponse = async (userMessage, conversationHistory = [],
   const stats = vectorStore.getStats();
   const hasKnowledgeBase = stats.totalChunks > 0;
   const hasUserDocuments = vectorStore.hasUserDocuments();
-  const taxQuestion = needsRAG(userMessage, conversationHistory);
+  const knowledgeQuestion = needsKnowledgeBase(userMessage, conversationHistory);
+  const taxQuestion = isTaxQuery(userMessage, conversationHistory);
   const intent = analyzeQueryIntent(userMessage, conversationHistory);
-  const shouldUseKnowledgeBase = hasKnowledgeBase && (hasUserDocuments || taxQuestion);
-  const shouldUseLiveSearch = taxQuestion && !intent.requestsHistoricalInfo;
+  const shouldUseKnowledgeBase = hasKnowledgeBase && (hasUserDocuments || knowledgeQuestion);
+  const shouldUseLiveSearch = knowledgeQuestion && !intent.requestsHistoricalInfo;
   const shouldPreferTaxChartFirst = taxQuestion && !intent.referencesUploadedDocuments;
 
   try {
     if (!shouldUseKnowledgeBase && !shouldUseLiveSearch && !hasUploadedDocuments) {
-      console.log('Question does not require tax knowledge, using standard response');
+      console.log('Question does not require civic knowledge, using standard response');
       return await generateResponse(userMessage, conversationHistory);
     }
 
@@ -258,6 +260,8 @@ export const generateRAGResponse = async (userMessage, conversationHistory = [],
     console.log('Historical query:', intent.requestsHistoricalInfo);
     console.log('Latest-by-default:', !intent.requestsHistoricalInfo);
     console.log('Live search enabled:', shouldUseLiveSearch);
+    console.log('Knowledge-base question:', knowledgeQuestion);
+    console.log('Tax question:', taxQuestion);
     console.log('Tax chart prioritized:', shouldPreferTaxChartFirst);
     console.log('Uploaded documents available:', hasUploadedDocuments);
 
@@ -269,6 +273,24 @@ export const generateRAGResponse = async (userMessage, conversationHistory = [],
         primaryDocumentId: shouldPreferTaxChartFirst ? PRIMARY_TAX_CHART_DOCUMENT_ID : null
       });
       console.log(`Retrieved ${relevantChunks.length} relevant chunks`);
+    }
+
+    if (shouldUseKnowledgeBase && taxQuestion && !hasUploadedDocuments) {
+      const deterministicCalculation = await attemptDeterministicTaxCalculation(
+        userMessage,
+        conversationHistory,
+        intent,
+        relevantChunks
+      );
+
+      if (deterministicCalculation.handled) {
+        return buildResponsePayload(
+          deterministicCalculation.response,
+          deterministicCalculation.relevantChunks || relevantChunks,
+          intent,
+          normalizedUploadedDocuments
+        );
+      }
     }
 
     let systemPrompt = shouldUseKnowledgeBase || shouldUseLiveSearch
@@ -289,7 +311,7 @@ export const generateRAGResponse = async (userMessage, conversationHistory = [],
 
     const response = await generateResponse(userMessage, conversationHistory, systemPrompt, {
       enableWebSearch: shouldUseLiveSearch,
-      webSearchDomains: OFFICIAL_TAX_SOURCE_DOMAINS,
+      webSearchDomains: OFFICIAL_CIVIC_SOURCE_DOMAINS,
       webSearchEngine: 'exa',
       webSearchMaxResults: 5,
       webSearchPrompt: buildWebSearchPrompt(intent.requestsHistoricalInfo),

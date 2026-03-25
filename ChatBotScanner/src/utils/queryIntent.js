@@ -32,6 +32,8 @@ const HISTORICAL_PERIOD_PATTERNS = [
   /\b(?:as of|for|in|during|before|prior to|back in|under)\s+(20\d{2}(?:[/-]\d{2,4})?)\b/i
 ];
 
+const ASSESSMENT_YEAR_LABEL_PATTERN = /\b(20\d{2}[/-](?:20\d{2}|\d{2}))\b(?![-/]\d)/gi;
+
 const DOCUMENT_PATTERNS = [
   /\bthis document\b/i,
   /\bmy document\b/i,
@@ -46,6 +48,46 @@ const DOCUMENT_PATTERNS = [
   /\baccording to (?:the|my|this) document\b/i
 ];
 
+export const normalizeAssessmentYearLabel = (value = '') => {
+  const match = String(value).match(/\b(20\d{2})[/-](20\d{2}|\d{2})\b(?![-/]\d)/i);
+
+  if (!match) {
+    return null;
+  }
+
+  const startYear = Number(match[1]);
+  const rawEndYear = match[2];
+  const endYear = rawEndYear.length === 2
+    ? Number(`${String(startYear).slice(0, 2)}${rawEndYear}`)
+    : Number(rawEndYear);
+
+  return `${startYear}/${endYear}`;
+};
+
+export const getCurrentAssessmentYearInfo = (date = new Date()) => {
+  const currentDate = date instanceof Date ? date : new Date(date);
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.getMonth();
+  const startYear = currentMonth >= 3 ? currentYear : currentYear - 1;
+  const endYear = startYear + 1;
+
+  return {
+    startYear,
+    endYear,
+    label: `${startYear}/${endYear}`
+  };
+};
+
+const extractAssessmentYearLabels = (text = '') => {
+  const labels = Array.from(String(text).matchAll(ASSESSMENT_YEAR_LABEL_PATTERN), (match) =>
+    normalizeAssessmentYearLabel(match[1])
+  ).filter(Boolean);
+
+  return [...new Set(labels)];
+};
+
+const stripAssessmentYearLabels = (text = '') => String(text).replace(ASSESSMENT_YEAR_LABEL_PATTERN, ' ');
+
 export const analyzeQueryIntent = (query = '', conversationHistory = []) => {
   const recentUserMessages = Array.isArray(conversationHistory)
     ? conversationHistory
@@ -53,11 +95,16 @@ export const analyzeQueryIntent = (query = '', conversationHistory = []) => {
         .slice(-3)
         .map((item) => item.content)
     : [];
+  const currentAssessmentYear = getCurrentAssessmentYearInfo();
   const currentYear = new Date().getFullYear();
   const normalizedQuery = String(query).trim();
   const lowerQuery = normalizedQuery.toLowerCase();
   const recentContext = recentUserMessages.join('\n');
   const lowerRecentContext = recentContext.toLowerCase();
+  const queryAssessmentYears = extractAssessmentYearLabels(normalizedQuery);
+  const contextAssessmentYears = extractAssessmentYearLabels(recentContext);
+  const requestedAssessmentYear = queryAssessmentYears[0] || contextAssessmentYears[0] || null;
+  const referencesCurrentAssessmentYear = requestedAssessmentYear === currentAssessmentYear.label;
 
   const mentionsCurrentInfo = CURRENT_INFO_PATTERNS.some((pattern) => pattern.test(normalizedQuery));
   const hasHistoricalKeyword = HISTORICAL_INFO_PATTERNS.some((pattern) => pattern.test(normalizedQuery));
@@ -66,32 +113,57 @@ export const analyzeQueryIntent = (query = '', conversationHistory = []) => {
   const contextMentionsCurrentInfo = CURRENT_INFO_PATTERNS.some((pattern) => pattern.test(recentContext));
   const contextHasHistoricalKeyword = HISTORICAL_INFO_PATTERNS.some((pattern) => pattern.test(recentContext));
   const contextHasHistoricalPeriod = HISTORICAL_PERIOD_PATTERNS.some((pattern) => pattern.test(recentContext));
+  const hasNonCurrentHistoricalPeriod = hasHistoricalPeriod && !referencesCurrentAssessmentYear;
+  const contextHasNonCurrentHistoricalPeriod = contextHasHistoricalPeriod &&
+    !contextAssessmentYears.includes(currentAssessmentYear.label);
 
-  const yearMatches = Array.from(lowerQuery.matchAll(/\b(20\d{2})\b/g), (match) => Number(match[1]));
-  const contextYearMatches = Array.from(lowerRecentContext.matchAll(/\b(20\d{2})\b/g), (match) => Number(match[1]));
+  const standaloneQueryYears = stripAssessmentYearLabels(lowerQuery);
+  const standaloneContextYears = stripAssessmentYearLabels(lowerRecentContext);
+  const yearMatches = Array.from(standaloneQueryYears.matchAll(/\b(20\d{2})\b/g), (match) => Number(match[1]));
+  const contextYearMatches = Array.from(standaloneContextYears.matchAll(/\b(20\d{2})\b/g), (match) => Number(match[1]));
   const hasPastYearReference = yearMatches.some((year) => year < currentYear);
   const contextHasPastYearReference = contextYearMatches.some((year) => year < currentYear);
-  const hasExplicitTemporalIntent = mentionsCurrentInfo || hasHistoricalKeyword || hasHistoricalPeriod || hasPastYearReference;
+  const referencesHistoricalAssessmentYear = Boolean(requestedAssessmentYear) && !referencesCurrentAssessmentYear;
+  const hasExplicitTemporalIntent = mentionsCurrentInfo ||
+    hasHistoricalKeyword ||
+    hasNonCurrentHistoricalPeriod ||
+    hasPastYearReference ||
+    Boolean(requestedAssessmentYear);
   const inheritsHistoricalContext = !hasExplicitTemporalIntent &&
-    (contextHasHistoricalKeyword || contextHasHistoricalPeriod || contextHasPastYearReference);
+    (contextHasHistoricalKeyword || contextHasNonCurrentHistoricalPeriod || contextHasPastYearReference);
 
   const requestsHistoricalInfo = hasHistoricalKeyword ||
-    (!mentionsCurrentInfo && (hasHistoricalPeriod || hasPastYearReference || inheritsHistoricalContext));
+    (!mentionsCurrentInfo && (
+      referencesHistoricalAssessmentYear ||
+      hasNonCurrentHistoricalPeriod ||
+      hasPastYearReference ||
+      inheritsHistoricalContext
+    ));
 
   return {
     mentionsCurrentInfo,
     contextMentionsCurrentInfo,
     referencesUploadedDocuments,
     inheritsHistoricalContext,
+    requestedAssessmentYear,
+    currentAssessmentYear: currentAssessmentYear.label,
     requestsHistoricalInfo,
-    wantsLatestInfo: !requestsHistoricalInfo || (!hasExplicitTemporalIntent && contextMentionsCurrentInfo)
+    wantsLatestInfo: referencesCurrentAssessmentYear ||
+      !requestsHistoricalInfo ||
+      (!hasExplicitTemporalIntent && contextMentionsCurrentInfo)
   };
 };
 
-export const OFFICIAL_TAX_SOURCE_DOMAINS = [
+export const OFFICIAL_CIVIC_SOURCE_DOMAINS = [
+  'gov.lk',
+  'www.gov.lk',
   'ird.gov.lk',
   'www.ird.gov.lk',
+  'dmt.gov.lk',
+  'www.dmt.gov.lk',
   'documents.gov.lk',
   'parliament.lk',
   'www.parliament.lk'
 ];
+
+export const OFFICIAL_TAX_SOURCE_DOMAINS = OFFICIAL_CIVIC_SOURCE_DOMAINS;

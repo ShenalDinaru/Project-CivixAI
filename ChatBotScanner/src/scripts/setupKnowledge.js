@@ -2,11 +2,11 @@
  * Setup script to initialize the RAG system
  * 
  * This script:
- * 1. Loads tax chunks from JSON
+ * 1. Loads civic knowledge chunks from JSON
  * 2. Generates embeddings for each chunk
  * 3. Stores them in the vector database
  * 
- * Run this once after adding new tax knowledge:
+ * Run this once after adding or updating civic knowledge:
  * node src/scripts/setupKnowledge.js
  */
 
@@ -27,12 +27,12 @@ async function setupKnowledge() {
     console.log('=== CivixAI Knowledge Base Setup ===\n');
 
     // Step 1: Load chunks from knowledge file
-    console.log('Step 1: Loading tax knowledge chunks...');
+    console.log('Step 1: Loading civic knowledge chunks...');
     const { chunkPaths, chunks } = await loadKnowledgeChunks(__dirname);
 
     if (chunks.length === 0) {
       console.error('\n❌ Error: knowledge chunk file is empty!');
-      console.log('\nPlease add your Sri Lankan tax knowledge chunks to src/data as *_chunks.jsonl or *_chunks.json files.');
+      console.log('\nPlease add your Sri Lankan civic knowledge chunks to src/data as *_chunks.jsonl or *_chunks.json files.');
       console.log('\nExpected format:');
       console.log(`{"chunk_id":"ird_tax_chart_2025_2026_001","document_title":"IRD Sri Lanka Tax Chart 2025/2026","section":"Advanced Personal Income Tax","subsection":"Employer remittance note","source_url":"https://www.ird.gov.lk/...","source_last_updated":"2025-08-28","text":"Employers are required to remit APIT..."}`);
       process.exit(1);
@@ -66,7 +66,7 @@ async function setupKnowledge() {
 
     console.log('Next steps:');
     console.log('1. Start your server: npm start');
-    console.log('2. Ask tax questions - the AI will use your knowledge base');
+    console.log('2. Ask civic questions - the AI will use your knowledge base');
     console.log('3. Add or update *_chunks.jsonl files in src/data and re-run this script\n');
 
   } catch (error) {

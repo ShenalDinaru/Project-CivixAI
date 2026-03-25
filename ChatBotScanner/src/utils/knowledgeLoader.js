@@ -9,7 +9,7 @@ const extractAssessmentYear = (value = '') => {
 };
 
 const normalizeChunk = (chunk, index, sourcePath) => {
-  const title = chunk.title || chunk.document_title || 'IRD Sri Lanka Tax Chart 2025/2026';
+  const title = chunk.title || chunk.document_title || 'Sri Lankan Civic Knowledge';
   const sectionParts = [chunk.section, chunk.subsection].filter(Boolean);
   const year =
     chunk.year ||

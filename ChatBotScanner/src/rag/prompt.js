@@ -15,7 +15,7 @@ export const buildRAGPrompt = (userQuestion, retrievedChunks, options = {}) => {
   } = options;
   const currentDate = new Date().toISOString().slice(0, 10);
 
-  const systemPrompt = `You are CivixAI, a Sri Lankan tax assistant.
+  const systemPrompt = `You are CivixAI, a Sri Lankan civic assistant.
 Today's date is ${currentDate}.
 
 CRITICAL RULES (NEVER BREAK THESE):
@@ -33,14 +33,16 @@ CRITICAL RULES (NEVER BREAK THESE):
     ? 'When live official web results are available, treat the newest official source as the primary authority for current information. Use the knowledge base as supporting context and ignore superseded older guidance unless the user asked for it.'
     : 'When multiple knowledge-base years are available, prefer the latest applicable year and treat older guidance as superseded unless the user explicitly asks for an older one.'}
 10. If a rate, threshold, deadline, rule, or date depends on time, choose the newest supported value from the available sources unless the user requested a past period.
-11. If chunks from **IRD Sri Lanka Tax Chart 2025/2026** are provided, treat them as the primary knowledge-base source first and use other chunks only to fill gaps or clarify details not covered there.
+11. If chunks from **IRD Sri Lanka Tax Chart 2025/2026** are provided for a tax question, treat them as the primary knowledge-base source first and use other chunks only to fill gaps or clarify details not covered there.
+12. If the provided sources only cover certain Sri Lankan departments or services and the user asks about a topic outside that coverage, say the current knowledge base does not yet cover it instead of guessing.
 
 YOUR ROLE:
-- Provide accurate Sri Lankan tax guidance grounded in the provided knowledge base${liveSearchEnabled ? ' and official live web results' : ''}
+- Provide accurate Sri Lankan civic guidance grounded in the provided knowledge base${liveSearchEnabled ? ' and official live web results' : ''}
+- Help with topics such as taxes, licences, registrations, official documents, and other civic procedures when they are supported by the sources
 - Explain complex concepts in simple language
 - Default to the latest/current information unless the user asks for historical information
 - Ask clarifying questions when needed
-- Remind users to consult a tax professional for their specific situation
+- Remind users to verify with the relevant Sri Lankan department or a qualified professional for their specific situation when appropriate
 
 FORMATTING REQUIREMENTS (CRITICAL FOR READABILITY):
 - Use **bold** for important terms, amounts, and key points
@@ -58,7 +60,7 @@ RESPONSE STRUCTURE:
 3. Examples when helpful (use clear formatting)
 4. Mention whether you are using current/latest information or historical information when that matters
 5. Any assumptions you made (if applicable)
-6. Reminder to verify with IRD or tax professional if needed
+6. Reminder to verify with the relevant Sri Lankan department or qualified professional if needed
 
 `;
 
@@ -86,16 +88,63 @@ RESPONSE STRUCTURE:
 };
 
 /**
- * Determine if a query is about Sri Lankan taxes and needs RAG
+ * Determine if a query likely needs the Sri Lankan civic knowledge base
  * 
  * @param {string} query - User's question
- * @returns {boolean} True if query likely needs tax knowledge
+ * @returns {boolean} True if query likely needs civic knowledge
  */
 const TAX_KEYWORDS = [
   'tax', 'apit', 'vat', 'paye', 'ird', 'inland revenue',
   'deduction', 'exemption', 'rate', 'threshold', 'income',
   'salary', 'withholding', 'refund', 'filing', 'return',
-  'assessment', 'liable', 'taxable', 'sri lanka', 'sri lankan'
+  'assessment', 'liable', 'taxable'
+];
+
+const MOTOR_TRAFFIC_KEYWORDS = [
+  'dmt', 'motor traffic', 'department of motor traffic',
+  'driving licence', 'driving license', 'licence', 'license',
+  'learner permit', 'permit', 'vehicle class', 'trial',
+  'werahera', 'renewal', 'renew', 'duplicate licence',
+  'duplicate license', 'medical', 'revenue licence', 'revenue license'
+];
+
+const CIVIC_TOPIC_KEYWORDS = [
+  'government service', 'public service', 'department', 'ministry',
+  'passport', 'nic', 'identity card', 'birth certificate',
+  'death certificate', 'marriage certificate', 'police clearance',
+  'divisional secretariat', 'grama niladhari', 'registration',
+  'certificate', 'application', 'appointment', 'official form'
+];
+
+const KNOWLEDGE_BASE_KEYWORDS = [
+  ...new Set([
+    ...TAX_KEYWORDS,
+    ...MOTOR_TRAFFIC_KEYWORDS,
+    ...CIVIC_TOPIC_KEYWORDS
+  ])
+];
+
+const SMALL_TALK_PATTERNS = [
+  /^\s*(hi|hello|hey|thanks|thank you|ok|okay|cool|great|nice|bye)\b[\s.!?]*$/i,
+  /^\s*how are you(?: doing)?\??\s*$/i,
+  /^\s*who are you\??\s*$/i
+];
+
+const DIRECT_CIVIC_REQUEST_PATTERNS = [
+  /\bhow do i\b/i,
+  /\bhow can i\b/i,
+  /\bwhere can i\b/i,
+  /\bwhere do i\b/i,
+  /\bwhat documents?\b/i,
+  /\bwhich documents?\b/i,
+  /\bwhat is the process\b/i,
+  /\bwhat are the requirements?\b/i,
+  /\bwhat is required\b/i,
+  /\bhow much (?:is|are|does)\b/i,
+  /\bcan i (?:renew|apply|replace|get|obtain|register)\b/i,
+  /\bdo i need\b/i,
+  /\bwhat fees?\b/i,
+  /\bwhat charges?\b/i
 ];
 
 const CONTEXTUAL_FOLLOW_UP_PATTERNS = [
@@ -116,15 +165,56 @@ const CONTEXTUAL_FOLLOW_UP_PATTERNS = [
   /\bmonthly\b/i,
   /\bannually\b/i,
   /\byearly\b/i,
-  /\bper month\b/i
+  /\bper month\b/i,
+  /\bwhere\b/i,
+  /\bwhen\b/i,
+  /\bwhich\b/i,
+  /\brequired\b/i,
+  /\brequirements?\b/i,
+  /\bdocuments?\b/i,
+  /\bfee\b/i,
+  /\bcost\b/i,
+  /\brenew\b/i,
+  /\breplace\b/i,
+  /\bduplicate\b/i
 ];
+
+const getRecentUserContext = (conversationHistory = []) => (
+  Array.isArray(conversationHistory)
+    ? conversationHistory
+        .filter((item) => item?.role === 'user' && typeof item.content === 'string')
+        .slice(-3)
+        .map((item) => item.content)
+        .join(' ')
+    : ''
+);
+
+const includesKnowledgeKeyword = (text = '') => {
+  const lowerText = String(text).toLowerCase();
+  return KNOWLEDGE_BASE_KEYWORDS.some((keyword) => lowerText.includes(keyword));
+};
 
 const includesTaxKeyword = (text = '') => {
   const lowerText = String(text).toLowerCase();
   return TAX_KEYWORDS.some((keyword) => lowerText.includes(keyword));
 };
 
-export const needsRAG = (query, conversationHistory = []) => {
+const isSmallTalk = (text = '') => SMALL_TALK_PATTERNS.some((pattern) => pattern.test(String(text).trim()));
+
+const looksLikeDirectCivicRequest = (text = '') => (
+  DIRECT_CIVIC_REQUEST_PATTERNS.some((pattern) => pattern.test(String(text))) &&
+  /sri lanka|government|department|ministry|tax|ird|motor traffic|dmt|licen[cs]e|permit|registration|certificate|passport|nic/i.test(String(text))
+);
+
+const looksLikeContextualFollowUp = (text = '') => {
+  const normalizedText = String(text).trim();
+
+  return CONTEXTUAL_FOLLOW_UP_PATTERNS.some((pattern) => pattern.test(normalizedText)) ||
+    /[\d,.%]/.test(normalizedText) ||
+    normalizedText.endsWith('?');
+};
+
+export const isTaxQuery = (query, conversationHistory = []) => {
   const normalizedQuery = String(query || '').trim();
 
   if (!normalizedQuery) {
@@ -135,20 +225,33 @@ export const needsRAG = (query, conversationHistory = []) => {
     return true;
   }
 
-  const recentUserContext = Array.isArray(conversationHistory)
-    ? conversationHistory
-        .filter((item) => item?.role === 'user' && typeof item.content === 'string')
-        .slice(-3)
-        .map((item) => item.content)
-        .join(' ')
-    : '';
+  const recentUserContext = getRecentUserContext(conversationHistory);
 
   if (!includesTaxKeyword(recentUserContext)) {
     return false;
   }
 
-  const looksLikeFollowUp = CONTEXTUAL_FOLLOW_UP_PATTERNS.some((pattern) => pattern.test(normalizedQuery));
-  const looksLikeCalculation = /[\d,.%]/.test(normalizedQuery);
-
-  return looksLikeFollowUp || looksLikeCalculation;
+  return looksLikeContextualFollowUp(normalizedQuery);
 };
+
+export const needsKnowledgeBase = (query, conversationHistory = []) => {
+  const normalizedQuery = String(query || '').trim();
+
+  if (!normalizedQuery || isSmallTalk(normalizedQuery)) {
+    return false;
+  }
+
+  if (includesKnowledgeKeyword(normalizedQuery) || looksLikeDirectCivicRequest(normalizedQuery)) {
+    return true;
+  }
+
+  const recentUserContext = getRecentUserContext(conversationHistory);
+
+  if (!includesKnowledgeKeyword(recentUserContext) && !looksLikeDirectCivicRequest(recentUserContext)) {
+    return false;
+  }
+
+  return looksLikeContextualFollowUp(normalizedQuery);
+};
+
+export const needsRAG = needsKnowledgeBase;

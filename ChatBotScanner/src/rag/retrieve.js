@@ -5,7 +5,7 @@ const DEFAULT_MIN_SCORE = 0.25;
 const PRIMARY_TAX_CHART_MIN_SCORE = 0.35;
 
 /**
- * Retrieve relevant tax knowledge for a user's question
+ * Retrieve relevant civic knowledge for a user's question
  * This is the "R" in RAG (Retrieval-Augmented Generation)
  * 
  * @param {string} query - User's question
@@ -27,7 +27,7 @@ export const retrieveRelevantChunks = async (query, topK = 5, options = {}) => {
     const queryEmbedding = await generateEmbedding(query);
 
     // Step 2: Search vector store for similar chunks
-    console.log('Searching for relevant tax knowledge...');
+    console.log('Searching for relevant civic knowledge...');
     if (!primaryDocumentId) {
       return await vectorStore.search(queryEmbedding, topK, minScore, searchOptions);
     }
@@ -77,10 +77,10 @@ export const retrieveRelevantChunks = async (query, topK = 5, options = {}) => {
  */
 export const formatChunksForPrompt = (chunks) => {
   if (chunks.length === 0) {
-    return 'No relevant Sri Lankan tax information found in the knowledge base.';
+    return 'No relevant Sri Lankan civic information found in the knowledge base.';
   }
 
-  let formatted = 'RELEVANT SRI LANKAN TAX INFORMATION:\n\n';
+  let formatted = 'RELEVANT SRI LANKAN CIVIC INFORMATION:\n\n';
 
   chunks.forEach((chunk, index) => {
     formatted += `[SOURCE ${index + 1}] (Relevance: ${(chunk.score * 100).toFixed(1)}%)\n`;
