@@ -1355,7 +1355,7 @@ function getUserId() {
         return null;
     }
 
-    const userString = localStorage.getItem('currentUser');
+    const userString = sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser');
     if (userString) {
         try {
             const user = JSON.parse(userString);
