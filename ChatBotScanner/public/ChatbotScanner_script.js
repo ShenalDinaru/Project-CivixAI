@@ -684,6 +684,8 @@ async function finalizeAssistantResponse(tab, text, sources = []) {
     } else if (shouldRenderInView) {
         addMessageToUI(text, 'assistant', sources, { animateIn: true });
     }
+
+    await persistConversationSnapshot(tab);
 }
 
 function scrollToBottom() {
@@ -924,28 +926,44 @@ async function saveTabToHistory(tab) {
     }
 
     try {
-        let finalTitle = tab.title;
-        if (tab.messages.length > 0 && finalTitle.startsWith('Chat ')) {
-            finalTitle = tab.messages[0].content.substring(0, 50) + '...';
-        }
-
-        const tabHistory = {
-            id: tab.id,
-            title: finalTitle,
-            messages: tab.messages,
-            uploadedDocuments: Array.isArray(tab.uploadedDocuments) ? tab.uploadedDocuments : [],
-            messageCount: tab.messages.length,
-            createdAt: tab.createdAt.toISOString(),
-            closedAt: new Date().toISOString()
-        };
-
-        saveConversationToLocal(tabHistory);
-
-        if (currentUserId) {
-            await saveTabToBackend(tabHistory);
-        }
+        await persistConversationSnapshot(tab, { closedAt: new Date().toISOString() });
     } catch (err) {
         console.error('Error saving tab to history:', err);
+    }
+}
+
+function buildTabHistoryPayload(tab, options = {}) {
+    if (!tab) {
+        return null;
+    }
+
+    let finalTitle = tab.title;
+    if (tab.messages.length > 0 && finalTitle.startsWith('Chat ')) {
+        finalTitle = tab.messages[0].content.substring(0, 50) + '...';
+    }
+
+    return {
+        id: tab.id,
+        title: finalTitle,
+        messages: tab.messages,
+        uploadedDocuments: Array.isArray(tab.uploadedDocuments) ? tab.uploadedDocuments : [],
+        messageCount: tab.messages.length,
+        createdAt: tab.createdAt.toISOString(),
+        updatedAt: new Date().toISOString(),
+        ...(options.closedAt ? { closedAt: options.closedAt } : {})
+    };
+}
+
+async function persistConversationSnapshot(tab, options = {}) {
+    if (!tabHasUserMessages(tab)) {
+        return;
+    }
+
+    const tabHistory = buildTabHistoryPayload(tab, options);
+    saveConversationToLocal(tabHistory);
+
+    if (currentUserId) {
+        await saveTabToBackend(tabHistory);
     }
 }
 
@@ -1065,7 +1083,8 @@ async function saveTabToBackend(tabHistory) {
                 id: tabHistory.id,
                 userId: currentUserId,
                 title: tabHistory.title,
-                conversation: tabHistory.messages
+                conversation: tabHistory.messages,
+                uploadedDocuments: Array.isArray(tabHistory.uploadedDocuments) ? tabHistory.uploadedDocuments : []
             })
         });
         const data = await response.json();

@@ -5,7 +5,7 @@ import { db } from '../config/firebase.js';
  */
 export const saveConversation = async (req, res, next) => {
   try {
-    const { userId, title, conversation, id } = req.body;
+    const { userId, title, conversation, uploadedDocuments = [], id } = req.body;
 
     if (!userId || !conversation || !Array.isArray(conversation)) {
       return res.status(400).json({ 
@@ -28,6 +28,7 @@ export const saveConversation = async (req, res, next) => {
     await conversationRef.set({
       title: title || `Chat ${new Date().toLocaleString()}`,
       conversation: conversation,
+      uploadedDocuments: Array.isArray(uploadedDocuments) ? uploadedDocuments : [],
       createdAt,
       updatedAt: new Date(),
       messageCount: conversation.length
@@ -110,6 +111,7 @@ export const getConversation = async (req, res, next) => {
       id: doc.id,
       title: data.title,
       conversation: data.conversation,
+      uploadedDocuments: Array.isArray(data.uploadedDocuments) ? data.uploadedDocuments : [],
       createdAt: data.createdAt?.toDate?.() || data.createdAt,
       updatedAt: data.updatedAt?.toDate?.() || data.updatedAt,
       messageCount: data.messageCount
